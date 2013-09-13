@@ -49,11 +49,11 @@ $(function() {
 
 function drawBoard(board) {
     var str = '';
-    for( var i = 0 ; i < 14 ; i++ ){
+    for( var i = 0 ; i < board.length ; i++ ){
         str += '<div class="row">';
-        for( var q = 0 ; q < 14 ; q++ ){
+        for( var q = 0 ; q < board.length ; q++ ){
 
-        	var color = getBoardColor(i, q);
+            var color = getBoardColor(i, q);
 
             str += '<div class="column ' +
             color + '">' +
@@ -67,8 +67,7 @@ function drawBoard(board) {
 }
 
 function getBoardColor(x, y) {
-	if(board[x][y] != -1) 
-	 return (x + y) % 2 === 0 ? 'light': 'dark';
+    if(board[x][y] != -1)
+       return (x + y) % 2 === 0 ? 'light': 'dark';
 	
 }
-
