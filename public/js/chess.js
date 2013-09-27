@@ -4,8 +4,6 @@ var WHITE_ROOK = "wRook";
 var WHITE_BISHOP = "wBishop";
 var WHITE_KNIGHT = "wKnight";
 var WHITE_PAWN = "wPawn";
-
-//sdfsfd
  
 var BLACK_KING = "bKing";
 var BLACK_QUEEN = "bQueen";
