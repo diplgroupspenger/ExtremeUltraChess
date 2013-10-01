@@ -1,8 +1,8 @@
 #board {
     height: 700px;
     width: 700px;
-     margin-left: auto ;
-  margin-right: auto ;
+    /*margin-left: auto ;
+    margin-right: auto ;*/
 }
  
 #board .column {
@@ -10,6 +10,12 @@
     width: 50px;
     float: left;
     font-size: 45px;
+}
+
+#board .column:target {
+    border-style: solid;
+    border-color: red;
+    box-sizing: border-box;
 }
  
 #board .column.light {
@@ -25,106 +31,3 @@
     width: 50px;
 }
  
-/* WHITE  */
-#board .column .wKing {
-    background: url('../img/wKing.png');
-}
- 
-#board .column .wQueen {
-    background: url('../img/wQueen.png');
-}
- 
-#board .column .wRook {
-    background: url('../img/wRook.png');
-}
- 
-#board .column .wBishop {
-    background: url('../img/wBishop.png');
-}
- 
-#board .column .wKnight {
-    background: url('../img/wKnight.png');
-}
- 
-#board .column .wPawn {
-    background: url('../img/wPawn.png');
-}
- 
-/* BLACK */ 
-#board .column .bKing {
-    background: url('../img/bKing.png');
-}
- 
-#board .column .bQueen {
-    background: url('../img/bQueen.png');
-}
- 
-#board .column .bRook {
-    background: url('../img/bRook.png');
-}
- 
-#board .column .bBishop {
-    background: url('../img/bBishop.png');
-}
- 
-#board .column .bKnight {
-    background: url('../img/bKnight.png');
-}
- 
-#board .column .bPawn {
-    background: url('../img/bPawn.png');
-}
-
-/* RED */ 
-#board .column .rKing {
-    background: url('../img/rKing.png');
-}
- 
-#board .column .rQueen {
-    background: url('../img/rQueen.png');
-}
- 
-#board .column .rRook {
-    background: url('../img/rRook.png');
-}
- 
-#board .column .rBishop {
-    background: url('../img/rBishop.png');
-}
- 
-#board .column .rKnight {
-    background: url('../img/rKnight.png');
-}
- 
-#board .column .rPawn {
-    background: url('../img/rPawn.png');
-}
-
-/* GREEN */ 
-#board .column .gKing {
-    background: url('../img/gKing.png');
-}
- 
-#board .column .gQueen {
-    background: url('../img/gQueen.png');
-}
- 
-#board .column .gRook {
-    background: url('../img/gRook.png');
-}
- 
-#board .column .gBishop {
-    background: url('../img/gBishop.png');
-}
- 
-#board .column .gKnight {
-    background: url('../img/gKnight.png');
-}
- 
-#board .column .gPawn {
-    background: url('../img/gPawn.png');
-}
- 
-#board .column .EMPTY {
-    background: none;
-}
