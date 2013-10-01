@@ -1,33 +1,5 @@
 #board {
     height: 700px;
     width: 700px;
-    /*margin-left: auto ;
-    margin-right: auto ;*/
-}
- 
-#board .column {
-    height: 50px;
-    width: 50px;
-    float: left;
-    font-size: 45px;
-}
-
-#board .column:target {
-    border-style: solid;
-    border-color: red;
-    box-sizing: border-box;
-}
- 
-#board .column.light {
-    background: #fee472;
-}
-
-#board .column.dark {
-    background: #00B392;
-}
- 
-#board .column div {
-    height: 50px;
-    width: 50px;
 }
  
