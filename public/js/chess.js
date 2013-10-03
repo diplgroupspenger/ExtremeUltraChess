@@ -1,97 +1,151 @@
-var WHITE_KING = 4;
-var WHITE_QUEEN = 3;
-var WHITE_ROOK = 5;
-var WHITE_BISHOP = 2;
-var WHITE_KNIGHT = 1;
-var WHITE_PAWN = 0;
- 
-var BLACK_KING = 10;
-var BLACK_QUEEN = 9;
-var BLACK_ROOK = 11;
-var BLACK_BISHOP = 8;
-var BLACK_KNIGHT = 7;
-var BLACK_PAWN = 6;
-
-var RED_KING = 16;
-var RED_QUEEN = 15;
-var RED_ROOK = 17;
-var RED_BISHOP = 14;
-var RED_KNIGHT = 13;
-var RED_PAWN = 12;
-
-var GREEN_KING = 22;
-var GREEN_QUEEN = 21;
-var GREEN_ROOK = 23;
-var GREEN_BISHOP = 20;
-var GREEN_KNIGHT = 19;
-var GREEN_PAWN = 18;
-
+//-2 > No tile drawn // -1 > No figure on tile
 var EMPTY = -2;
+var TILE_SIZE = 50;
 
+var Color = {
+    WHITE: 100,
+    BLACK: 200,
+    RED: 300,
+    GREEN: 400
+}
 
-var board = [[-2,-2,-2,WHITE_ROOK,WHITE_BISHOP,WHITE_KNIGHT,WHITE_QUEEN,WHITE_KING,WHITE_KNIGHT,WHITE_BISHOP,WHITE_ROOK,-2,-2,-2],
-             [-2,-2,-2,WHITE_PAWN,WHITE_PAWN,WHITE_PAWN,WHITE_PAWN,WHITE_PAWN,WHITE_PAWN,WHITE_PAWN,WHITE_PAWN,-2,-2,-2],
+//array of the chessboard
+var board = [[-2,-2,-2,new Figure(FigureType.ROOK, Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.KNIGHT,Color.BLACK),new Figure(FigureType.QUEEN,Color.BLACK),new Figure(FigureType.KING,Color.BLACK),new Figure(FigureType.KNIGHT,Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.ROOK,Color.BLACK),-2,-2,-2],
+             [-2,-2,-2,new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),-2,-2,-2],
              [-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
-             [RED_ROOK,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_ROOK],
-             [RED_BISHOP,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_BISHOP],
-             [RED_KNIGHT,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_KNIGHT],
-             [RED_QUEEN,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_QUEEN],
-             [RED_KING,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_KING],
-             [RED_KNIGHT,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_KNIGHT],
-             [RED_BISHOP,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_BISHOP],
-             [RED_ROOK,RED_PAWN,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,GREEN_PAWN,GREEN_ROOK],
+             [new Figure(FigureType.ROOK,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.ROOK,Color.GREEN)],
+             [new Figure(FigureType.BISHOP,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.BISHOP,Color.GREEN)],
+             [new Figure(FigureType.KNIGHT,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KNIGHT,Color.GREEN)],
+             [new Figure(FigureType.QUEEN,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.QUEEN,Color.GREEN)],
+             [new Figure(FigureType.KING,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KING,Color.GREEN)],
+             [new Figure(FigureType.KNIGHT,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KNIGHT,Color.GREEN)],
+             [new Figure(FigureType.BISHOP,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.BISHOP,Color.GREEN)],
+             [new Figure(FigureType.ROOK,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.ROOK,Color.GREEN)],
              [-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
-             [-2,-2,-2,BLACK_PAWN,BLACK_PAWN,BLACK_PAWN,BLACK_PAWN,BLACK_PAWN,BLACK_PAWN,BLACK_PAWN,BLACK_PAWN,-2,-2,-2],
-             [-2,-2,-2,BLACK_ROOK,BLACK_BISHOP,BLACK_KNIGHT,BLACK_QUEEN,BLACK_KING,BLACK_KNIGHT,BLACK_BISHOP,BLACK_ROOK,-2,-2,-2]];
+             [-2,-2,-2,new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),-2,-2,-2],
+             [-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
+
 
 $(function() {
     pieces = new Image();
     pieces.onload = function () {
         drawBoard();
-    }
-    
-    pieces.src = "img/figures.png";
-    
+    }    
+    pieces.src = 'img/figures.png';
 });
 
+//draw Board on load
 function drawBoard() {
-    canvas = document.getElementById('board');
+    stage = new Kinetic.Stage({container: 'canvas',width: 700,height: 700});
+    stage.on('click', function(e) {
+        boardClicked(e);
+    });
+    //board tiles
+    boardLayer = new Kinetic.Layer(); //background layer for the chessboard
+    figureLayer = new Kinetic.Layer(); //layer for figures
+    moveLayer = new Kinetic.Layer(); //where the figures can go to
+    moveLayer.setOpacity(0.5);
 
-        ctx = canvas.getContext('2d');
-        BLOCK_SIZE = canvas.height / 14;
-        for( var i = 0 ; i < 14 ; i++ ){
-            for( var q = 0 ; q < 14 ; q++ ){
-
-                var x = q * BLOCK_SIZE;
-                var y = i * BLOCK_SIZE;
-                if(board[i][q] != -2) {
-                    ctx.fillStyle = getBoardColor(i,q);
-                    ctx.fillRect(x,y,BLOCK_SIZE,BLOCK_SIZE);
-                    if(board[i][q] != -1)
-                        drawFigure(i,q);
+    for(var y = 0 ; y < 14 ; y++){
+        for(var x = 0 ; x < 14 ; x++){
+            var tilex = x * TILE_SIZE;
+            var tiley = y * TILE_SIZE;
+            if(board[y][x] != -2) {
+                var rect = new Kinetic.Rect({
+                    x: tilex,
+                    y: tiley,
+                    width: TILE_SIZE,
+                    height: TILE_SIZE,
+                    fill: getBoardColor(x,y),
+                    stroke: 'black',
+        strokeWidth: 1,
+                });
+                boardLayer.add(rect);
+                if(board[y][x] != -1){
+                    //set figure coordinate property
+                    board[y][x].x = x;
+                    board[y][x].y = y;
+                    drawFigure(x,y);
                 }
-
             }
-            
-        }
+        }       
+    }
+    stage.add(boardLayer);
+    stage.add(figureLayer);
+    stage.add(moveLayer);
 }
 
+//draw single figure with canvas
 function drawFigure(x,y) {
-    var figurePos = getPosFromFigure(board[x][y]);
-    ctx.drawImage(pieces,figurePos.x, figurePos.y, 50, 50, y*50, x*50, 50, 50); 
+    var figurePos = getFigureFromSpritesheet(board[x][y]);
+    var figure = new Kinetic.Image({
+        x: y * TILE_SIZE,
+        y: x * TILE_SIZE,
+        image: pieces,
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        draggable: true,
+        crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
+    });
+    figureLayer.add(figure);
 }
 
-function getPosFromFigure(index) {
-    var y = Math.floor(index / 6);
-    var x = index - (6*y);
+//canvas mousedown event
+function boardClicked(e) {
+    console.log(e.offsetX);
+    tilePos = getTileFromPos(e.offsetX, e.offsetY);
+    if(clickIsLegal(tilePos.x, tilePos.y)){
+        var possibleMoves = board[tilePos.y][tilePos.x].possibleMoves();
+        var rect = new Kinetic.Rect({
+            x: possibleMoves.x * TILE_SIZE,
+            y: possibleMoves.y * TILE_SIZE,
+            width: TILE_SIZE,
+            height: TILE_SIZE,
+            fill: 'red'
+        });
+        moveLayer.add(rect);
+        stage.add(moveLayer);
+    }
+}
+
+//get tile coordinates from total coordinates
+function getTileFromPos(x, y) {
+    var position = {
+        'x': parseInt(x / TILE_SIZE),
+        'y': parseInt(y / TILE_SIZE)
+    };
+    return position;
+}
+
+//only figures are legal
+function clickIsLegal(tileX, tileY) {
+    if(board[tileY][tileX]!= -1 && board[tileY][tileX]!= -2)
+        return true;
+    else
+        return false;
+}
+
+//get spritesheet coordinates
+function getFigureFromSpritesheet(figure) {
+    var x = figure.type.id;
+    var y;
+    
+    if(figure.color == Color.WHITE)
+        y = 0;
+    else if(figure.color == Color.BLACK)
+        y = 1;
+    else if(figure.color == Color.RED)
+        y = 2;
+    else if(figure.color == Color.GREEN)
+        y = 3;
 
     var position = {
-        "y": y * 50,
-        "x": x * 50
+        'y': y * 50,
+        'x': x * 50
     };
     return position;
 }
 
 function getBoardColor(x, y) {
-       return (x + y) % 2 === 0 ? '#fee472': '#00B392';
+    return (x + y) % 2 === 0 ? '#fee472': '#00B392';
 }
