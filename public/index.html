@@ -8,17 +8,6 @@
             <script src='js/jquery-1.10.2.min.js'></script>
             <script src='js/figure.js'></script>
             <script src='js/chess.js'></script>
-            <script>
-      function msgReceived(msg){
-        $clientCounter.html(msg.clients);
-      }
-     
-      $(document).ready(function () {
-        $clientCounter = $('#client_count')
-        var socket = io.connect('http://chess.flo-lan.com');
-        socket.on('message', function(msg){msgReceived(msg)});
-      });
-    </script>
     </head>
     <body>
         <p><span id='client_count'>0</span> connected clients</p>
