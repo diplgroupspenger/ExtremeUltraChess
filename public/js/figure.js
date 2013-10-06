@@ -1,4 +1,4 @@
-var Figure = function(type, color) {
+function Figure(type, color) {
     this.type = type;
     this.color = color;
     this.x;
@@ -29,7 +29,8 @@ var FigureType = {
                 y: posY
             };
         },
-        id: 0
+        id: 0,
+        name: 'Pawn'
     },
     KNIGHT: {
 		possibleMoves: function() {
@@ -39,7 +40,8 @@ var FigureType = {
                 y: 0
             };
         },
-        id: 1
+        id: 1,
+        name: 'Knight'
     },
     BISHOP: {
 		possibleMoves: function() {
@@ -49,7 +51,8 @@ var FigureType = {
                 y: 0
             };
         },
-        id: 2
+        id: 2,
+        name: 'Bishop'
     },
     QUEEN: {
         possibleMoves: function() {
@@ -59,7 +62,8 @@ var FigureType = {
                 y: 0
             };
         },
-        id: 3
+        id: 3,
+        name: 'Queen'
     },
     KING: {
         possibleMoves: function() {
@@ -69,7 +73,8 @@ var FigureType = {
                 y: 0
             };
         },
-        id: 4
+        id: 4,
+        name: 'King'
     },
     ROOK: {
     	possibleMoves: function() {
@@ -79,6 +84,7 @@ var FigureType = {
                 y: 0
             };
         },
-        id: 5
+        id: 5,
+        name: 'Rook'
     }
 };

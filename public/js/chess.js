@@ -36,7 +36,7 @@ function removeFigure(index){
 }
 
 $(document).ready(function () {
-    socket = io.connect('http://chess.flo-lan.com');
+    socket = io.connect();
     socket.on('message', function(msg){
         $clientCounter.html(msg.clients);
     });
@@ -45,6 +45,10 @@ $(document).ready(function () {
 
     $clientCounter = $('#client_count');
          
+    var board2 = new Board();
+    board2.move(3,0);
+
+
     pieces = new Image();
     pieces.onload = function () {
         drawBoard();
