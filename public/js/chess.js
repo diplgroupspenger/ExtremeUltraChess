@@ -11,6 +11,12 @@ var Color = {
 
 function setPosition(pos, figureID){
     figureList[figureID].setPosition(pos.x, pos.y);
+    var oldPos = {x:figureList[figureID].figure.x, y:figureList[figureID].figure.y}
+    var newPos = {x: pos.x/TILE_SIZE, y:pos.y / TILE_SIZE};
+    console.log("CHessJS oldPosX: "+oldPos.x+" oldPosY: "+oldPos.y);
+    console.log("CHessJS newPosX: "+newPos.x+" newPosY: "+newPos.y);
+    myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+    figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
     stage.draw();
 }
 
@@ -83,16 +89,17 @@ function drawBoard() {
 
 //draw single figure with canvas
 function drawFigure(x,y) {
-    var figurePos = getFigureFromSpritesheet(myBoard.board[x][y]);
+    var figurePos = getFigureFromSpritesheet(myBoard.board[y][x]);
     var figureImage = new Kinetic.Image({
-        x: y * TILE_SIZE,
-        y: x * TILE_SIZE,
+        x: x * TILE_SIZE,
+        y: y * TILE_SIZE,
         image: pieces,
         width: TILE_SIZE,
         height: TILE_SIZE,
         draggable: true,
         crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
     });
+    figureImage.figure = myBoard.board[y][x];
     figureLayer.add(figureImage);
     figureList.push(figureImage);
 
@@ -100,8 +107,7 @@ function drawFigure(x,y) {
         var pos = figureImage.getPosition();
         var tilePos = getTileFromPosRound(pos.x,pos.y);
         var newPosX = tilePos.x * TILE_SIZE;
-        var newPosY = tilePos.y * TILE_SIZE;
-        
+        var newPosY = tilePos.y * TILE_SIZE; 
         
         for(var i = 0; i< figureList.length; i++){
             //look if antother figure is on the dopped tile
@@ -122,9 +128,11 @@ function drawFigure(x,y) {
 function boardClicked(e) {
     tilePos = getTileFromPosFloor(e.offsetX, e.offsetY);
     if(myBoard.clickIsLegal(tilePos.x, tilePos.y)){
-        var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard.board);
-        moveLayer.removeChildren();
-        for(var i = 0; i< possibleMoves.lenght; i++){
+        console.log("FigureX: "+myBoard.board[tilePos.y][tilePos.x].x+ " y: "+myBoard.board[tilePos.y][tilePos.x].y );
+        var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
+        moveLayer.removeChildren();         
+        for(var i = 0; i< possibleMoves.length; i++){
+
             var rect = new Kinetic.Rect({
                 x: possibleMoves[i].x * TILE_SIZE,
                 y: possibleMoves[i].y * TILE_SIZE,
@@ -171,8 +179,8 @@ function getFigureFromSpritesheet(figure) {
         y = 3;
 
     var position = {
-        'y': y * 50,
-        'x': x * 50
+        'x': x * 50,
+        'y': y * 50
     };
     return position;
 }
