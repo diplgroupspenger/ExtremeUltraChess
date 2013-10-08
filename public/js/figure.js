@@ -28,7 +28,7 @@ var FigureType = {
                 if(myBoard.board[posY-1][posX].color != this.color)
                     positions.push({x: posX,y:posY-1});
             } else { //nothing infront
-                //Starting Position
+                //Starting Position -> 2 moves up
                 if(posY = 12){
                     if(myBoard.getFigureAtPos(posX, posY-2) == null){
                     positions.push({x: posX, y: posY-2});
@@ -43,7 +43,6 @@ var FigureType = {
             }
             //enemy left-front
             if(myBoard.getFigureAtPos(posX-1,posY-1) !=null){
-                console.log("newPoscolor: "+myBoard.board[posY-1][posX-1].color+ " currentCOlor: "+this.color);
                 if(myBoard.board[posY-1][posX-1].color != this.color)
                     positions.push({x: posX-1,y:posY-1});
             }
@@ -161,10 +160,26 @@ var FigureType = {
     KING: {
         possibleMoves: function(board) {
             console.log("KING");
-            return {
-                x: 0,
-                y: 0
-            };
+            var positions = new Array();
+
+            //enemy infront
+            if(myBoard.getFigureAtPos(posX,posY-1) !=null){
+                if(myBoard.board[posY-1][posX].color != this.color)
+                    positions.push({x: posX,y:posY-1});
+            } else { //nothing infront
+                positions.push({x: posX,y:posY-1});
+            }
+            //enemy left-front
+            if(myBoard.getFigureAtPos(posX-1,posY-1) !=null){
+                if(myBoard.board[posY-1][posX-1].color != this.color)
+                    positions.push({x: posX-1,y:posY-1});
+            }
+            //enemy right-front
+            if(myBoard.getFigureAtPos(posX+1,posY-1) !=null){
+                if(myBoard.board[posY-1][posX+1].color != this.color)
+                    positions.push({x: posX+1,y:posY-1});
+            }
+            return positions;
         },
         id: 4,
         name: 'King'
