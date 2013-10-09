@@ -16,13 +16,13 @@ Figure.prototype.setPosition = function(x,y) {
     for(var i = 0; i < figureList.length; i++){
         if(figureList[i].figure.color === this.color){
             console.log("enPassant is FALSE");
-            enPassant = false;
+            figureList[i].figure.enPassant = false;
         }
     }
     if((this.x + 2 * this.inFront().x === x && this.inFront().x != 0)
         || (this.y + 2 * this.inFront().y === y  && this.inFront().y != 0)){
         console.log("enPassant is true");
-        enPassant = true;
+        this.enPassant = true;
     }
     this.x = x;
     this.y = y;
