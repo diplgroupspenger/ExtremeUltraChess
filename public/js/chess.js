@@ -10,13 +10,27 @@ var Color = {
 }
 
 function setPosition(pos, figureID){
-    figureList[figureID].setPosition(pos.x, pos.y);
-    var oldPos = {x:figureList[figureID].figure.x, y:figureList[figureID].figure.y}
-    var newPos = {x: pos.x/TILE_SIZE, y:pos.y / TILE_SIZE};
-    console.log("CHessJS oldPosX: "+oldPos.x+" oldPosY: "+oldPos.y);
-    console.log("CHessJS newPosX: "+newPos.x+" newPosY: "+newPos.y);
-    myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
-    figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
+    var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y}
+    var newPos = {"x": pos.x/TILE_SIZE, "y":pos.y / TILE_SIZE};
+    console.log("newPos: " + newPos.x + ", " + newPos.y);
+    var possibleMoves = myBoard.getFigureAtPos(oldPos.x, oldPos.y).possibleMoves(myBoard);
+    var possible = false;
+    for(var i = 0; i < possibleMoves.length; i++){
+        if(possibleMoves[i].x == newPos.x && possibleMoves[i].y == newPos.y){
+            possible = true;
+        }
+    }
+    if(possible){
+        figureList[figureID].setPosition(pos.x, pos.y);
+        console.log("CHessJS oldPosX: "+oldPos.x+" oldPosY: "+oldPos.y);
+        console.log("CHessJS newPosX: "+newPos.x+" newPosY: "+newPos.y);
+        myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+        figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
+    } 
+    else{
+        figureList[figureID].setPosition(oldPos.x * TILE_SIZE, oldPos.y * TILE_SIZE);
+    }
+    moveLayer.removeChildren();
     stage.draw();
 }
 
@@ -48,11 +62,11 @@ $(document).ready(function () {
 //draw Board on load
 function drawBoard() {
     stage = new Kinetic.Stage({container: 'canvas',width: 700,height: 700});
-    stage.on('click', function(e) {
+    stage.on('mousedown', function(e) {
         boardClicked(e);
     });
 
-    figureList = new Array();
+    figureList = [];
     //board tiles
     boardLayer = new Kinetic.Layer(); //background layer for the chessboard
     moveLayer = new Kinetic.Layer(); //where the figures can go to
@@ -110,12 +124,20 @@ function drawFigure(x,y) {
         var newPosY = tilePos.y * TILE_SIZE; 
         
         for(var i = 0; i< figureList.length; i++){
-            //look if antother figure is on the dopped tile
+            //look if another figure is on the dopped tile
             if(figureList[i].getPosition().x == newPosX && figureList[i].getPosition().y == newPosY){
                 //ignore dragged figure
                 if(figureList[i] != figureImage){
                    socket.emit('sendRemoveFigure',i);
                 } 
+            }
+            //look if enPassant was used
+            var figure = figureList[i].figure;
+            if(figure.enPassant){
+                var behind = {"x": figure.x + figure.behind().x, "y": figure.y + figure.behind().y};
+                if(myBoard.isEnemy(behind.x, behind.y)){
+                    socket.emit('sendRemoveFigure', i);
+                }
             }
         }
         var figureID = figureList.indexOf(figureImage);
@@ -144,7 +166,7 @@ function boardClicked(e) {
             moveLayer.add(rect);
         }
     }
-    stage.draw();
+    moveLayer.draw();
 }
 
 //get tile coordinates from total coordinates

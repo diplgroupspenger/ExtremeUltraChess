@@ -4,6 +4,7 @@ function Figure(type, color) {
     this.x;
     this.y;
     this.hasMoved = false;
+    this.enPassant = false;
 }
 
 Figure.prototype.possibleMoves = function(board) {
@@ -12,12 +13,21 @@ Figure.prototype.possibleMoves = function(board) {
 }
 
 Figure.prototype.setPosition = function(x,y) {
+    for(var i = 0; i < figureList.length; i++){
+        if(figureList[i].figure.color === this.color){
+            console.log("enPassant is FALSE");
+            enPassant = false;
+        }
+    }
+    if((this.x + 2 * this.inFront().x === x && this.inFront().x != 0)
+        || (this.y + 2 * this.inFront().y === y  && this.inFront().y != 0)){
+        console.log("enPassant is true");
+        enPassant = true;
+    }
     this.x = x;
     this.y = y;
     this.hasMoved = true;
 }
-
-
 
 Figure.prototype.inFront = function(){
     switch(this.color){
@@ -64,6 +74,7 @@ var FigureType = {
             var positions = [];
 
             var inFront = {"x": posX + this.inFront().x, "y": posY + this.inFront().y};
+            var inFront2 = {"x": inFront.x + this.inFront().x, "y": inFront.y + this.inFront().y};
 
             //nothing infront
             if(myBoard.board[inFront.y][inFront.x] === -1){
@@ -71,7 +82,6 @@ var FigureType = {
 
                 //check if the double-move is available
                 if(!this.hasMoved){
-                    var inFront2 = {"x": inFront.x + this.inFront().x, "y": inFront.y + this.inFront().y};
                     if(myBoard.board[inFront2.y][inFront2.x] === -1){
                         positions.push(inFront2);
                     }
@@ -89,15 +99,34 @@ var FigureType = {
             if(myBoard.isEnemy(rightFront.x, rightFront.y, this.color)){
                 positions.push(rightFront);
             }
-            
+
+            var left = {"x": posX + this.left().x, "y": posY + this.left().y};
+            var right = {"x": posX + this.right().x, "y": posY + this.right().y};
+
+            //check for en passant
+
+            if(myBoard.isEnemy(left.x, left.y, this.color)){
+                console.log("enemy is left");
+                console.log("enemys enPassant:" + myBoard.getFigureAtPos(left.x, left.y).enPassant);
+                if(myBoard.getFigureAtPos(left.x, left.y).enPassant){
+                    positions.push(leftFront);
+                }
+            }
+            if(myBoard.isEnemy(right.x, right.y, this.color)){
+                console.log("enemy is right");
+                if(myBoard.getFigureAtPos(right.x, right.y).enPassant){
+                    positions.push(rightFront);
+                }
+            }
+
             return positions;
         },
         id: 0,
 
     },
     KNIGHT: {
-		possibleMoves: function(board) {
-			 
+		possibleMoves: function(myBoard) {
+
             var posX = this.x;
             var posY = this.y;
             var positions = new Array();
@@ -174,11 +203,13 @@ var FigureType = {
         name: 'Knight'
     },
     BISHOP: {
-		possibleMoves: function(board) {
+		possibleMoves: function(myBoard) {
             console.log("BISHOP");
             var posX = this.x;
             var posY = this.y;
-            var positions = {};
+            var positions = [];
+
+
 
             return positions;
         },
@@ -186,7 +217,7 @@ var FigureType = {
         name: 'Bishop'
     },
     QUEEN: {
-        possibleMoves: function(board) {
+        possibleMoves: function(myBoard) {
             console.log("QUEEN");
             return {
                 x: 0,
@@ -197,7 +228,7 @@ var FigureType = {
         name: 'Queen'
     },
     KING: {
-        possibleMoves: function(board) {
+        possibleMoves: function(myBoard) {
             console.log("KING");
             var positions = new Array();
 
@@ -224,7 +255,7 @@ var FigureType = {
         name: 'King'
     },
     ROOK: {
-    	possibleMoves: function(board) {
+    	possibleMoves: function(myBoard) {
             console.log("ROOK");
             return {
                 x: 0,
