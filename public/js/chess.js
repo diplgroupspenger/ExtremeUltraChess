@@ -70,7 +70,7 @@ function drawBoard() {
     //board tiles
     boardLayer = new Kinetic.Layer(); //background layer for the chessboard
     moveLayer = new Kinetic.Layer(); //where the figures can go to
-    moveLayer.setOpacity(0.5);
+   // moveLayer.setOpacity(0.5);
     figureLayer = new Kinetic.Layer(); //layer for figures
     for(var y = 0 ; y < 14 ; y++){
         for(var x = 0 ; x < 14 ; x++){
@@ -160,7 +160,7 @@ function boardClicked(e) {
                 y: possibleMoves[i].y * TILE_SIZE,
                 width: TILE_SIZE,
                 height: TILE_SIZE,
-                fill: 'red'
+                fill: 'orange'
             });
            
             moveLayer.add(rect);
