@@ -30,12 +30,27 @@ function setPosition(pos, figureID){
     else{
         figureList[figureID].setPosition(oldPos.x * TILE_SIZE, oldPos.y * TILE_SIZE);
     }
+
+    //look if enPassant was used
+    for(var i = 0; i < figureList.length; i++){
+        var figure = figureList[i].figure;
+        if(figure.enPassant){
+            console.log("enPASSAAANT");
+            var behind = {"x": figure.x + figure.behind().x, "y": figure.y + figure.behind().y};
+            if(myBoard.isEnemy(behind.x, behind.y)){
+                socket.emit('sendRemoveFigure', i);
+            }
+        }
+        else console.log("nix gut");
+    }
+
     moveLayer.removeChildren();
     stage.draw();
 }
 
 function removeFigure(index){
-    figureList[index].remove(); 
+    figureList[index].remove();
+    figureList[index].figure = -1;
     stage.draw();
 }
 
@@ -54,7 +69,7 @@ $(document).ready(function () {
     pieces = new Image();
     pieces.onload = function () {
         drawBoard();
-    }    
+    }
     pieces.src = 'img/figures.png';
  });
 
@@ -122,6 +137,7 @@ function drawFigure(x,y) {
         var tilePos = getTileFromPosRound(pos.x,pos.y);
         var newPosX = tilePos.x * TILE_SIZE;
         var newPosY = tilePos.y * TILE_SIZE; 
+
         
         for(var i = 0; i< figureList.length; i++){
             //look if another figure is on the dopped tile
@@ -131,14 +147,7 @@ function drawFigure(x,y) {
                    socket.emit('sendRemoveFigure',i);
                 } 
             }
-            //look if enPassant was used
-            var figure = figureList[i].figure;
-            if(figure.enPassant){
-                var behind = {"x": figure.x + figure.behind().x, "y": figure.y + figure.behind().y};
-                if(myBoard.isEnemy(behind.x, behind.y)){
-                    socket.emit('sendRemoveFigure', i);
-                }
-            }
+            
         }
         var figureID = figureList.indexOf(figureImage);
         socket.emit('sendPosition',{x:newPosX,y:newPosY},figureID);
