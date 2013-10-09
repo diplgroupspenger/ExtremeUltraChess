@@ -3,6 +3,7 @@ function Figure(type, color) {
     this.color = color;
     this.x;
     this.y;
+    this.hasMoved = false;
 }
 
 Figure.prototype.possibleMoves = function(board) {
@@ -13,6 +14,45 @@ Figure.prototype.possibleMoves = function(board) {
 Figure.prototype.setPosition = function(x,y) {
     this.x = x;
     this.y = y;
+    this.hasMoved = true;
+}
+
+
+
+Figure.prototype.inFront = function(){
+    switch(this.color){
+        case Color.WHITE: return {"x" : 0, "y" : -1}; break;
+        case Color.BLACK: return {"x" : 0, "y" : 1}; break;
+        case Color.RED: return {"x" : 1, "y" : 0}; break;
+        case Color.GREEN: return {"x" : -1, "y" : 0}; break;
+    }
+}
+
+Figure.prototype.behind = function(){
+    switch(this.color){
+        case Color.WHITE: return {"x" : 0, "y" : 1}; break;
+        case Color.BLACK: return {"x" : 0, "y" : -1}; break;
+        case Color.RED: return {"x" : -1, "y" : 0}; break;
+        case Color.GREEN: return {"x" : 1, "y" : 0}; break;
+    }
+}
+
+Figure.prototype.left = function(){
+    switch(this.color){
+        case Color.WHITE: return {"x" : -1, "y" : 0}; break;
+        case Color.BLACK: return {"x" : 1, "y" : 0}; break;
+        case Color.RED: return {"x" : 0, "y" : -1}; break;
+        case Color.GREEN: return {"x" : 0, "y" : 1}; break;
+    }
+}
+
+Figure.prototype.right = function(){
+    switch(this.color){
+        case Color.WHITE: return {"x" : 1, "y" : 0}; break;
+        case Color.BLACK: return {"x" : -1, "y" : 0}; break;
+        case Color.RED: return {"x" : 0, "y" : 1}; break;
+        case Color.GREEN: return {"x" : 0, "y" : -1}; break;
+    }
 }
 
 var FigureType = {
@@ -20,41 +60,40 @@ var FigureType = {
     	possibleMoves: function(myBoard) {
     		var posX = this.x;
     		var posY = this.y;
-            console.log("PAWN " +this.color + " x: "+posX+ " y: "+posY);
-            var positions = new Array();
+            console.log("PAWN " + this.color + " x: " + posX + " y: " + posY);
+            var positions = [];
 
-            //enemy infront
-            if(myBoard.getFigureAtPos(posX,posY-1) !=null){
-                if(myBoard.board[posY-1][posX].color != this.color)
-                    positions.push({x: posX,y:posY-1});
-            } else { //nothing infront
-                //Starting Position -> 2 moves up
-                if(posY = 12){
-                    if(myBoard.getFigureAtPos(posX, posY-2) == null){
-                    positions.push({x: posX, y: posY-2});
-                    } else {
-                        console.log(this.color +"enemycolor "+myBoard.board[posY-2][posX].color);
-                        if(myBoard.board[posY-2][posX].color != this.color){
-                            positions.push({x: posX, y: posY-2});
-                        }
+            var inFront = {"x": posX + this.inFront().x, "y": posY + this.inFront().y};
+
+            //nothing infront
+            if(myBoard.board[inFront.y][inFront.x] === -1){
+                positions.push(inFront);
+
+                //check if the double-move is available
+                if(!this.hasMoved){
+                    var inFront2 = {"x": inFront.x + this.inFront().x, "y": inFront.y + this.inFront().y};
+                    if(myBoard.board[inFront2.y][inFront2.x] === -1){
+                        positions.push(inFront2);
                     }
                 }
-                positions.push({x: posX,y:posY-1});
             }
-            //enemy left-front
-            if(myBoard.getFigureAtPos(posX-1,posY-1) !=null){
-                if(myBoard.board[posY-1][posX-1].color != this.color)
-                    positions.push({x: posX-1,y:posY-1});
+            
+
+            var leftFront =  {"x": inFront.x + this.left().x, "y": inFront.y + this.left().y};
+            var rightFront = {"x": inFront.x + this.right().x, "y": inFront.y + this.right().y};
+
+            //check for enemies in attack range
+            if(myBoard.isEnemy(leftFront.x, leftFront.y, this.color)){
+                positions.push(leftFront);
             }
-            //enemy right-front
-            if(myBoard.getFigureAtPos(posX+1,posY-1) !=null){
-                if(myBoard.board[posY-1][posX+1].color != this.color)
-                    positions.push({x: posX+1,y:posY-1});
+            if(myBoard.isEnemy(rightFront.x, rightFront.y, this.color)){
+                positions.push(rightFront);
             }
+            
             return positions;
         },
         id: 0,
-        name: 'Pawn'
+
     },
     KNIGHT: {
 		possibleMoves: function(board) {

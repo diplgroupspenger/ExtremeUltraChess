@@ -15,6 +15,22 @@ var Board = function(){
       [-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
 }
 
+Board.prototype.isPotentiallyWalkable = function (x, y, color){
+    var tile = this.board[y][x];
+    if(tile != -2 && (tile === -1 || tile.color != color)){
+        return true;
+    }
+    return false;
+}
+
+Board.prototype.isEnemy = function (x, y, color){
+    if(!this.isPotentiallyWalkable(x, y, color)) return false
+    else{
+      if(this.board[y][x] != -1) return true;
+    }
+    return false;
+}
+
 Board.prototype.getFigureAtPos = function(x,y) {
       if(this.board[y][x] != -1 && this.board[y][x] != -2)
           return this.board[y][x]; 
