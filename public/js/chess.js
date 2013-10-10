@@ -7,10 +7,10 @@ var Color = {
     BLACK: 200,
     RED: 300,
     GREEN: 400
-}
+};
 
 function setPosition(pos, figureID){
-    var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y}
+    var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
     var newPos = {"x": pos.x/TILE_SIZE, "y":pos.y / TILE_SIZE};
 
     figureList[figureID].setPosition(pos.x, pos.y);
@@ -56,7 +56,7 @@ $(document).ready(function () {
     pieces = new Image();
     pieces.onload = function () {
         drawBoard();
-    }
+    };
     pieces.src = 'img/figures.png';
  });
 
@@ -96,7 +96,7 @@ function drawBoard() {
                     drawFigure(x,y);
                 }
             }
-        }       
+        }
     }
     stage.add(boardLayer);
     stage.add(moveLayer);
@@ -126,8 +126,7 @@ function drawFigure(x,y) {
         var newPosY = tilePos.y * TILE_SIZE;
         var figureID = figureList.indexOf(figureImage);
 
-        var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y}
-        
+        var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
 
         if(isPossible(oldPos, tilePos)){
             for(var i = 0; i< figureList.length; i++){
@@ -136,7 +135,7 @@ function drawFigure(x,y) {
                     //ignore dragged figure
                     if(figureList[i] != figureImage){
                        socket.emit('sendRemoveFigure',i);
-                    } 
+                    }
                 }
             }
             socket.emit('sendPosition',{"x":newPosX,"y":newPosY},figureID);
@@ -164,7 +163,7 @@ function boardClicked(e) {
     if(myBoard.clickIsLegal(tilePos.x, tilePos.y)){
         console.log("FigureX: "+myBoard.board[tilePos.y][tilePos.x].x+ " y: "+myBoard.board[tilePos.y][tilePos.x].y );
         var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
-        moveLayer.removeChildren();         
+        moveLayer.removeChildren();
         for(var i = 0; i< possibleMoves.length; i++){
 
             var rect = new Kinetic.Rect({

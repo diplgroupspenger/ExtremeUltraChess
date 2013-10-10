@@ -14,12 +14,12 @@ var Board = function(){
       [-2,-2,-2,new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),-2,-2,-2],
       [-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
 
-}
+};
 
 Board.prototype.isLegalField = function(x, y){
   if(x >= 0 && x < this.board.length && y >= 0 && y < this.board.length) return true;
   else return false;
-}
+};
 
 Board.prototype.isPotentiallyWalkable = function (x, y, color){
     var tile = this.board[y][x];
@@ -27,22 +27,22 @@ Board.prototype.isPotentiallyWalkable = function (x, y, color){
         return true;
     }
     return false;
-}
+};
 
 Board.prototype.isEnemy = function (x, y, color){
-    if(!this.isPotentiallyWalkable(x, y, color)) return false
+    if(!this.isPotentiallyWalkable(x, y, color)) return false;
     else{
       if(this.board[y][x] != -1) return true;
     }
     return false;
-}
+};
 
 Board.prototype.getFigureAtPos = function(x,y) {
       if(this.board[y][x] != -1 && this.board[y][x] != -2)
-          return this.board[y][x]; 
+          return this.board[y][x];
       else
           return null;
-}
+};
 
 //only figures are legal
 Board.prototype.clickIsLegal = function(tileX, tileY){
@@ -50,7 +50,7 @@ Board.prototype.clickIsLegal = function(tileX, tileY){
           return true;
       else
           return false;
-}
+};
 
 Board.prototype.moveFigureTo = function(oldX, oldY, newX, newY){
  
@@ -58,15 +58,15 @@ Board.prototype.moveFigureTo = function(oldX, oldY, newX, newY){
     this.board[oldY][oldX] = this.board[newY][newX];
     this.board[newY][newX] = temp;
     
-    if(this.getFigureAtPos(oldX, oldY) != null){
+    if(this.getFigureAtPos(oldX, oldY) !== null){
       this.board[oldY][oldX].setPosition(oldX,oldY);
       console.log("color: "+this.board[oldY][oldX].color);
-    }    
-    if(this.getFigureAtPos(newX, newY) != null){
+    }
+    if(this.getFigureAtPos(newX, newY) !== null){
       this.board[newY][newX].setPosition(newX,newY);
       console.log("color: "+this.board[newY][newX].color);
     }
 
       console.log("oldX: "+oldX + " oldY: "+oldY);
       console.log("newX: "+newX + " newY: "+newY);
-}
+};

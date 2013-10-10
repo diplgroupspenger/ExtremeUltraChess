@@ -1,16 +1,15 @@
 function Figure(type, color) {
     this.type = type;
     this.color = color;
-    this.x;
-    this.y;
+    this.x = 0;
+    this.y = 0;
     this.hasMoved = false;
     this.enPassant = false;
 }
 
 Figure.prototype.possibleMoves = function(board) {
     return this.type.possibleMoves.call(this,board);
-    this.type.call(this);
-}
+};
 
 Figure.prototype.setPosition = function(x,y) {
     for(var i = 0; i < figureList.length; i++){
@@ -18,56 +17,56 @@ Figure.prototype.setPosition = function(x,y) {
             figureList[i].figure.enPassant = false;
         }
     }
-    if(this.type == FigureType.PAWN && ((this.x + 2 * this.inFront().x === x && this.inFront().x != 0)
-        || (this.y + 2 * this.inFront().y === y  && this.inFront().y != 0))){
+    if(this.type == FigureType.PAWN && ((this.x + 2 * this.inFront().x === x && this.inFront().x !== 0) ||
+     (this.y + 2 * this.inFront().y === y  && this.inFront().y !== 0))){
         this.enPassant = true;
     }
     this.x = x;
     this.y = y;
     this.hasMoved = true;
-}
+};
 
 Figure.prototype.inFront = function(){
     switch(this.color){
-        case Color.WHITE: return {"x" : 0, "y" : -1}; break;
-        case Color.BLACK: return {"x" : 0, "y" : 1}; break;
-        case Color.RED: return {"x" : 1, "y" : 0}; break;
-        case Color.GREEN: return {"x" : -1, "y" : 0}; break;
+        case Color.WHITE: return {"x" : 0, "y" : -1};
+        case Color.BLACK: return {"x" : 0, "y" : 1};
+        case Color.RED: return {"x" : 1, "y" : 0};
+        case Color.GREEN: return {"x" : -1, "y" : 0};
     }
-}
+};
 
 Figure.prototype.behind = function(){
     switch(this.color){
-        case Color.WHITE: return {"x" : 0, "y" : 1}; break;
-        case Color.BLACK: return {"x" : 0, "y" : -1}; break;
-        case Color.RED: return {"x" : -1, "y" : 0}; break;
-        case Color.GREEN: return {"x" : 1, "y" : 0}; break;
+        case Color.WHITE: return {"x" : 0, "y" : 1};
+        case Color.BLACK: return {"x" : 0, "y" : -1};
+        case Color.RED: return {"x" : -1, "y" : 0};
+        case Color.GREEN: return {"x" : 1, "y" : 0};
     }
-}
+};
 
 Figure.prototype.left = function(){
     switch(this.color){
-        case Color.WHITE: return {"x" : -1, "y" : 0}; break;
-        case Color.BLACK: return {"x" : 1, "y" : 0}; break;
-        case Color.RED: return {"x" : 0, "y" : -1}; break;
-        case Color.GREEN: return {"x" : 0, "y" : 1}; break;
+        case Color.WHITE: return {"x" : -1, "y" : 0};
+        case Color.BLACK: return {"x" : 1, "y" : 0};
+        case Color.RED: return {"x" : 0, "y" : -1};
+        case Color.GREEN: return {"x" : 0, "y" : 1};
     }
-}
+};
 
 Figure.prototype.right = function(){
     switch(this.color){
-        case Color.WHITE: return {"x" : 1, "y" : 0}; break;
-        case Color.BLACK: return {"x" : -1, "y" : 0}; break;
-        case Color.RED: return {"x" : 0, "y" : 1}; break;
-        case Color.GREEN: return {"x" : 0, "y" : -1}; break;
+        case Color.WHITE: return {"x" : 1, "y" : 0};
+        case Color.BLACK: return {"x" : -1, "y" : 0};
+        case Color.RED: return {"x" : 0, "y" : 1};
+        case Color.GREEN: return {"x" : 0, "y" : -1};
     }
-}
+};
 
 var FigureType = {
     PAWN: {
-    	possibleMoves: function(myBoard) {
-    		var posX = this.x;
-    		var posY = this.y;
+        possibleMoves: function(myBoard) {
+            var posX = this.x;
+            var posY = this.y;
             console.log("PAWN " + this.color + " x: " + posX + " y: " + posY);
             var positions = [];
 
@@ -125,10 +124,10 @@ var FigureType = {
 
             var posX = this.x;
             var posY = this.y;
-            var positions = new Array();
+            var positions = [];
             console.log("KNIGHT " +this.color + " x: "+posX+ " y: "+posY);
             //up left
-            if(myBoard.getFigureAtPos(posX-1,posY-2) == null){
+            if(myBoard.getFigureAtPos(posX-1,posY-2) === null){
                 positions.push({x: posX-1,y:posY-2});
             } else {
                 if(myBoard.board[posY-2][posX+1].color != this.color){
@@ -137,7 +136,7 @@ var FigureType = {
             }
 
             //up right
-            if(myBoard.getFigureAtPos(posX+1,posY-2) == null){
+            if(myBoard.getFigureAtPos(posX+1,posY-2) === null){
                 positions.push({x: posX+1,y:posY-2});
             } else {
                 if(myBoard.board[posY-2][posX+1].color != this.color){
@@ -145,7 +144,7 @@ var FigureType = {
                 }
             }
 
-            if(myBoard.getFigureAtPos(posX-2,posY-1) == null){
+            if(myBoard.getFigureAtPos(posX-2,posY-1) === null){
                 positions.push({x: posX-2,y:posY-1});
             } else {
                 if(myBoard.board[posY-1][posX-2].color != this.color){
@@ -153,7 +152,7 @@ var FigureType = {
                 }
             }
 
-            if(myBoard.getFigureAtPos(posX+2,posY-1) == null){
+            if(myBoard.getFigureAtPos(posX+2,posY-1) === null){
                 positions.push({x: posX+2,y:posY-1});
             } else {
                 if(myBoard.board[posY-1][posX+2].color != this.color){
@@ -161,7 +160,7 @@ var FigureType = {
                 }
             }
 
-            if(myBoard.getFigureAtPos(posX-2,posY+1) == null){
+            if(myBoard.getFigureAtPos(posX-2,posY+1) === null){
                 positions.push({x: posX-2,y:posY+1});
             } else {
                 if(myBoard.board[posY+1][posX-2].color != this.color){
@@ -169,7 +168,7 @@ var FigureType = {
                 }
             }
             
-            if(myBoard.getFigureAtPos(posX+2,posY+1) == null){
+            if(myBoard.getFigureAtPos(posX+2,posY+1) === null){
                 positions.push({x: posX+2,y:posY+1});
             } else {
                 if(myBoard.board[posY+1][posX+2].color != this.color){
@@ -177,7 +176,7 @@ var FigureType = {
                 }
             }
 
-            if(myBoard.getFigureAtPos(posX-1,posY+2) == null){
+            if(myBoard.getFigureAtPos(posX-1,posY+2) === null){
                 positions.push({x: posX-1,y:posY+2});
             } else {
                 if(myBoard.board[posY+2][posX-1].color != this.color){
@@ -185,7 +184,7 @@ var FigureType = {
                 }
             }
 
-            if(myBoard.getFigureAtPos(posX+1,posY+2) == null){
+            if(myBoard.getFigureAtPos(posX+1,posY+2) === null){
                 positions.push({x: posX+1,y:posY+2});
             } else {
                 if(myBoard.board[posY+2][posX+1].color != this.color){
@@ -207,35 +206,37 @@ var FigureType = {
 
             console.log("value: " + value);
 
+            var xtmp = 0;
+            var ytmp = 0;
 
             for (var k = 1; k < value; k++) {
                 
-                var xtmp = this.x + k;
-                var ytmp = this.y + k;
+                xtmp = this.x + k;
+                ytmp = this.y + k;
                 if(!pushIfPossible(xtmp, ytmp, this.color)){
                     break;
                 }
             }
-            for (var k = 1; k < value; k++){
+            for (k = 1; k < value; k++){
 
-                var xtmp = this.x - k;
-                var ytmp = this.y - k;
+                xtmp = this.x - k;
+                ytmp = this.y - k;
                 if(!pushIfPossible(xtmp, ytmp, this.color)){
                     break;
                 }
             }
-            for (var k = 1; k < value; k++) {
+            for (k = 1; k < value; k++) {
 
-                var xtmp = this.x + k;
-                var ytmp = this.y - k;
+                xtmp = this.x + k;
+                ytmp = this.y - k;
                 if(!pushIfPossible(xtmp, ytmp, this.color)){
                     break;
                 }
             }
-            for (var k = 1; k < value; k++) {
+            for (k = 1; k < value; k++) {
 
-                var xtmp = this.x - k;
-                var ytmp = this.y + k;
+                xtmp = this.x - k;
+                ytmp = this.y + k;
                 if(!pushIfPossible(xtmp, ytmp, this.color)){
                     break;
                 }
@@ -274,22 +275,22 @@ var FigureType = {
     KING: {
         possibleMoves: function(myBoard) {
             console.log("KING");
-            var positions = new Array();
+            var positions = [];
 
             //enemy infront
-            if(myBoard.getFigureAtPos(posX,posY-1) !=null){
+            if(myBoard.getFigureAtPos(posX,posY-1) !== null){
                 if(myBoard.board[posY-1][posX].color != this.color)
                     positions.push({x: posX,y:posY-1});
             } else { //nothing infront
                 positions.push({x: posX,y:posY-1});
             }
             //enemy left-front
-            if(myBoard.getFigureAtPos(posX-1,posY-1) !=null){
+            if(myBoard.getFigureAtPos(posX-1,posY-1) !== null){
                 if(myBoard.board[posY-1][posX-1].color != this.color)
                     positions.push({x: posX-1,y:posY-1});
             }
             //enemy right-front
-            if(myBoard.getFigureAtPos(posX+1,posY-1) !=null){
+            if(myBoard.getFigureAtPos(posX+1,posY-1) !== null){
                 if(myBoard.board[posY-1][posX+1].color != this.color)
                     positions.push({x: posX+1,y:posY-1});
             }
@@ -299,7 +300,7 @@ var FigureType = {
         name: 'King'
     },
     ROOK: {
-    	possibleMoves: function(myBoard) {
+        possibleMoves: function(myBoard) {
             console.log("ROOK");
             return {
                 x: 0,
