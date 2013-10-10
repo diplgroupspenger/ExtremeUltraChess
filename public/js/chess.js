@@ -12,24 +12,10 @@ var Color = {
 function setPosition(pos, figureID){
     var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y}
     var newPos = {"x": pos.x/TILE_SIZE, "y":pos.y / TILE_SIZE};
-    console.log("newPos: " + newPos.x + ", " + newPos.y);
-    var possibleMoves = myBoard.getFigureAtPos(oldPos.x, oldPos.y).possibleMoves(myBoard);
-    var possible = false;
-    for(var i = 0; i < possibleMoves.length; i++){
-        if(possibleMoves[i].x == newPos.x && possibleMoves[i].y == newPos.y){
-            possible = true;
-        }
-    }
-    if(possible){
-        figureList[figureID].setPosition(pos.x, pos.y);
-        console.log("CHessJS oldPosX: "+oldPos.x+" oldPosY: "+oldPos.y);
-        console.log("CHessJS newPosX: "+newPos.x+" newPosY: "+newPos.y);
-        myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
-        figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
-    } 
-    else{
-        figureList[figureID].setPosition(oldPos.x * TILE_SIZE, oldPos.y * TILE_SIZE);
-    }
+
+    figureList[figureID].setPosition(pos.x, pos.y);
+    myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+    figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
     //look if enPassant was used
     for(var i = 0; i < figureList.length; i++){
@@ -47,8 +33,11 @@ function setPosition(pos, figureID){
 }
 
 function removeFigure(index){
+    console.log("removed");
+    var x = figureList[index].figure.x;
+    var y = figureList[index].figure.y;
+    myBoard.board[y][x] = -1;
     figureList[index].remove();
-    figureList[index].figure = -1;
     stage.draw();
 }
 
@@ -134,25 +123,39 @@ function drawFigure(x,y) {
         var pos = figureImage.getPosition();
         var tilePos = getTileFromPosRound(pos.x,pos.y);
         var newPosX = tilePos.x * TILE_SIZE;
-        var newPosY = tilePos.y * TILE_SIZE; 
+        var newPosY = tilePos.y * TILE_SIZE;
+        var figureID = figureList.indexOf(figureImage);
+
+        var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y}
         
-        if(figureImage.figure.x === tilePos.x && figureImage.figure.y === tilePos.y){
+
+        if(isPossible(oldPos, tilePos)){
             for(var i = 0; i< figureList.length; i++){
                 //look if another figure is on the dopped tile
                 if(figureList[i].getPosition().x == newPosX && figureList[i].getPosition().y == newPosY){
                     //ignore dragged figure
                     if(figureList[i] != figureImage){
                        socket.emit('sendRemoveFigure',i);
-                       console.log("remove");
                     } 
                 }
-                
             }
+            socket.emit('sendPosition',{"x":newPosX,"y":newPosY},figureID);
         }
-        var figureID = figureList.indexOf(figureImage);
-        socket.emit('sendPosition',{x:newPosX,y:newPosY},figureID);
+        else {
+            setPosition({"x": oldPos.x * TILE_SIZE, "y": oldPos.y * TILE_SIZE}, figureID);
+        }
         stage.draw();
     });
+}
+
+function isPossible(oldPos,newPos){
+    var possibleMoves = myBoard.getFigureAtPos(oldPos.x, oldPos.y).possibleMoves(myBoard);
+    for(var i = 0; i < possibleMoves.length; i++){
+        if(possibleMoves[i].x == newPos.x && possibleMoves[i].y == newPos.y){
+            return true;
+        }
+    }
+    return false;
 }
 
 //canvas mousedown event

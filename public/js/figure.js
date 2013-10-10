@@ -15,13 +15,11 @@ Figure.prototype.possibleMoves = function(board) {
 Figure.prototype.setPosition = function(x,y) {
     for(var i = 0; i < figureList.length; i++){
         if(figureList[i].figure.color === this.color){
-            console.log("enPassant is FALSE");
             figureList[i].figure.enPassant = false;
         }
     }
     if(this.type == FigureType.PAWN && ((this.x + 2 * this.inFront().x === x && this.inFront().x != 0)
         || (this.y + 2 * this.inFront().y === y  && this.inFront().y != 0))){
-        console.log("enPassant is true");
         this.enPassant = true;
     }
     this.x = x;
@@ -106,14 +104,12 @@ var FigureType = {
             //check for en passant
 
             if(myBoard.isEnemy(left.x, left.y, this.color)){
-                console.log("enemy is left");
                 console.log("enemys enPassant:" + myBoard.getFigureAtPos(left.x, left.y).enPassant);
                 if(myBoard.getFigureAtPos(left.x, left.y).enPassant){
                     positions.push(leftFront);
                 }
             }
             if(myBoard.isEnemy(right.x, right.y, this.color)){
-                console.log("enemy is right");
                 if(myBoard.getFigureAtPos(right.x, right.y).enPassant){
                     positions.push(rightFront);
                 }
@@ -205,11 +201,59 @@ var FigureType = {
     BISHOP: {
 		possibleMoves: function(myBoard) {
             console.log("BISHOP");
-            var posX = this.x;
-            var posY = this.y;
+
             var positions = [];
+            var value = Math.sqrt(myBoard.board.length * myBoard.board.length * 2);
+
+            console.log("value: " + value);
 
 
+            for (var k = 1; k < value; k++) {
+                
+                var xtmp = this.x + k;
+                var ytmp = this.y + k;
+                if(!pushIfPossible(xtmp, ytmp, this.color)){
+                    break;
+                }
+            }
+            for (var k = 1; k < value; k++){
+
+                var xtmp = this.x - k;
+                var ytmp = this.y - k;
+                if(!pushIfPossible(xtmp, ytmp, this.color)){
+                    break;
+                }
+            }
+            for (var k = 1; k < value; k++) {
+
+                var xtmp = this.x + k;
+                var ytmp = this.y - k;
+                if(!pushIfPossible(xtmp, ytmp, this.color)){
+                    break;
+                }
+            }
+            for (var k = 1; k < value; k++) {
+
+                var xtmp = this.x - k;
+                var ytmp = this.y + k;
+                if(!pushIfPossible(xtmp, ytmp, this.color)){
+                    break;
+                }
+            }
+            
+
+            function pushIfPossible(xtmp, ytmp, color){
+                if(myBoard.isLegalField(xtmp, ytmp)){
+                    if (!myBoard.isPotentiallyWalkable(xtmp, ytmp, color)) {
+                        return false;
+                    }
+                    positions.push({"x": xtmp, "y": ytmp});
+                    if(myBoard.isEnemy(xtmp, ytmp, this.color)){
+                        return false;
+                    }
+                }
+                return true;
+            }
 
             return positions;
         },

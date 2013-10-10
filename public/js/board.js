@@ -13,11 +13,17 @@ var Board = function(){
       [-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
       [-2,-2,-2,new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),-2,-2,-2],
       [-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
+
+}
+
+Board.prototype.isLegalField = function(x, y){
+  if(x >= 0 && x < this.board.length && y >= 0 && y < this.board.length) return true;
+  else return false;
 }
 
 Board.prototype.isPotentiallyWalkable = function (x, y, color){
     var tile = this.board[y][x];
-    if(tile != -2 && (tile === -1 || tile.color != color)){
+    if(tile != -2 && (tile == -1 || tile.color != color)){
         return true;
     }
     return false;
