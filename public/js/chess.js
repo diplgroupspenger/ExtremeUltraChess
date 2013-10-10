@@ -35,13 +35,11 @@ function setPosition(pos, figureID){
     for(var i = 0; i < figureList.length; i++){
         var figure = figureList[i].figure;
         if(figure.enPassant){
-            console.log("enPASSAAANT");
             var behind = {"x": figure.x + figure.behind().x, "y": figure.y + figure.behind().y};
             if(myBoard.isEnemy(behind.x, behind.y)){
                 socket.emit('sendRemoveFigure', i);
             }
         }
-        else console.log("nix gut");
     }
 
     moveLayer.removeChildren();
@@ -137,17 +135,19 @@ function drawFigure(x,y) {
         var tilePos = getTileFromPosRound(pos.x,pos.y);
         var newPosX = tilePos.x * TILE_SIZE;
         var newPosY = tilePos.y * TILE_SIZE; 
-
         
-        for(var i = 0; i< figureList.length; i++){
-            //look if another figure is on the dopped tile
-            if(figureList[i].getPosition().x == newPosX && figureList[i].getPosition().y == newPosY){
-                //ignore dragged figure
-                if(figureList[i] != figureImage){
-                   socket.emit('sendRemoveFigure',i);
-                } 
+        if(figureImage.figure.x === tilePos.x && figureImage.figure.y === tilePos.y){
+            for(var i = 0; i< figureList.length; i++){
+                //look if another figure is on the dopped tile
+                if(figureList[i].getPosition().x == newPosX && figureList[i].getPosition().y == newPosY){
+                    //ignore dragged figure
+                    if(figureList[i] != figureImage){
+                       socket.emit('sendRemoveFigure',i);
+                       console.log("remove");
+                    } 
+                }
+                
             }
-            
         }
         var figureID = figureList.indexOf(figureImage);
         socket.emit('sendPosition',{x:newPosX,y:newPosY},figureID);

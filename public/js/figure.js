@@ -19,8 +19,8 @@ Figure.prototype.setPosition = function(x,y) {
             figureList[i].figure.enPassant = false;
         }
     }
-    if((this.x + 2 * this.inFront().x === x && this.inFront().x != 0)
-        || (this.y + 2 * this.inFront().y === y  && this.inFront().y != 0)){
+    if(this.type == FigureType.PAWN && ((this.x + 2 * this.inFront().x === x && this.inFront().x != 0)
+        || (this.y + 2 * this.inFront().y === y  && this.inFront().y != 0))){
         console.log("enPassant is true");
         this.enPassant = true;
     }
