@@ -1,3 +1,4 @@
+
 function Figure(type, color) {
     this.type = type;
     this.color = color;
@@ -62,6 +63,91 @@ Figure.prototype.right = function(){
     }
 };
 
+Figure.prototype.pushIfPossible = function (xtmp, ytmp, positions){
+    if(myBoard.isLegalField(xtmp, ytmp)){
+        if (!myBoard.isPotentiallyWalkable(xtmp, ytmp, this.color)) {
+            return false;
+        }
+        positions.push({"x": xtmp, "y": ytmp});
+        if(myBoard.isEnemy(xtmp, ytmp, this.color)){
+            return false;
+        }
+    }
+    return true;
+}
+
+Figure.prototype.addPossibleYandXaxisMoves = function (positions, length){
+    var xtmp = 0;
+    var ytmp = 0;
+
+    for(var i = 1; i < length; i++){
+
+        xtmp = this.x + i;
+        if(!this.pushIfPossible(xtmp, this.y, positions)){
+            break;
+        }
+    }
+    for(i = 1; i < length; i++){
+
+        xtmp = this.x - i;
+        if(!this.pushIfPossible(xtmp, this.y, positions)){
+            break;
+        }
+    }
+    for(i = 1; i < length; i++){
+
+        ytmp = this.y + i;
+        if(!this.pushIfPossible(this.x, ytmp, positions)){
+            break;
+        }
+    }
+    for(i = 1; i < length; i++){
+
+        ytmp = this.y - i;
+        if(!this.pushIfPossible(this.x, ytmp, positions)){
+            break;
+        }
+    }
+}
+
+Figure.prototype.addPossibleDiagonalMoves = function (positions, length){
+    var xtmp = 0;
+    var ytmp = 0;
+
+    for (var i = 1; i < length; i++) {
+        
+        xtmp = this.x + i;
+        ytmp = this.y + i;
+        if (!this.pushIfPossible(xtmp, ytmp, positions)){
+            break;
+        }
+    }
+    for (i = 1; i < length; i++){
+
+        xtmp = this.x - i;
+        ytmp = this.y - i;
+        if (!this.pushIfPossible(xtmp, ytmp, positions)){
+            break;
+        }
+    }
+    for (i = 1; i < length; i++) {
+
+        xtmp = this.x + i;
+        ytmp = this.y - i;
+        if (!this.pushIfPossible(xtmp, ytmp, positions)){
+            break;
+        }
+    }
+    for (i = 1; i < length; i++) {
+
+        xtmp = this.x - i;
+        ytmp = this.y + i;
+        if (!this.pushIfPossible(xtmp, ytmp, positions)){
+            break;
+        }
+    }
+}
+
 var FigureType = {
     PAWN: {
         possibleMoves: function(myBoard) {
@@ -121,76 +207,17 @@ var FigureType = {
     },
     KNIGHT: {
 		possibleMoves: function(myBoard) {
-
-            var posX = this.x;
-            var posY = this.y;
             var positions = [];
             console.log("KNIGHT " +this.color + " x: "+posX+ " y: "+posY);
-            //up left
-            if(myBoard.getFigureAtPos(posX-1,posY-2) === null){
-                positions.push({x: posX-1,y:posY-2});
-            } else {
-                if(myBoard.board[posY-2][posX+1].color != this.color){
-                    positions.push({x: posX+1,y:posY-2});
-                }
-            }
 
-            //up right
-            if(myBoard.getFigureAtPos(posX+1,posY-2) === null){
-                positions.push({x: posX+1,y:posY-2});
-            } else {
-                if(myBoard.board[posY-2][posX+1].color != this.color){
-                    positions.push({x: posX+1,y:posY-2});
-                }
-            }
-
-            if(myBoard.getFigureAtPos(posX-2,posY-1) === null){
-                positions.push({x: posX-2,y:posY-1});
-            } else {
-                if(myBoard.board[posY-1][posX-2].color != this.color){
-                    positions.push({x: posX-2,y:posY-1});
-                }
-            }
-
-            if(myBoard.getFigureAtPos(posX+2,posY-1) === null){
-                positions.push({x: posX+2,y:posY-1});
-            } else {
-                if(myBoard.board[posY-1][posX+2].color != this.color){
-                    positions.push({x: posX+2,y:posY-1});
-                }
-            }
-
-            if(myBoard.getFigureAtPos(posX-2,posY+1) === null){
-                positions.push({x: posX-2,y:posY+1});
-            } else {
-                if(myBoard.board[posY+1][posX-2].color != this.color){
-                    positions.push({x: posX-2,y:posY+1});
-                }
-            }
-            
-            if(myBoard.getFigureAtPos(posX+2,posY+1) === null){
-                positions.push({x: posX+2,y:posY+1});
-            } else {
-                if(myBoard.board[posY+1][posX+2].color != this.color){
-                    positions.push({x: posX+2,y:posY+1});
-                }
-            }
-
-            if(myBoard.getFigureAtPos(posX-1,posY+2) === null){
-                positions.push({x: posX-1,y:posY+2});
-            } else {
-                if(myBoard.board[posY+2][posX-1].color != this.color){
-                    positions.push({x: posX-1,y:posY+2});
-                }
-            }
-
-            if(myBoard.getFigureAtPos(posX+1,posY+2) === null){
-                positions.push({x: posX+1,y:posY+2});
-            } else {
-                if(myBoard.board[posY+2][posX+1].color != this.color){
-                    positions.push({x: posX+1,y:posY+2});
-                }
-            }
+            this.pushIfPossible(this.x - 1, this.y - 2, positions);
+            this.pushIfPossible(this.x + 1, this.y - 2, positions);
+            this.pushIfPossible(this.x - 2, this.y - 1, positions);
+            this.pushIfPossible(this.x + 2, this.y - 1, positions);
+            this.pushIfPossible(this.x - 1, this.y + 2, positions);
+            this.pushIfPossible(this.x + 1, this.y + 2, positions);
+            this.pushIfPossible(this.x - 2, this.y + 1, positions);
+            this.pushIfPossible(this.x + 2, this.y + 1, positions);
 
             return positions;
         },
@@ -202,59 +229,8 @@ var FigureType = {
             console.log("BISHOP");
 
             var positions = [];
-            var value = Math.sqrt(myBoard.board.length * myBoard.board.length * 2);
 
-            console.log("value: " + value);
-
-            var xtmp = 0;
-            var ytmp = 0;
-
-            for (var k = 1; k < value; k++) {
-                
-                xtmp = this.x + k;
-                ytmp = this.y + k;
-                if(!pushIfPossible(xtmp, ytmp, this.color)){
-                    break;
-                }
-            }
-            for (k = 1; k < value; k++){
-
-                xtmp = this.x - k;
-                ytmp = this.y - k;
-                if(!pushIfPossible(xtmp, ytmp, this.color)){
-                    break;
-                }
-            }
-            for (k = 1; k < value; k++) {
-
-                xtmp = this.x + k;
-                ytmp = this.y - k;
-                if(!pushIfPossible(xtmp, ytmp, this.color)){
-                    break;
-                }
-            }
-            for (k = 1; k < value; k++) {
-
-                xtmp = this.x - k;
-                ytmp = this.y + k;
-                if(!pushIfPossible(xtmp, ytmp, this.color)){
-                    break;
-                }
-            }
-            
-
-            function pushIfPossible(xtmp, ytmp, color){
-                if(myBoard.isLegalField(xtmp, ytmp)){
-                    if (!myBoard.isPotentiallyWalkable(xtmp, ytmp, color)) {
-                        return false;
-                    }
-                    positions.push({"x": xtmp, "y": ytmp});
-                    if(myBoard.isEnemy(xtmp, ytmp, this.color)){
-                        return false;
-                    }
-                }
-                return true;
-            }
+            this.addPossibleDiagonalMoves(positions, myBoard.board.length);
 
             return positions;
         },
@@ -264,10 +240,13 @@ var FigureType = {
     QUEEN: {
         possibleMoves: function(myBoard) {
             console.log("QUEEN");
-            return {
-                x: 0,
-                y: 0
-            };
+            var positions = [];
+
+            this.addPossibleDiagonalMoves(positions, myBoard.board.length);
+            this.addPossibleYandXaxisMoves(positions, myBoard.board.length);
+
+            return positions;
+
         },
         id: 3,
         name: 'Queen'
@@ -277,24 +256,11 @@ var FigureType = {
             console.log("KING");
             var positions = [];
 
-            //enemy infront
-            if(myBoard.getFigureAtPos(posX,posY-1) !== null){
-                if(myBoard.board[posY-1][posX].color != this.color)
-                    positions.push({x: posX,y:posY-1});
-            } else { //nothing infront
-                positions.push({x: posX,y:posY-1});
-            }
-            //enemy left-front
-            if(myBoard.getFigureAtPos(posX-1,posY-1) !== null){
-                if(myBoard.board[posY-1][posX-1].color != this.color)
-                    positions.push({x: posX-1,y:posY-1});
-            }
-            //enemy right-front
-            if(myBoard.getFigureAtPos(posX+1,posY-1) !== null){
-                if(myBoard.board[posY-1][posX+1].color != this.color)
-                    positions.push({x: posX+1,y:posY-1});
-            }
+            this.addPossibleDiagonalMoves(positions, 2);
+            this.addPossibleYandXaxisMoves(positions, 2);
+
             return positions;
+
         },
         id: 4,
         name: 'King'
@@ -302,10 +268,12 @@ var FigureType = {
     ROOK: {
         possibleMoves: function(myBoard) {
             console.log("ROOK");
-            return {
-                x: 0,
-                y: 0
-            };
+
+            var positions = [];
+
+            this.addPossibleYandXaxisMoves(positions, myBoard.board.length);
+
+            return positions;
         },
         id: 5,
         name: 'Rook'

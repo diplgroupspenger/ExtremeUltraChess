@@ -14,7 +14,8 @@ function setPosition(pos, figureID){
     var newPos = {"x": pos.x/TILE_SIZE, "y":pos.y / TILE_SIZE};
 
     figureList[figureID].setPosition(pos.x, pos.y);
-    myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+    if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)
+        myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
     figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
     //look if enPassant was used
