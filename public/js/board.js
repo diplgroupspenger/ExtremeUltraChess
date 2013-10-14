@@ -1,57 +1,61 @@
 var Board = function(importedBoard){
-  //-2 > No tile drawn // -1 > No figure on tile
-  //stadart constructor if no board is imported
-  if(typeof importedBoard === "undefined") {
-    this.board = [[-2,-2,-2,new Figure(FigureType.ROOK, Color.BLACK),new Figure(FigureType.KNIGHT, Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.KING,Color.BLACK),new Figure(FigureType.QUEEN,Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.KNIGHT,Color.BLACK),new Figure(FigureType.ROOK,Color.BLACK),-2,-2,-2],
-      [-2,-2,-2,new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),-2,-2,-2],
-      [-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
-      [new Figure(FigureType.ROOK,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.ROOK,Color.GREEN)],
-      [new Figure(FigureType.KNIGHT,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KNIGHT,Color.GREEN)],
-      [new Figure(FigureType.BISHOP,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.BISHOP,Color.GREEN)],
-      [new Figure(FigureType.KING,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.QUEEN,Color.GREEN)],
-      [new Figure(FigureType.QUEEN,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KING,Color.GREEN)],
-      [new Figure(FigureType.BISHOP,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.BISHOP,Color.GREEN)],
-      [new Figure(FigureType.KNIGHT,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KNIGHT,Color.GREEN)],
-      [new Figure(FigureType.ROOK,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.ROOK,Color.GREEN)],
-      [-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
-      [-2,-2,-2,new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),-2,-2,-2],
-      [-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
-  }
-  else {
-    //import board
-    this.board = [];
-    for(var i=0; i<14;i++){ this.board.push([]) }
-      
-    for(var y = 0; y < 14; y++){
-      for(var x = 0; x < 14; x++){
-        exportedFigure = importedBoard[y][x];
-        if(exportedFigure === -1)
-          this.board[y][x] = -1;
-        else if(exportedFigure === -2)
-          this.board[y][x] = -2;
-        else {
-           this.board[y][x] = new Figure(null, null,exportedFigure);
-        }
-      }
+    //-2 > No tile drawn // -1 > No figure on tile
+    //stadart constructor if no board is imported
+    if(typeof importedBoard === "undefined") {
+        this.board = [[-2,-2,-2,new Figure(FigureType.ROOK, Color.BLACK),new Figure(FigureType.KNIGHT, Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.KING,Color.BLACK),new Figure(FigureType.QUEEN,Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.KNIGHT,Color.BLACK),new Figure(FigureType.ROOK,Color.BLACK),-2,-2,-2],
+        [-2,-2,-2,new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),-2,-2,-2],
+        [-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
+        [new Figure(FigureType.ROOK,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.ROOK,Color.GREEN)],
+        [new Figure(FigureType.KNIGHT,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KNIGHT,Color.GREEN)],
+        [new Figure(FigureType.BISHOP,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.BISHOP,Color.GREEN)],
+        [new Figure(FigureType.KING,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.QUEEN,Color.GREEN)],
+        [new Figure(FigureType.QUEEN,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KING,Color.GREEN)],
+        [new Figure(FigureType.BISHOP,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.BISHOP,Color.GREEN)],
+        [new Figure(FigureType.KNIGHT,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KNIGHT,Color.GREEN)],
+        [new Figure(FigureType.ROOK,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.ROOK,Color.GREEN)],
+        [-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
+        [-2,-2,-2,new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),new Figure(FigureType.PAWN,Color.WHITE),-2,-2,-2],
+        [-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
     }
-  }
+    else {
+        //import board
+        this.board = [];
+        for(var i=0; i<14;i++){
+            this.board.push([]);
+        }
+
+        for(var y = 0; y < 14; y++){
+            for(var x = 0; x < 14; x++){
+                exportedFigure = importedBoard[y][x];
+                if(exportedFigure === -1)
+                    this.board[y][x] = -1;
+                else if(exportedFigure === -2)
+                    this.board[y][x] = -2;
+                else {
+                    this.board[y][x] = new Figure(null, null,exportedFigure);
+                }
+            }
+        }
+    }
 };
 
 Board.prototype.exportBoard = function (){
-  var newBoard = [];
-  for(var i=0; i<14;i++){ newBoard.push([]) }
-
-  for(var y = 0; y < this.board[0].length; y++){
-    for(var x = 0; x < this.board.length; x++){
-      if(this.isFigure(x,y)){
-        newBoard[y][x] = this.board[y][x].exportFigure();
-      } else {
-        newBoard[y][x] = this.board[y][x];
-      }
+    var newBoard = [];
+    for(var i=0; i<14;i++){
+        newBoard.push([]);
     }
-  }
 
-  return newBoard;
+    for(var y = 0; y < this.board[0].length; y++){
+        for(var x = 0; x < this.board.length; x++){
+            if(this.isFigure(x,y)){
+                newBoard[y][x] = this.board[y][x].exportFigure();
+            } else {
+                newBoard[y][x] = this.board[y][x];
+            }
+        }
+    }
+
+    return newBoard;
 };
 
 Board.prototype.isLegalTile = function(x, y){
@@ -61,15 +65,15 @@ Board.prototype.isLegalTile = function(x, y){
 
 Board.prototype.isPotentiallyWalkable = function (x, y, color){
   var tile = this.board[y][x];
-  if(tile != -2 && (tile === -1 || tile.color != color)) 
+  if(tile != -2 && (tile === -1 || tile.color != color))
     return true;
   else
     return false;
 };
 
 Board.prototype.isEnemy = function (x, y, color){
-  if(!this.isPotentiallyWalkable(x, y, color)) return false
-  else if(this.board[y][x] != -1) 
+  if(!this.isPotentiallyWalkable(x, y, color)) return false;
+  else if(this.board[y][x] != -1)
     return true;
   else
     return false;
@@ -77,7 +81,7 @@ Board.prototype.isEnemy = function (x, y, color){
 
 Board.prototype.getFigureAtPos = function(x,y){
   if(this.board[y][x] != -1 && this.board[y][x] != -2)
-   return this.board[y][x];   
+   return this.board[y][x];
   else
     return null;
 };
