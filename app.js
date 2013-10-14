@@ -12,10 +12,23 @@ server.listen(4000);
 app.use(express.static(__dirname+'/public'));
   
 var activeClients = 0;
- 
+
+var Board = require('./public/js/board.js');
+
+serverBoard = new Board();
+for(var y = 0; y < 14; y++){
+  for(var x = 0; x < 14; x++){
+    if(serverBoard.board[y][x] != -1 && serverBoard.board[y][x] != -2){
+      serverBoard.board[y][x].x = x;
+      serverBoard.board[y][x].y = y;
+    }
+  }
+}
+
 io.sockets.on('connection',function(socket){
   activeClients +=1;
   io.sockets.emit('message', {clients:activeClients});
+  io.sockets.emit('sendBoard', serverBoard.exportBoard());
   socket.on('disconnect', clientDisconnect);
 
   socket.on('sendPosition',function(pos, figure){
