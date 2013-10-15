@@ -1,0 +1,32 @@
+* {
+  box-sizing: border-box;
+}
+ul {
+  list-style: none;
+}
+li {
+  background: #e6e6e6;
+  padding: 0 10px;
+  overflow: hidden;
+  margin-bottom: 2px;
+  line-height: 2.5;
+}
+li:hover {
+  background: #ccc;
+}
+
+.details{
+	display:none;
+	line-height: 1.4;
+	padding-bottom: 10px;
+}
+
+li {
+  transition: background 0.2s ease;
+}
+li.open {
+  background: #aeec88;
+}
+li.open .title {
+  font-weight: bold;
+}

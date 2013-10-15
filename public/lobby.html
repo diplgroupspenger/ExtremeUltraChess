@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>tschess</title>
+<link rel="stylesheet" type="text/css" href="/css/lobbystyle.css"/>
+<script src='/js/jquery-1.10.2.min.js'></script>
+<script src='/js/jquery-ui-1.10.3.custom.js'></script>
+<link rel="stylesheet" type="text/css" href='/css/ui-lightness/jquery-ui-1.10.3.custom.css'/>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/gameroom.js"></script>
+<script src='/js/lobby.js'></script>
+<script>$(document).ready(execjs)</script>
+</head>
+
+<body>
+<ul id="list1">
+	<li>
+		<span class="title">Titel</span>
+		<div class="details">
+		<p>4pchess</p>
+		<button class="join">Join</button>
+		</div>
+	</li>
+</ul>
+<button id="openroom">
+open room
+</button>
+
+<div id='dialog-form'>
+	<h2>Options</h2>
+	<form>
+		<input id='description'/>
+	</form>
+</div>
+</body>
+
+</html>

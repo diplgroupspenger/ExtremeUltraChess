@@ -12,6 +12,7 @@ server.listen(4000);
 app.use(express.static(__dirname+'/public'));
   
 var activeClients = 0;
+var roominc=0;
 
 var Board = require('./public/js/board.js');
 
@@ -38,7 +39,24 @@ io.sockets.on('connection',function(socket){
   socket.on('sendRemoveFigure',function(index){
       io.sockets.emit('removeFigure',index);
   });
+  socket.on('createroom', function(description){
+      createRoom(description, socket);
+  });
+  socket.on('joinroom', function(description){
+      joinRoom(description, socket)
+  });
 });
+
+function joinRoom(description, socket){
+  socket.join(description);
+  io.sockets.emit('roomjoined', description);
+}
+
+function createRoom(description, socket){
+  socket.join(roominc);
+  io.sockets.emit('roomcreated', roominc, description);
+  roominc++;
+}
  
 function clientDisconnect(){
   activeClients -=1;
