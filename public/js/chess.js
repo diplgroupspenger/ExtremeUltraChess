@@ -1,5 +1,36 @@
 var TILE_SIZE = 50;
 
+$(document).ready(function () {
+    socket = io.connect();
+    socket.on('message', function(msg){
+        $clientCounter.html(msg.clients);
+    });
+    socket.on('setPosition',setPosition);
+    socket.on('removeFigure',removeFigure);
+
+    $clientCounter = $('#client_count');
+       
+    socket.on('sendBoard', function(serverBoard){
+      myBoard = new Board(serverBoard);
+      tryDrawBoard();
+    });
+  
+    pieces = new Image();
+    pieces.onload = tryDrawBoard;
+    pieces.src = 'img/figures.png';
+
+    var onceCb = false;
+
+    function tryDrawBoard () {
+        if(!onceCb) {
+        onceCb = true;
+        return;
+        }
+
+        drawBoard();
+    }
+});
+
 function setPosition(pos, figureID){
     var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
     var newPos = {"x": pos.x/TILE_SIZE, "y":pos.y / TILE_SIZE};
@@ -33,38 +64,6 @@ function removeFigure(index){
     stage.draw();
 }
 
-$(document).ready(function () {
-    socket = io.connect();
-    socket.on('message', function(msg){
-        $clientCounter.html(msg.clients);
-    });
-    socket.on('setPosition',setPosition);
-    socket.on('removeFigure',removeFigure);
-
-    $clientCounter = $('#client_count');
-       
-    socket.on('sendBoard', function(serverBoard){
-      myBoard = new Board(serverBoard);
-      tryDrawBoard();
-    });
-  
-    pieces = new Image();
-    pieces.onload = tryDrawBoard;
-    pieces.src = 'img/figures.png';
-
-    var onceCb = false;
-
-    function tryDrawBoard () {
-        if(!onceCb) {
-        onceCb = true;
-        return;
-        }
-
-        drawBoard();
-    }
-});
-
-
 //draw Board on load
 function drawBoard() {
     stage = new Kinetic.Stage({container: 'canvas',width: 700,height: 700});
@@ -73,7 +72,7 @@ function drawBoard() {
     });
 
     figureList = [];
-
+    
     //board tiles
     boardLayer = new Kinetic.Layer(); //background layer for the chessboard
     moveLayer = new Kinetic.Layer(); //where the figures can go to
@@ -101,6 +100,11 @@ function drawBoard() {
             }
         }
     }
+    
+    //rotate the board to players color
+    //!!!change parameter to current player if available!!!
+    rotateBoard(Color.BLACK);
+
     stage.add(boardLayer);
     stage.add(moveLayer);
     stage.add(figureLayer);
@@ -148,6 +152,38 @@ function drawFigure(x,y) {
         }
         stage.draw();
     });
+}
+
+function rotateBoard(color){
+    //if color == white -> do nothing
+    if(color === Color.BLACK){
+        stage.rotateDeg(180);
+        stage.setOffset(stage.getHeight(), stage.getWidth());
+        //rotate figures back
+        for(var i = 0; i < figureList.length; i++){
+            image = figureList[i];
+            image.rotateDeg(180);
+            image.setOffset(image.getHeight(), image.getWidth());
+        }
+    } else if(color === Color.RED){
+        stage.rotateDeg(-90);
+        stage.setOffset(stage.getHeight(), 0);
+        //rotate figures back
+        for(var i = 0; i < figureList.length; i++){
+            image = figureList[i];
+            image.rotateDeg(90);
+            image.setOffset(0, image.getWidth());
+        }
+    } else if(color === Color.GREEN){
+        stage.rotateDeg(90);
+        stage.setOffset(0, stage.getWidth());
+        //rotate figures back
+        for(var i = 0; i < figureList.length; i++){
+            image = figureList[i];
+            image.rotateDeg(-90);
+            image.setOffset(image.getHeight(), 0);
+        }
+    }
 }
 
 function isPossible(oldPos,newPos){

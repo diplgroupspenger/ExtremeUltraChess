@@ -18,11 +18,12 @@ Figure.prototype.importFigure = function(importFigure){
     this.x = importFigure.x;
     this.y = importFigure.y;
     this.hasMoved = importFigure.hasMoved;
-    this.enPassant = importFigure.enPassant;
+    this.enPassant = importFigure.haseMoved;
 };
 
 Figure.prototype.exportFigure = function(){
-    return {'name': this.type.name,
+    return {
+    'name': this.type.name,
     'color':this.color,
     'x':this.x,
     'y':this.y,
