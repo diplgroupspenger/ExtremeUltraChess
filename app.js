@@ -4,10 +4,10 @@ var express = require('express'),
   , server = http.createServer(app)
   , io = require('socket.io').listen(server);
 
-io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
+//io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
 
 // listen for new web clients:
-server.listen(4000);
+server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
   
@@ -32,13 +32,8 @@ io.sockets.on('connection',function(socket){
   io.sockets.emit('sendBoard', serverBoard.exportBoard());
   socket.on('disconnect', clientDisconnect);
 
-  socket.on('sendPosition',function(pos, figure){
-      io.sockets.emit('setPosition',pos, figure);
-  });
+  socket.on('sendPosition',setPosition);
   
-  socket.on('sendRemoveFigure',function(index){
-      io.sockets.emit('removeFigure',index);
-  });
   socket.on('createroom', function(description){
       createRoom(description, socket);
   });
@@ -46,6 +41,22 @@ io.sockets.on('connection',function(socket){
       joinRoom(description, socket)
   });
 });
+
+function setPosition(oldPos, newPos, figureIndex){
+  console.log("oldx: "+oldPos.x+" oldy: "+oldPos.y+ " newX: "+newPos.x+ " newY: "+newPos.y);
+  if(serverBoard.isPossibleToMove(oldPos, newPos)){   
+      //look if another a figure is already on the tile
+      if(serverBoard.isFigure(newPos.x, newPos.y)){
+          serverBoard.board[newPos.y][newPos.x] = -1;
+      }
+      serverBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+
+      if(serverBoard.isEnPassant()){
+          serverBoard.board[newPos.y][newPos.x] = -1;
+      }
+      io.sockets.emit('setPosition',newPos, figure);
+  }
+}
 
 function joinRoom(description, socket){
   socket.join(description);
@@ -62,4 +73,3 @@ function clientDisconnect(){
   activeClients -=1;
   io.sockets.emit('message', {clients:activeClients});
 }
-

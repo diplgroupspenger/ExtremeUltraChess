@@ -155,5 +155,6 @@ Figure.prototype.addPossibleDiagonalMoves = function(positions, length){
 };
 //check for node
 if(typeof module !== 'undefined' && module.exports) {
+    var Color = require('./color.js');
     module.exports = Figure;
 }

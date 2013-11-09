@@ -1,18 +1,17 @@
 var TILE_SIZE = 50;
 
 $(document).ready(function () {
-    socket = io.connect();
+    socket = io.connect('http://localhost:63924');
     socket.on('message', function(msg){
-        $clientCounter.html(msg.clients);
+        $clientCounter.text(msg.clients);
     });
     socket.on('setPosition',setPosition);
-    socket.on('removeFigure',removeFigure);
 
     $clientCounter = $('#client_count');
        
     socket.on('sendBoard', function(serverBoard){
-      myBoard = new Board(serverBoard);
-      tryDrawBoard();
+        myBoard = new Board(serverBoard);
+        tryDrawBoard();
     });
   
     pieces = new Image();
@@ -23,52 +22,50 @@ $(document).ready(function () {
 
     function tryDrawBoard () {
         if(!onceCb) {
-        onceCb = true;
-        return;
+            onceCb = true;
+            return;
         }
 
         drawBoard();
     }
 });
 
-function setPosition(pos, figureID){
+function setPosition(newPos, figureID){
+    //remove figure if captured
+    if(myBoard.isFigure(tilePos.x, tilePos.y)){
+        removeFigure(newPos);
+    }
     var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
-    var newPos = {"x": pos.x/TILE_SIZE, "y":pos.y / TILE_SIZE};
 
-    figureList[figureID].setPosition(pos.x, pos.y);
+    figureList[figureID].setPosition(newPos.x*TILE_SIZE, newPos.y*TILE_SIZE);
     if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)
     myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
 
     figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
-    //look if enPassant was used
-    for(var i = 0; i < figureList.length; i++){
-        var figure = figureList[i].figure;
-        if(figure.enPassant){
-            var behind = {"x": figure.x + figure.behind().x, "y": figure.y + figure.behind().y};
-            if(myBoard.isEnemy(behind.x, behind.y)){
-                socket.emit('sendRemoveFigure', i);
-            }
-        }
+    if(myBoard.isEnPassant()){
+        removeFigure(oldPos);
     }
 
     moveLayer.removeChildren();
     stage.draw();
 }
 
-function removeFigure(index){
-    var x = figureList[index].figure.x;
-    var y = figureList[index].figure.y;
-    myBoard.board[y][x] = -1;
-    figureList[index].remove();
-    stage.draw();
+function removeFigure(pos){
+    myBoard.board[pos.y][pos.x] = -1;
+    for(var i = 0; i < figureList.length; i++){
+        if(figureList[i].figure.x == pos.x && figureList[i].figure.y == pos.y){
+            figureList[i].remove();
+            stage.draw();
+        }
+    }
 }
 
 //draw Board on load
 function drawBoard() {
     stage = new Kinetic.Stage({container: 'canvas',width: 700,height: 700});
     stage.on('mousedown', function(e) {
-      boardClicked(e);
+        boardClicked(e);
     });
 
     figureList = [];
@@ -103,7 +100,7 @@ function drawBoard() {
     
     //rotate the board to players color
     //!!!change parameter to current player if available!!!
-    rotateBoard(Color.BLACK);
+    rotateBoard(Color.RED);
 
     stage.add(boardLayer);
     stage.add(moveLayer);
@@ -114,13 +111,13 @@ function drawBoard() {
 function drawFigure(x,y) {
     var figurePos = getFigureFromSpritesheet(myBoard.board[y][x]);
     var figureImage = new Kinetic.Image({
-    x: x * TILE_SIZE,
-    y: y * TILE_SIZE,
-    image: pieces,
-    width: TILE_SIZE,
-    height: TILE_SIZE,
-    draggable: true,
-    crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
+        x: x * TILE_SIZE,
+        y: y * TILE_SIZE,
+        image: pieces,
+        width: TILE_SIZE,
+        height: TILE_SIZE,
+        draggable: true,
+        crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
     });
     figureImage.figure = myBoard.board[y][x];
     figureLayer.add(figureImage);
@@ -129,25 +126,15 @@ function drawFigure(x,y) {
     figureImage.on("dragend", function() {
         var pos = figureImage.getPosition();
         var tilePos = getTileFromPosRound(pos.x,pos.y);
-        var newPosX = tilePos.x * TILE_SIZE;
-        var newPosY = tilePos.y * TILE_SIZE;
         var figureID = figureList.indexOf(figureImage);
 
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
 
-        if(isPossible(oldPos, tilePos)){
-            for(var i = 0; i< figureList.length; i++){
-                //look if another figure is on the dopped tile
-                if(figureList[i].getPosition().x == newPosX && figureList[i].getPosition().y == newPosY){
-                    //ignore dragged figure
-                    if(figureList[i] != figureImage){
-                        socket.emit('sendRemoveFigure',i);
-                    }
-                }
-            }
-            socket.emit('sendPosition',{"x":newPosX,"y":newPosY},figureID);
+        if(myBoard.isPossibleToMove(oldPos, tilePos)){   
+            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
         }
         else {
+            //place figure back to old tile
             setPosition({"x": oldPos.x * TILE_SIZE, "y": oldPos.y * TILE_SIZE}, figureID);
         }
         stage.draw();
@@ -186,19 +173,11 @@ function rotateBoard(color){
     }
 }
 
-function isPossible(oldPos,newPos){
-    var possibleMoves = myBoard.getFigureAtPos(oldPos.x, oldPos.y).possibleMoves(myBoard);
-    for(var i = 0; i < possibleMoves.length; i++){
-        if(possibleMoves[i].x == newPos.x && possibleMoves[i].y == newPos.y){
-          return true;
-        }
-    }
-    return false;
-}
-
 //canvas mousedown event
 function boardClicked(e) {
-    tilePos = getTileFromPosFloor(e.offsetX, e.offsetY);
+    nodePos = e.targetNode.getPosition();
+    tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
+
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
         var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
         moveLayer.removeChildren();
