@@ -31,7 +31,7 @@ var Board = function(importedBoard){
 					this.board[y][x] = -1;
 				else if(exportedFigure === -2)
 					this.board[y][x] = -2;
-				else 
+				else
 					this.board[y][x] = new Figure(null, null,exportedFigure);
 			}
 		}
@@ -80,7 +80,7 @@ Board.prototype.isEnemy = function (x, y, color){
 
 Board.prototype.getFigureAtPos = function(x,y){
 	if(this.board[y][x] != -1 && this.board[y][x] != -2)
-	 return this.board[y][x];
+		return this.board[y][x];
 	else
 		return null;
 };
@@ -111,7 +111,7 @@ Board.prototype.isPossibleToMove = function(oldPos,newPos){
         }
     }
     return false;
-}
+};
 
 //called when a figure moved
 Board.prototype.isEnPassant = function(){
@@ -128,7 +128,7 @@ Board.prototype.isEnPassant = function(){
         }
     }
     return false;
-}
+};
 
 //check for node
 if(typeof module !== 'undefined' && module.exports) {

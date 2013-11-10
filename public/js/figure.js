@@ -35,17 +35,20 @@ Figure.prototype.possibleMoves = function(board){
     return this.type.possibleMoves.call(this,board);
 };
 
-Figure.prototype.setPosition = function(x,y){
-    for(var i = 0; i < figureList.length; i++){
-        if(figureList[i].figure.color === this.color)
-            figureList[i].figure.enPassant = false;
+Figure.prototype.setPosition = function(newX, newY){
+    for(var y = 0; y < myBoard.board[0].length; y++){
+        for(var x = 0; x < myBoard.board.length; x++){
+            if(myBoard.isFigure(x, y)){
+                myBoard.board[y][x].enPassant = false;
+            }
+        }
     }
-    if(this.type == FigureType.PAWN && ((this.x + 2 * this.inFront().x === x && this.inFront().x !== 0) ||
-        (this.y + 2 * this.inFront().y === y  && this.inFront().y !== 0))){
+    if(this.type == FigureType.PAWN && ((this.x + 2 * this.inFront().x === newX && this.inFront().x !== 0) ||
+        (this.y + 2 * this.inFront().y === newY  && this.inFront().y !== 0))){
         this.enPassant = true;
     }
-    this.x = x;
-    this.y = y;
+    this.x = newX;
+    this.y = newY;
     this.hasMoved = true;
 };
 
@@ -78,24 +81,24 @@ Figure.prototype.left = function(){
 
 Figure.prototype.right = function(){
   switch(this.color){
-    case Color.WHITE: return {"x" : 1, "y" : 0};
-    case Color.BLACK: return {"x" : -1, "y" : 0};
-    case Color.RED: return {"x" : 0, "y" : 1};
-    case Color.GREEN: return {"x" : 0, "y" : -1};
-}
+        case Color.WHITE: return {"x" : 1, "y" : 0};
+        case Color.BLACK: return {"x" : -1, "y" : 0};
+        case Color.RED: return {"x" : 0, "y" : 1};
+        case Color.GREEN: return {"x" : 0, "y" : -1};
+    }
 };
 
 Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions){
-  if(myBoard.isLegalTile(xtmp, ytmp)){
-    if (!myBoard.isPotentiallyWalkable(xtmp, ytmp, this.color)) {
-        return false;
+    if(myBoard.isLegalTile(xtmp, ytmp)){
+        if (!myBoard.isPotentiallyWalkable(xtmp, ytmp, this.color)) {
+            return false;
+        }
+        positions.push({"x": xtmp, "y": ytmp});
+        if(myBoard.isEnemy(xtmp, ytmp, this.color)){
+            return false;
+        }
     }
-    positions.push({"x": xtmp, "y": ytmp});
-    if(myBoard.isEnemy(xtmp, ytmp, this.color)){
-        return false;
-    }
-}
-return true;
+    return true;
 };
 
 Figure.prototype.addPossibleYandXaxisMoves = function(positions, length){
@@ -155,6 +158,7 @@ Figure.prototype.addPossibleDiagonalMoves = function(positions, length){
 };
 //check for node
 if(typeof module !== 'undefined' && module.exports) {
+    var FigureType = require('./figureType.js');
     var Color = require('./color.js');
     module.exports = Figure;
 }

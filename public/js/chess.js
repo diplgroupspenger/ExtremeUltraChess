@@ -130,7 +130,7 @@ function drawFigure(x,y) {
 
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
 
-        if(myBoard.isPossibleToMove(oldPos, tilePos)){   
+        if(myBoard.isPossibleToMove(oldPos, tilePos)){
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
         }
         else {
