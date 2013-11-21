@@ -18,7 +18,7 @@ Figure.prototype.importFigure = function(importFigure){
     this.x = importFigure.x;
     this.y = importFigure.y;
     this.hasMoved = importFigure.hasMoved;
-    this.enPassant = importFigure.haseMoved;
+    this.enPassant = importFigure.enPassant;
 };
 
 Figure.prototype.exportFigure = function(){
@@ -44,7 +44,7 @@ Figure.prototype.setPosition = function(newX, newY){
         }
     }
     if(this.type == FigureType.PAWN && ((this.x + 2 * this.inFront().x === newX && this.inFront().x !== 0) ||
-        (this.y + 2 * this.inFront().y === newY  && this.inFront().y !== 0))){
+        (this.y + 2 * this.inFront().y === newY && this.inFront().y !== 0))){
         this.enPassant = true;
     }
     this.x = newX;

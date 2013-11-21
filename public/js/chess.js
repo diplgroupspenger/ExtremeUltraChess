@@ -1,7 +1,7 @@
 var TILE_SIZE = 50;
 
 $(document).ready(function () {
-    socket = io.connect('http://localhost:63924');
+    socket = io.connect('http://chess.flo-lan.com:63924');
     socket.on('message', function(msg){
         $clientCounter.text(msg.clients);
     });
@@ -13,7 +13,7 @@ $(document).ready(function () {
         myBoard = new Board(serverBoard);
         tryDrawBoard();
     });
-  
+
     pieces = new Image();
     pieces.onload = tryDrawBoard;
     pieces.src = 'img/figures.png';
@@ -31,13 +31,17 @@ $(document).ready(function () {
 });
 
 function setPosition(newPos, figureID){
-    //remove figure if captured
-    if(myBoard.isFigure(tilePos.x, tilePos.y)){
-        removeFigure(newPos);
-    }
     var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
 
-    figureList[figureID].setPosition(newPos.x*TILE_SIZE, newPos.y*TILE_SIZE);
+    //remove figure if captured
+    if(myBoard.isFigure(newPos.x, newPos.y)){
+        if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)
+            removeFigure(newPos);
+    }
+
+    //figureList[figureID].setPosition(newPos.x * TILE_SIZE , newPos.y * TILE_SIZE);
+    figureList[figureID].setX(newPos.x * TILE_SIZE);
+    figureList[figureID].setY(newPos.y * TILE_SIZE);
     if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)
     myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
 
@@ -100,7 +104,7 @@ function drawBoard() {
     
     //rotate the board to players color
     //!!!change parameter to current player if available!!!
-    rotateBoard(Color.RED);
+    rotateBoard(Color.WHITE);
 
     stage.add(boardLayer);
     stage.add(moveLayer);
@@ -123,7 +127,11 @@ function drawFigure(x,y) {
     figureLayer.add(figureImage);
     figureList.push(figureImage);
 
-    figureImage.on("dragend", function() {
+    figureImage.on("dragstart", function dragstart(){
+        figureImage.moveToTop();
+    });
+
+    figureImage.on("dragend", function dragend(){
         var pos = figureImage.getPosition();
         var tilePos = getTileFromPosRound(pos.x,pos.y);
         var figureID = figureList.indexOf(figureImage);
@@ -135,7 +143,7 @@ function drawFigure(x,y) {
         }
         else {
             //place figure back to old tile
-            setPosition({"x": oldPos.x * TILE_SIZE, "y": oldPos.y * TILE_SIZE}, figureID);
+            setPosition({"x": oldPos.x, "y": oldPos.y}, figureID);
         }
         stage.draw();
     });
@@ -175,12 +183,13 @@ function rotateBoard(color){
 
 //canvas mousedown event
 function boardClicked(e) {
-    nodePos = e.targetNode.getPosition();
-    tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
+    var nodePos = e.targetNode.getPosition();
+    var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
         var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
         moveLayer.removeChildren();
+        moveLayer.currentFigure = e.targetNode;
         for(var i = 0; i< possibleMoves.length; i++){
             var rect = new Kinetic.Rect({
                 x: possibleMoves[i].x * TILE_SIZE,
@@ -191,6 +200,17 @@ function boardClicked(e) {
             });
 
             moveLayer.add(rect);
+        }
+    } else {
+        var moveLayerChildren = moveLayer.getChildren();
+        for(var i = 0; i < moveLayerChildren.length; i++) {
+            //click on tile, which is possible to move to
+            if(moveLayerChildren[i].getPosition().x == nodePos.x && moveLayerChildren[i].getPosition().y == nodePos.y) {
+                var clickedFigure = moveLayer.currentFigure;
+                var figureID = figureList.indexOf(clickedFigure);
+                var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
+                socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
+            }
         }
     }
     moveLayer.draw();
@@ -220,11 +240,11 @@ function getFigureFromSpritesheet(figure) {
 
     if(figure.color == Color.WHITE)
         y = 0;
-    else if(figure.color == Color.BLACK)
+    else if(figure.color == Color.GREEN)
         y = 1;
     else if(figure.color == Color.RED)
         y = 2;
-    else if(figure.color == Color.GREEN)
+    else if(figure.color == Color.BLACK)
         y = 3;
 
     var position = {

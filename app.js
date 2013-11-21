@@ -4,7 +4,7 @@ var express = require('express'),
   , server = http.createServer(app)
   , io = require('socket.io').listen(server);
 
-//io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
+io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
 
 // listen for new web clients:
 server.listen(63924);
@@ -42,19 +42,20 @@ io.sockets.on('connection',function(socket){
 });
 
 function setPosition(oldPos, newPos, figureIndex){
-  console.log("oldx: "+oldPos.x+" oldy: "+oldPos.y+ " newX: "+newPos.x+ " newY: "+newPos.y);
-  if(myBoard.isPossibleToMove(oldPos, newPos)){
-      //look if another a figure is already on the tile
-      if(myBoard.isFigure(newPos.x, newPos.y)){
-          myBoard.board[newPos.y][newPos.x] = -1;
-      }
-      myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+    console.log("oldx: "+oldPos.x+" oldy: "+oldPos.y+ " newX: "+newPos.x+ " newY: "+newPos.y);
+    if(myBoard.isPossibleToMove(oldPos, newPos)){
+        //look if another a figure is already on the tile
+        if(myBoard.isFigure(newPos.x, newPos.y)){
+            myBoard.board[newPos.y][newPos.x] = -1;
+        }
+        myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
 
-      if(myBoard.isEnPassant()){
-          myBoard.board[newPos.y][newPos.x] = -1;
-      }
-      io.sockets.emit('setPosition',newPos, figureIndex);
-  }
+        if(myBoard.isEnPassant()){
+            myBoard.board[newPos.y][newPos.x] = -1;
+        }
+
+        io.sockets.emit('setPosition',newPos, figureIndex);
+    }
 }
 
 function joinRoom(description, socket){
