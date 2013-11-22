@@ -186,6 +186,18 @@ function boardClicked(e) {
     var nodePos = e.targetNode.getPosition();
     var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
+    var moveLayerChildren = moveLayer.getChildren();
+        for(var i = 0; i < moveLayerChildren.length; i++) {
+            //click on tile, which is possible to move to
+            if(moveLayerChildren[i].getPosition().x == nodePos.x && moveLayerChildren[i].getPosition().y == nodePos.y) {
+                var clickedFigure = moveLayer.currentFigure;
+                var figureID = figureList.indexOf(clickedFigure);
+                var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
+                socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
+                return;
+            }
+    }
+
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
         var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
         moveLayer.removeChildren();
@@ -201,18 +213,8 @@ function boardClicked(e) {
 
             moveLayer.add(rect);
         }
-    } else {
-        var moveLayerChildren = moveLayer.getChildren();
-        for(var i = 0; i < moveLayerChildren.length; i++) {
-            //click on tile, which is possible to move to
-            if(moveLayerChildren[i].getPosition().x == nodePos.x && moveLayerChildren[i].getPosition().y == nodePos.y) {
-                var clickedFigure = moveLayer.currentFigure;
-                var figureID = figureList.indexOf(clickedFigure);
-                var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
-                socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
-            }
-        }
-    }
+    } 
+       
     moveLayer.draw();
 }
 
