@@ -18,14 +18,20 @@ var Board = function(importedBoard){
 		[-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
 	}
 	else {
+
+		this.board = importedBoard;
+
+		/* ka was der code machen soll -aaron
 		//import board
 		this.board = [];
-		for(var i=0; i<14;i++){
+		var xlength = importedBoard.length;
+		var ylength = importedBoard[0].length;
+		for(var i=0; i < xlength; i++){
 			this.board.push([]);
 		}
 
-		for(var y = 0; y < 14; y++){
-			for(var x = 0; x < 14; x++){
+		for(var y = 0; y < ylength; y++){
+			for(var x = 0; x < xlength; x++){
 				exportedFigure = importedBoard[y][x];
 				if(exportedFigure === -1)
 					this.board[y][x] = -1;
@@ -35,6 +41,7 @@ var Board = function(importedBoard){
 					this.board[y][x] = new Figure(null, null,exportedFigure);
 			}
 		}
+		*/
 	}
 };
 
@@ -57,11 +64,13 @@ Board.prototype.exportBoard = function (){
 	return newBoard;
 };
 
+//true if the tile is in bounds of the board
 Board.prototype.isLegalTile = function(x, y){
 	if(x >= 0 && x < this.board.length && y >= 0 && y < this.board.length) return true;
 	else return false;
 };
 
+//true if the tile is free or controlled by an enemy
 Board.prototype.isPotentiallyWalkable = function (x, y, color){
 	var tile = this.board[y][x];
 	if(tile != -2 && (tile === -1 || tile.color != color))

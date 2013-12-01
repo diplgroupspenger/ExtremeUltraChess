@@ -1,7 +1,12 @@
 var TILE_SIZE = 50;
 
 $(document).ready(function () {
-    socket = io.connect('http://chess.flo-lan.com:63924');
+    try{
+        socket = io.connect('http://chess.flo-lan.com:63924');
+    }
+    catch(err){
+        return false;
+    }
     socket.on('message', function(msg){
         $clientCounter.text(msg.clients);
     });
