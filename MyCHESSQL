@@ -1,0 +1,8 @@
+CREATE SCHEMA `chess` ;
+CREATE  TABLE `chess`.`users` (
+  `id` VARCHAR(36) NOT NULL ,
+  `name` VARCHAR(45) NOT NULL ,
+  `socket` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  UNIQUE INDEX `name_UNIQUE` (`name` ASC) ,
+  UNIQUE INDEX `socket_UNIQUE` (`socket` ASC) );

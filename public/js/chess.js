@@ -1,15 +1,9 @@
 var TILE_SIZE = 50;
 
-$(document).ready(function () {
-    try{
-        socket = io.connect('http://chess.flo-lan.com:63924');
-    }
-    catch(err){
-        return false;
-    }
-    socket.on('message', function(msg){
-        $clientCounter.text(msg.clients);
-    });
+function startgame(socket){
+    //socket.on('message', function(msg){
+    //    $clientCounter.text(msg.clients);
+    //});
     socket.on('setPosition',setPosition);
 
     $clientCounter = $('#client_count');
@@ -18,6 +12,8 @@ $(document).ready(function () {
         myBoard = new Board(serverBoard);
         tryDrawBoard();
     });
+    socket.emit('getGame');
+    socket.emit('getBoard');
 
     pieces = new Image();
     pieces.onload = tryDrawBoard;
@@ -31,9 +27,9 @@ $(document).ready(function () {
             return;
         }
 
-        drawBoard();
+        drawBoard(TILE_SIZE);
     }
-});
+}
 
 function setPosition(newPos, figureID){
     var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
@@ -71,7 +67,7 @@ function removeFigure(pos){
 }
 
 //draw Board on load
-function drawBoard() {
+function drawBoard(TILE_SIZE) {
     stage = new Kinetic.Stage({container: 'canvas',width: 700,height: 700});
     stage.on('mousedown', function(e) {
         boardClicked(e);
@@ -101,7 +97,7 @@ function drawBoard() {
                 boardLayer.add(rect);
                 if(myBoard.board[y][x] != -1){
                     //set figure coordinate property
-                    drawFigure(x,y);
+                    drawFigure(x,y, TILE_SIZE);
                 }
             }
         }
@@ -117,7 +113,7 @@ function drawBoard() {
 }
 
 //draw single figure with canvas
-function drawFigure(x,y) {
+function drawFigure(x,y, TILE_SIZE) {
     var figurePos = getFigureFromSpritesheet(myBoard.board[y][x]);
     var figureImage = new Kinetic.Image({
         x: x * TILE_SIZE,

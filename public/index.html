@@ -1,33 +1,55 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset='utf-8'>
-            <title>chess</title>
-            <link rel="stylesheet" type="text/css" href="css/style.css">
-            <script src="/socket.io/socket.io.js"></script>
-            <script src='js/jquery-1.10.2.min.js'></script>
-            <script src='js/kinetic-v4.7.2.min.js'></script>
-            <script src='js/color.js'></script>
-            <script src='js/figureType.js'></script>
-            <script src='js/figure.js'></script>
-            <script src='js/board.js'></script>
-            <script src='js/chess.js'></script>
-    </head>
-    <body>
-        <h2>Early Alpha</h2>
-        <p><span id='client_count'>0</span> connected clients</p>
-         <!--<div id="sidebar">
-            <div id="rules">
-                <h1>#1 - Aufgehobenes Matt</h1>
-                <p>Falls ein Spieler aus dem Matt herauskommt, muss er als erstes auf Schachgebote reagieren. Falls ein solcher Spieler z. B. eine starke Figur des linken Gegners schlagen könnte, jedoch im Schach durch eine Figur des rechten Gegners steht, muss er zuerst auf das Schach reagieren, selbst wenn sein Partner dieses Schachgebot beseitigen könnte, bevor der rechte Spieler dran ist. Wenn ein Spieler während des Spiels aus dem Matt herauskommt, z. B. indem sein Partner dabei hilft, haben seine Figuren den Status "aufgetaut". Diese können dann erst geschlagen werden, nachdem der aufgetaute Spieler erstmals wieder gezogen hat. Ansonsten wäre es zu leicht, den Matt gesetzten Spieler rundenweise auszuschlachten, da er immer erst auf das Schach reagieren muss und seine angegriffenen Figuren nicht retten kann.</p>
-                <br/>
+<head>
+<meta charset='utf-8'>
+<title>chess</title>
+<link rel="stylesheet" type="text/css" href="/css/lobbystyle.css"/>
+<link rel="stylesheet" type="text/css" href="css/style.css">
+<link rel="stylesheet" type="text/css" href='/css/ui-lightness/jquery-ui-1.10.3.custom.css'/>
+<script src='/js/jquery-1.10.2.min.js'></script>
+<script src='/js/jquery-ui-1.10.3.custom.js'></script>
+<script src='js/kinetic-v4.7.2.min.js'></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/room.js"></script>
+<script src='/js/lobby.js'></script>
+<script src='/js/switch.js'></script>
+<script src='js/color.js'></script>
+<script src='js/figureType.js'></script>
+<script src='js/figure.js'></script>
+<script src='js/board.js'></script>
+<script src='js/chess.js'></script>
+<script src='/js/spectrum.js'></script>
+<link rel='stylesheet' href='/css/spectrum.css' />
+<script>$(document).ready(execjs)</script>
+</head>
 
-                <h1>#2 - König schlagen?</h1>
-                <p>Es kann vorkommen, dass ein Spieler einen König schlagen kann, ohne dass der angegriffene Spieler vor seinem letzten Zug im Schach stand. Wenn z. B. der Nordspieler eine Figur bewegt, und dadurch ein Abzugsschach einer Figur des Südspielers auf den Westspieler freisetzt, dann ist der Südspieler dran, bevor der Westspieler auf das Schach reagieren muss. Das Schlagen des gegnerischen Königs macht dann nur in der Variante Sinn, in der die Figuren des damit, vom Prinzip her, Matt gesetzten Spielers vom Brett genommen oder zur eigenen Armee hinzugefügt werden. In der Variante, in der die Figuren einfrieren, ist König schlagen verboten. Solche Zeitpunkte lassen sich aber gut für einen Figurengewinn nutzen.</p>
-                <br/>
-            </div>
-        </div>
-        -->
-        <div id='canvas'> </div>   
-    </body>
+<body>
+<div id="lobby">
+<p id="name"></p>
+<br/>
+<br/>
+<ul id="list1">
+</ul>
+<button id="openroom">
+open room
+</button>
+
+<div id='dialog-form'>
+	<h2>Options</h2>
+	<input id='title'/>
+	<input id="colorpicker"/>
+	<br/>
+	<input id='description'/>
+</div>
+
+<div id='name-dialog' class='no-close'>
+	<input id='nameinput'/>
+</div>
+</div>
+
+<p><span id='client_count'>0</span> connected clients</p>
+<div id='canvas' style='display:none;'> </div>
+
+</body>
+
 </html>

@@ -1,27 +1,56 @@
-function execjs(){		
+function lobby(socket){		
 	var opengames=[];
-    var socket = io.connect();
+    var myname="";
+
+    $("#colorpicker").spectrum({
+    	showPaletteOnly: true,
+	    showPalette:true,
+	    color: 'black',
+	    palette: [
+        	['black', 'white'],
+        	['red','green']
+    	]
+	});
+
 	socket.on('connect', function(){
-		socket.on('message', function(data){
-			console.log(data);
-		});
-		socket.on('roomcreated', function(roomname, roomdescription){
-			opengames.push(new gameroom(roomname, roomdescription));
-			drawgames();
-		});
-		socket.on('init', function(rooms){
-			console.log(rooms/0);
-			for (var i=0; i<rooms.length; i++){
-				opengames.push(new gameroom(rooms[i], 'pre'+i));
-			}
-			drawgames();
+		socket.emit('connect syn');
+		socket.on('connect ack', function(){
+			if(localStorage.id){
+				socket.emit('getname', localStorage.id);
+			};
+			socket.on('name', function(name, id){
+				console.log(name);
+				myname=name;
+				localStorage.id=id;
+				console.log(localStorage.id);
+				$('#name').text(myname);
+				$('#name-dialog').dialog("close");
+			});
+			socket.on('message', function(data){
+				console.log(data);
+			});
+			socket.on('roomcreated', function(newRoom, id){
+				opengames[id]=newRoom;
+				drawroom(newRoom, id);
+			});
+			socket.on('init', function(rooms){
+				for (var i=0; i<rooms.length; i++){
+					opengames.push(new Room(rooms[i], 'pre'+i, 'a'));
+				}
+				drawgames();
+			});
+			socket.on('roomjoined', function(){
+				toGame(socket);
+				//$("#content").load("./index.html");
+				//socket.emit('getGame', 1);
+				//console.log(id);
+			});
 		});
 	});
 	function drawgames(){
 		document.getElementById("list1").innerHTML='';
 		for(var i=0; i<opengames.length; i++){
-			console.log(opengames[i]);
-			drawroom(opengames[i].title, opengames[i].description);
+			drawroom(i, opengames[i].title, opengames[i].description, opengames[i].owner);
 		}
 		$("li").on("click", function() {
   			$(this)
@@ -29,12 +58,30 @@ function execjs(){
 			.find(".details")
 			.slideToggle();
 		});
-		$("button.join").bind("click", function(){
-	  		socket.emit('joinroom', $(this).attr('id'))
+		$("button.join").on("click", function(){
+	  		socket.emit('joinroom', $(this).attr('id'));
 		});
 	}
-	function drawroom(title, description){
-		$('#list1').append("<li><span class='title'>"+title+"</span><div class='details'><p>"+description+"</p><button class='join'  id="+title+">Join</button></div></li>");
+	function drawroom(room, id){
+		$('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><input class='colorpicker'/><button class='join'  id="+id+">Join</button></div></li>");
+		$(".colorpicker").spectrum({
+	    	showPaletteOnly: true,
+		    showPalette:true,
+		    color: 'black',
+		    palette: [
+	        	['black', 'white'],
+	        	['red','green']
+	    	]
+		});
+		$("li").off('click').on("click", function() {
+  			$(this)
+    		.toggleClass("open")
+			.find(".details")
+			.slideToggle();
+		});
+		$("button.join").off('click').on("click", function(){
+	  		socket.emit('joinroom', $(this).attr('id'), $(this).parent().children("#colorpicker").val());
+		});
 	}
 	$( "#openroom" )
       .button()
@@ -49,8 +96,23 @@ function execjs(){
       draggable:false,
       buttons: {
         "accept": function() {
-        	socket.emit('createroom', $('#description').val());
+        	socket.emit('createroom',$('#title').val(), $('#description').val(), $('#colorpicker').val());
         	$( this ).dialog( "close" );
+        }
+      }
+    });
+    $('#name-dialog').dialog({
+      autoOpen: true,
+      height: 150,
+      width: 200,
+      modal: true,
+      draggable:false,
+      closeOnEscape:false,
+      resizable:false,
+      dialogClass:'no-close',
+      buttons: {
+        "accept": function() {
+        	socket.emit('newplayer', $('#nameinput').val());
         }
       }
     });
