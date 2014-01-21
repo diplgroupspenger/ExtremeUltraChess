@@ -13,6 +13,14 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
+/*var userdbPool=mysql.createPool({
+  host:'127.0.0.1',
+  port:'3306',
+  user:'spengerg',
+  password:'NietyephahynWoi',
+  database:'spengerg_chess',
+  socket:'/var/lib/mysql/mysql.sock',
+});*/
 var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -78,9 +86,13 @@ io.sockets.on('connection',function(socket){
 
 function getName(id, socket){
   userdbPool.getConnection(function(err, connection){
+      if (err) throw err;
       connection.query("SELECT name FROM users WHERE id=?",[id], function(err, result){
+        if (err) throw err;
         if(result[0]){
-          connection.query("UPDATE users SET socket=? WHERE id=?",[socket.id, id], function(err, result){});
+          connection.query("UPDATE users SET socket=? WHERE id=?",[socket.id, id], function(err, result){
+            if (err) throw err;
+          });
           socket.emit('name', result[0].name, id);
         }
         connection.release();
@@ -119,6 +131,7 @@ function createRoom(title, description,color, socket){
   rooms[roominc].addPerson(socket.id, color);
   userdbPool.getConnection(function(err, connection){
     connection.query("SELECT name FROM users WHERE socket=?", [socket.id], function(err, result){
+      if (err) throw err;
       if(result[0]){
         console.log(roominc);
         rooms[roominc].owner=result[0].name;
@@ -133,12 +146,24 @@ function createRoom(title, description,color, socket){
 
 function newPerson(name, socket){
   var id=uuid.v4();
+
   userdbPool.getConnection(function(err, connection){
-    connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)",[id, name, socket.id], function(err, result){
-      connection.release();
+    if(err) throw err;
+    connection.query("select socket from users where name=?", [name], function(err, result){
+      if(err) throw err;
+      if(result[0]){
+        console.log('schon vorhanden');
+        connection.release();
+      }
+      else{
+        connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)",[id, name, socket.id], function(err, result){
+          if (err) throw err;
+          socket.emit('name', name, id);
+          connection.release();
+        });
+      }
     });
   });
-  socket.emit('name', name, id);
 }
  
 function clientDisconnect(){

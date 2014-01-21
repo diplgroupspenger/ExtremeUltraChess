@@ -103,8 +103,8 @@ function lobby(socket){
     });
     $('#name-dialog').dialog({
       autoOpen: true,
-      height: 150,
-      width: 200,
+      height: 250,
+      width: 300,
       modal: true,
       draggable:false,
       closeOnEscape:false,
@@ -112,7 +112,9 @@ function lobby(socket){
       dialogClass:'no-close',
       buttons: {
         "accept": function() {
-        	socket.emit('newplayer', $('#nameinput').val());
+        	if($('#nameinput').val()){
+        		socket.emit('newplayer', $('#nameinput').val());
+        	}
         }
       }
     });
