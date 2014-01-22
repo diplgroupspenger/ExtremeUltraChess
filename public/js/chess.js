@@ -1,12 +1,7 @@
 var TILE_SIZE = 50;
 
-function startgame(socket){
-    //socket.on('message', function(msg){
-    //    $clientCounter.text(msg.clients);
-    //});
+function startgame(socket, color){
     socket.on('setPosition',setPosition);
-
-    $clientCounter = $('#client_count');
        
     socket.on('sendBoard', function(serverBoard){
         myBoard = new Board(serverBoard);
@@ -27,7 +22,7 @@ function startgame(socket){
             return;
         }
 
-        drawBoard(TILE_SIZE);
+        drawBoard(TILE_SIZE, color);
     }
 }
 
@@ -61,13 +56,32 @@ function removeFigure(pos){
     for(var i = 0; i < figureList.length; i++){
         if(figureList[i].figure.x == pos.x && figureList[i].figure.y == pos.y){
             figureList[i].remove();
+            figureList[i].taken = true;
             stage.draw();
         }
     }
+    //check if only 1 king is left
+    checkForGameEnd();
+}
+
+function checkForGameEnd() {
+    var countKings = 0;
+    for(var i = 0; i < figureList.length; i++) {
+        if(figureList[i].figure.type == FigureType.KING &&
+            figureList[i].taken == undefined) {
+            countKings++;
+        }
+
+        if(countKings == 4)
+            break;
+    }
+
+    if(countKings == 1)
+        console.log("game over");
 }
 
 //draw Board on load
-function drawBoard(TILE_SIZE) {
+function drawBoard(TILE_SIZE, color) {
     stage = new Kinetic.Stage({container: 'canvas',width: 700,height: 700});
     stage.on('mousedown', function(e) {
         boardClicked(e);
@@ -103,10 +117,8 @@ function drawBoard(TILE_SIZE) {
         }
     }
     
-    //rotate the board to players color
-    //!!!change parameter to current player if available!!!
-    rotateBoard(Color.WHITE);
-
+    rotateBoard(color);
+   
     stage.add(boardLayer);
     stage.add(moveLayer);
     stage.add(figureLayer);

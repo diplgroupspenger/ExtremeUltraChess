@@ -21,6 +21,7 @@ app.use(express.static(__dirname+'/public'));
   database:'spengerg_chess',
   socket:'/var/lib/mysql/mysql.sock',
 });*/
+
 var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -47,8 +48,6 @@ var Room=require('./public/js/room.js');
 var rooms={};
 
 io.sockets.on('connection',function(socket){
-  activeClients +=1;
-  io.sockets.emit('message', {clients:activeClients});
   socket.on('disconnect', clientDisconnect);
 
   socket.on('sendPosition',setPosition);
@@ -120,13 +119,26 @@ function setPosition(oldPos, newPos, figureIndex){
 function joinRoom(id,color, socket){
   socket.leave('lobby');
   socket.join(id);
+
+  infinite:
+  while(true) {
+      color = Math.floor((Math.random()*4)+1)*100;
+      if(rooms[id].people.length == 0) break;
+
+      for(var i = 0; i<rooms[id].people.length; i++) {
+        if(color != rooms[id].people[i].color){
+          break infinite;
+        }
+      }
+  }
+
   rooms[id].addPerson(socket.id, color);
-  socket.emit('roomjoined');
+  socket.emit('roomjoined', color);
   io.sockets.in(id).emit('popul inc', id);
 }
 
 function createRoom(title, description,color, socket){
-  socket.emit('message', socket.id);
+  color = Math.floor((Math.random()*4)+1)*100;
   rooms[roominc]=new Room(title, description, socket.id);
   rooms[roominc].addPerson(socket.id, color);
   userdbPool.getConnection(function(err, connection){

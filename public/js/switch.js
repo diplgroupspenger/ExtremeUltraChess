@@ -5,10 +5,11 @@ function execjs(){
     lobby(socket);
 }
 
-function toGame(socket){
+function toGame(socket, color){
 	$('#lobby').toggle();
 	$('#canvas').toggle();
-	startgame(socket);
+
+	startgame(socket, color);
 }
 
 function toLobby(){

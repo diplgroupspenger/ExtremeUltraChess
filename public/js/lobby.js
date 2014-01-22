@@ -39,8 +39,8 @@ function lobby(socket){
 				}
 				drawgames();
 			});
-			socket.on('roomjoined', function(){
-				toGame(socket);
+			socket.on('roomjoined', function(color){
+				toGame(socket, color);
 				//$("#content").load("./index.html");
 				//socket.emit('getGame', 1);
 				//console.log(id);

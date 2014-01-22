@@ -12,4 +12,6 @@ Room.prototype.addPerson=function(personID, color){
 	}
 };
 
-module.exports=Room;
+if(typeof module !== 'undefined' && module.exports) {
+	module.exports=Room;
+}
