@@ -13,6 +13,7 @@
 <script src="/js/room.js"></script>
 <script src='/js/lobby.js'></script>
 <script src='/js/switch.js'></script>
+<script src='js/turn.js'></script>
 <script src='js/color.js'></script>
 <script src='js/figureType.js'></script>
 <script src='js/figure.js'></script>
@@ -24,30 +25,33 @@
 </head>
 
 <body>
-<div id="lobby">
-<p id="name"></p>
+<div id='lobby'>
+<p id='name'></p>
 <br/>
 <br/>
-<ul id="list1">
+<ul id='list1'>
 </ul>
-<button id="openroom">
+<button id='openroom'>
 open room
 </button>
 
 <div id='dialog-form'>
 	<h2>Options</h2>
-	<input id='title'/>
-	<input id="colorpicker"/>
+	<input id='title' placeholder='Title'/>
 	<br/>
-	<input id='description'/>
+	<input id='description' placeholder='Description'/>
 </div>
 
 <div id='name-dialog' class='no-close'>
-	<input id='nameinput'/>
+	<input id='nameinput' placeholder='Name'/>
 </div>
 </div>
 
-<div id='canvas' style='display:none;'> </div>
+<div id='game' style='display:none;'> 
+	<p>Current Player:</p>
+	<p id='curPlayer'></p>
+	<div id='canvas'> </div>
+</div>
 
 </body>
 

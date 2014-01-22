@@ -7,7 +7,7 @@ function execjs(){
 
 function toGame(socket, color){
 	$('#lobby').toggle();
-	$('#canvas').toggle();
+	$('#game').toggle();
 
 	startgame(socket, color);
 }
