@@ -1,12 +1,7 @@
 var TILE_SIZE = 50;
 
-function startgame(socket){
-    //socket.on('message', function(msg){
-    //    $clientCounter.text(msg.clients);
-    //});
+function startgame(socket, color){
     socket.on('setPosition',setPosition);
-
-    $clientCounter = $('#client_count');
        
     socket.on('sendBoard', function(serverBoard){
         myBoard = new Board(serverBoard);
@@ -18,6 +13,10 @@ function startgame(socket){
     pieces = new Image();
     pieces.onload = tryDrawBoard;
     pieces.src = 'img/figures.png';
+
+    player = color;
+    turn = new Turn();
+    $('#curPlayer').text('White');
 
     var onceCb = false;
 
@@ -31,7 +30,7 @@ function startgame(socket){
     }
 }
 
-function setPosition(newPos, figureID){
+function setPosition(newPos, figureID, moved){
     var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
 
     //remove figure if captured
@@ -52,6 +51,11 @@ function setPosition(newPos, figureID){
         removeFigure(oldPos);
     }
 
+    if(moved) {
+       turn.nextTurn();
+       $('#curPlayer').text(colorToString(turn.player));
+    }
+
     moveLayer.removeChildren();
     stage.draw();
 }
@@ -61,9 +65,28 @@ function removeFigure(pos){
     for(var i = 0; i < figureList.length; i++){
         if(figureList[i].figure.x == pos.x && figureList[i].figure.y == pos.y){
             figureList[i].remove();
+            figureList[i].taken = true;
             stage.draw();
         }
     }
+    //check if only 1 king is left
+    checkForGameEnd();
+}
+
+function checkForGameEnd() {
+    var countKings = 0;
+    for(var i = 0; i < figureList.length; i++) {
+        if(figureList[i].figure.type == FigureType.KING &&
+            figureList[i].taken == undefined) {
+            countKings++;
+        }
+
+        if(countKings == 4)
+            break;
+    }
+
+    if(countKings == 1)
+        console.log("game over");
 }
 
 //draw Board on load
@@ -97,23 +120,28 @@ function drawBoard(TILE_SIZE) {
                 boardLayer.add(rect);
                 if(myBoard.board[y][x] != -1){
                     //set figure coordinate property
-                    drawFigure(x,y, TILE_SIZE);
+
+                    var playerColor;
+                    if(myBoard.board[y][x].color == player) 
+                        playerColor = true;
+                    else
+                        playerColor = false;
+
+                    drawFigure(x,y, TILE_SIZE, playerColor);
                 }
             }
         }
     }
     
-    //rotate the board to players color
-    //!!!change parameter to current player if available!!!
-    rotateBoard(Color.WHITE);
-
+    rotateBoard();
+   
     stage.add(boardLayer);
     stage.add(moveLayer);
     stage.add(figureLayer);
 }
 
 //draw single figure with canvas
-function drawFigure(x,y, TILE_SIZE) {
+function drawFigure(x,y, TILE_SIZE, playerColor) {
     var figurePos = getFigureFromSpritesheet(myBoard.board[y][x]);
     var figureImage = new Kinetic.Image({
         x: x * TILE_SIZE,
@@ -121,7 +149,7 @@ function drawFigure(x,y, TILE_SIZE) {
         image: pieces,
         width: TILE_SIZE,
         height: TILE_SIZE,
-        draggable: true,
+        draggable: playerColor,
         crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
     });
     figureImage.figure = myBoard.board[y][x];
@@ -136,23 +164,24 @@ function drawFigure(x,y, TILE_SIZE) {
         var pos = figureImage.getPosition();
         var tilePos = getTileFromPosRound(pos.x,pos.y);
         var figureID = figureList.indexOf(figureImage);
-
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
+        var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
-        if(myBoard.isPossibleToMove(oldPos, tilePos)){
-            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
+        if(player == turn.player && figureColor == player &&
+            myBoard.isPossibleToMove(oldPos, tilePos)){
+            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID,player);     
         }
         else {
             //place figure back to old tile
-            setPosition({"x": oldPos.x, "y": oldPos.y}, figureID);
+            setPosition({"x": oldPos.x, "y": oldPos.y}, figureID, false);
         }
         stage.draw();
     });
 }
 
-function rotateBoard(color){
+function rotateBoard(){
     //if color == white -> do nothing
-    if(color === Color.BLACK){
+    if(player === Color.BLACK){
         stage.rotateDeg(180);
         stage.setOffset(stage.getHeight(), stage.getWidth());
         //rotate figures back
@@ -161,7 +190,7 @@ function rotateBoard(color){
             image.rotateDeg(180);
             image.setOffset(image.getHeight(), image.getWidth());
         }
-    } else if(color === Color.RED){
+    } else if(player === Color.RED){
         stage.rotateDeg(-90);
         stage.setOffset(stage.getHeight(), 0);
         //rotate figures back
@@ -170,7 +199,7 @@ function rotateBoard(color){
             image.rotateDeg(90);
             image.setOffset(0, image.getWidth());
         }
-    } else if(color === Color.GREEN){
+    } else if(player === Color.GREEN){
         stage.rotateDeg(90);
         stage.setOffset(0, stage.getWidth());
         //rotate figures back
@@ -188,35 +217,38 @@ function boardClicked(e) {
     var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
     var moveLayerChildren = moveLayer.getChildren();
-        for(var i = 0; i < moveLayerChildren.length; i++) {
-            //click on tile, which is possible to move to
-            if(moveLayerChildren[i].getPosition().x == nodePos.x && moveLayerChildren[i].getPosition().y == nodePos.y) {
-                var clickedFigure = moveLayer.currentFigure;
-                var figureID = figureList.indexOf(clickedFigure);
-                var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
-                socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
-                return;
-            }
+    for(var i = 0; i < moveLayerChildren.length; i++) {
+        //click on tile, which is possible to move to
+        if(moveLayerChildren[i].getPosition().x == nodePos.x && moveLayerChildren[i].getPosition().y == nodePos.y) {
+            var clickedFigure = moveLayer.currentFigure;
+            var figureID = figureList.indexOf(clickedFigure);
+            var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
+            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
+            moveLayer.draw();
+            return;
+        }
     }
 
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
-        var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
-        moveLayer.removeChildren();
-        moveLayer.currentFigure = e.targetNode;
-        for(var i = 0; i< possibleMoves.length; i++){
-            var rect = new Kinetic.Rect({
-                x: possibleMoves[i].x * TILE_SIZE,
-                y: possibleMoves[i].y * TILE_SIZE,
-                width: TILE_SIZE,
-                height: TILE_SIZE,
-                fill: 'red'
-            });
+        if(myBoard.board[tilePos.y][tilePos.x].color == player
+            && turn.player == player) {
+            var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
+            moveLayer.removeChildren();
+            moveLayer.currentFigure = e.targetNode;
+            for(var i = 0; i< possibleMoves.length; i++){
+                var rect = new Kinetic.Rect({
+                    x: possibleMoves[i].x * TILE_SIZE,
+                    y: possibleMoves[i].y * TILE_SIZE,
+                    width: TILE_SIZE,
+                    height: TILE_SIZE,
+                    fill: 'red'
+                });
 
-            moveLayer.add(rect);
+                moveLayer.add(rect);
+            }
         }
-    } 
-       
-    moveLayer.draw();
+        moveLayer.draw();
+    }    
 }
 
 //get tile coordinates from total coordinates
@@ -257,6 +289,21 @@ function getFigureFromSpritesheet(figure) {
     return position;
 }
 
+function colorToString(color) {
+    if(color == Color.WHITE) {
+        return 'White';
+    }
+    else if(color == Color.RED) {
+        return 'Red';
+    }
+    else if(color == Color.BLACK) {
+        return 'Black';
+    }
+    else if(color == Color.GREEN) {
+        return 'Green';
+    }
+}
+
 function getBoardColor(x, y) {
-    return (x + y) % 2 === 0 ? '#fee472': '#00B392';
+    return (x + y) % 2 === 0 ? '#FCEF5D': '#E718F2';
 }

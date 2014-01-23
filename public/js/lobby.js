@@ -2,6 +2,7 @@ function lobby(socket){
 	var opengames=[];
     var myname="";
 
+<<<<<<< HEAD
     $("#colorpicker").spectrum({
     	showPaletteOnly: true,
 	    showPalette:true,
@@ -23,8 +24,16 @@ function lobby(socket){
 		
 	});
 
+=======
+>>>>>>> fff7532a8307f4e08292393225dccd02c7653b06
 	socket.on('connect', function(){
 		socket.emit('connect syn');
+		socket.on('syncRooms', function(rooms) {
+			console.log(rooms.length);
+			for (var i = 0; i < rooms.length; i++) {
+				drawroom(rooms[i],i);
+			}
+		});
 		socket.on('connect ack', function(){
 			if(localStorage.id){
 				socket.emit('getname', localStorage.id);
@@ -50,8 +59,8 @@ function lobby(socket){
 				}
 				drawgames();
 			});
-			socket.on('roomjoined', function(){
-				toGame(socket);
+			socket.on('roomjoined', function(color){
+				toGame(socket, color);
 				//$("#content").load("./index.html");
 				//socket.emit('getGame', 1);
 				//console.log(id);
@@ -74,16 +83,7 @@ function lobby(socket){
 		});
 	}
 	function drawroom(room, id){
-		$('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><input class='colorpicker'/><button class='join'  id="+id+">Join</button></div></li>");
-		$(".colorpicker").spectrum({
-	    	showPaletteOnly: true,
-		    showPalette:true,
-		    color: 'black',
-		    palette: [
-	        	['black', 'white'],
-	        	['red','green']
-	    	]
-		});
+		$('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><button class='join'  id="+id+">Join</button></div></li>");
 		$("li").off('click').on("click", function() {
   			$(this)
     		.toggleClass("open")
@@ -91,15 +91,15 @@ function lobby(socket){
 			.slideToggle();
 		});
 		$("button.join").off('click').on("click", function(){
-	  		socket.emit('joinroom', $(this).attr('id'), $(this).parent().children("#colorpicker").val());
+	  		socket.emit('joinroom', $(this).attr('id'), true);
 		});
 	}
-	$( "#openroom" )
+	$("#openroom")
       .button()
       .click(function() {
-        	$( "#dialog-form" ).dialog( "open" );
+        	$("#dialog-form").dialog("open");
         });
-	$( "#dialog-form" ).dialog({
+	$("#dialog-form").dialog({
       autoOpen: false,
       height: 300,
       width: 350,
@@ -107,8 +107,8 @@ function lobby(socket){
       draggable:false,
       buttons: {
         "accept": function() {
-        	socket.emit('createroom',$('#title').val(), $('#description').val(), $('#colorpicker').val());
-        	$( this ).dialog( "close" );
+        	socket.emit('createroom',$('#title').val(), $('#description').val(),true);
+        	$(this).dialog("close");
         }
       }
     });
@@ -128,5 +128,12 @@ function lobby(socket){
         	}
         }
       }
+    });
+    $("#name-dialog").keydown(function (event) {
+        if (event.keyCode == 13) {
+            if($('#nameinput').val()){
+        		socket.emit('newplayer', $('#nameinput').val());
+        	}
+        }
     });
 }

@@ -13,14 +13,15 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
-/*var userdbPool=mysql.createPool({
+var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
   user:'spengerg',
   password:'NietyephahynWoi',
   database:'spengerg_chess',
   socket:'/var/lib/mysql/mysql.sock',
-});*/
+});
+/*
 var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -28,12 +29,14 @@ var userdbPool=mysql.createPool({
   password:'pw',
   database:'chess',
 });
-
+*/
 var activeClients = 0;
 var roominc=0;
 
 var Board = require('./public/js/board.js');
+var Turn = require('./public/js/turn.js');
 myBoard = new Board();
+turn = new Turn();
 for(var y = 0; y < 14; y++){
   for(var x = 0; x < 14; x++){
     if(myBoard.board[y][x] != -1 && myBoard.board[y][x] != -2){
@@ -44,11 +47,11 @@ for(var y = 0; y < 14; y++){
 }
 
 var Room=require('./public/js/room.js');
-var rooms={};
+var rooms=[];
 
 io.sockets.on('connection',function(socket){
-  activeClients +=1;
-  io.sockets.emit('message', {clients:activeClients});
+  
+  socket.emit('syncRooms', rooms);
   socket.on('disconnect', clientDisconnect);
 
   socket.on('sendPosition',setPosition);
@@ -81,7 +84,6 @@ io.sockets.on('connection',function(socket){
     newPerson(name, socket);
   });
 
-
 });
 
 function getName(id, socket){
@@ -100,8 +102,9 @@ function getName(id, socket){
     });
 }
 
-function setPosition(oldPos, newPos, figureIndex){
-    console.log("oldx: "+oldPos.x+" oldy: "+oldPos.y+ " newX: "+newPos.x+ " newY: "+newPos.y);
+function setPosition(oldPos, newPos, figureIndex, color){
+  console.log("oldx: "+oldPos.x+" oldy: "+oldPos.y+ " newX: "+newPos.x+ " newY: "+newPos.y);
+  if(color == turn.player) {
     if(myBoard.isPossibleToMove(oldPos, newPos)){
         //look if another a figure is already on the tile
         if(myBoard.isFigure(newPos.x, newPos.y)){
@@ -113,22 +116,52 @@ function setPosition(oldPos, newPos, figureIndex){
             myBoard.board[newPos.y][newPos.x] = -1;
         }
 
-        io.sockets.emit('setPosition',newPos, figureIndex);
+        io.sockets.emit('setPosition',newPos, figureIndex, true);
+        turn.nextTurn();
     }
+  }
 }
 
 function joinRoom(id,color, socket){
-  socket.leave('lobby');
-  socket.join(id);
-  rooms[id].addPerson(socket.id, color);
-  socket.emit('roomjoined');
-  io.sockets.in(id).emit('popul inc', id);
+  var countPeople = rooms[id].people.length;
+  if(countPeople < 4) {
+    socket.leave('lobby');
+    socket.join(id);
+
+    infinite:
+    while(true) {
+        color = Math.floor((Math.random()*4)+1)*100;
+        if(rooms[id].people.length == 0) break;
+
+        //count if it`s not equal to any color of the joined people
+        var countColor = 0;
+        for(var i = 0; i<rooms[id].people.length; i++) {
+          console.log("color: "+color +" peoplecolor: "+rooms[id].people[i].color);
+          if(color != rooms[id].people[i].color){
+            countColor++;
+            console.log("countColor+: "+countColor);
+          }
+          console.log("people: "+countPeople+" color: "+countColor);
+          if(countColor == countPeople) {
+            break infinite;
+          }
+        }
+    }
+    rooms[id].addPerson(socket.id, color);
+    socket.emit('roomjoined', color);
+    io.sockets.in(id).emit('popul inc', id);
+  }
+  else {
+    console.log("room is full");
+  }
 }
 
 function createRoom(title, description,color, socket){
-  socket.emit('message', socket.id);
+  color = Math.floor((Math.random()*4)+1)*100;
+  console.log("ROOMLENGTH: "+rooms.length);
   rooms[roominc]=new Room(title, description, socket.id);
-  rooms[roominc].addPerson(socket.id, color);
+  console.log("ROOMLENGTH2: "+rooms.length+ " title:"+rooms[roominc].title);
+  //rooms[roominc].addPerson(socket.id, color);
   userdbPool.getConnection(function(err, connection){
     connection.query("SELECT name FROM users WHERE socket=?", [socket.id], function(err, result){
       if (err) throw err;
@@ -136,9 +169,9 @@ function createRoom(title, description,color, socket){
         console.log(roominc);
         rooms[roominc].owner=result[0].name;
         io.sockets.in('lobby').emit('roomcreated', rooms[roominc], roominc);
-        joinRoom(roominc, color, socket);
+        //joinRoom(roominc, color, socket);
         roominc++;
-      };
+      }
       connection.release();
     });
   });

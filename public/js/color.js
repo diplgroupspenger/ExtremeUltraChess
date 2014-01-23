@@ -1,7 +1,7 @@
 var Color = {
 	WHITE: 100,
-	BLACK: 200,
-	RED: 300,
+	RED: 200,
+	BLACK: 300,
 	GREEN: 400
 };
 

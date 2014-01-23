@@ -9,7 +9,11 @@ function Room(title, description, owner){
 Room.prototype.addPerson=function(personID, color){
 	if(this.status=="available"){
 		this.people.push({'id':personID, 'color':color});
+		console.log("addperson");
+		console.log(this.people.length);
 	}
 };
 
-module.exports=Room;
+if(typeof module !== 'undefined' && module.exports) {
+	module.exports=Room;
+}
