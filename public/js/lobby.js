@@ -12,6 +12,17 @@ function lobby(socket){
     	]
 	});
 
+	$('form').validate({
+		rules:{
+			name:{
+				minlength:1,
+				maxlength:15,
+				required:true
+			}
+		},
+		
+	});
+
 	socket.on('connect', function(){
 		socket.emit('connect syn');
 		socket.on('connect ack', function(){
