@@ -13,22 +13,22 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
-/*var userdbPool=mysql.createPool({
+var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
   user:'spengerg',
   password:'NietyephahynWoi',
   database:'spengerg_chess',
   socket:'/var/lib/mysql/mysql.sock',
-});*/
+});
 
-var userdbPool=mysql.createPool({
+/*var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
   user:'root',
   password:'pw',
   database:'chess',
-});
+});*/
 
 var activeClients = 0;
 var roominc=0;
