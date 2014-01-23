@@ -2,30 +2,6 @@ function lobby(socket){
 	var opengames=[];
     var myname="";
 
-<<<<<<< HEAD
-    $("#colorpicker").spectrum({
-    	showPaletteOnly: true,
-	    showPalette:true,
-	    color: 'black',
-	    palette: [
-        	['black', 'white'],
-        	['red','green']
-    	]
-	});
-
-	$('form').validate({
-		rules:{
-			name:{
-				minlength:1,
-				maxlength:15,
-				required:true
-			}
-		},
-		
-	});
-
-=======
->>>>>>> fff7532a8307f4e08292393225dccd02c7653b06
 	socket.on('connect', function(){
 		socket.emit('connect syn');
 		socket.on('syncRooms', function(rooms) {
