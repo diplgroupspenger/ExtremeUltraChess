@@ -2,6 +2,27 @@ function lobby(socket){
 	var opengames=[];
     var myname="";
 
+    $('#createform').validate({
+    	rules: {
+    		title: {
+    			required: true
+    		}
+    	},
+    	submitHandler:function(form){
+    		console.log('tut tut');
+    	}
+    });
+    $('#nameform').validate({
+    	rules: {
+    		nameinput: {
+    			required: true
+    		}
+    	},
+    	submitHandler:function(form){
+    		console.log('tut tut');
+    	}
+    });
+
 	socket.on('connect', function(){
 		socket.emit('connect syn');
 		socket.on('syncRooms', function(rooms) {
@@ -83,6 +104,7 @@ function lobby(socket){
       draggable:false,
       buttons: {
         "accept": function() {
+        	//document.forms['createform'].submit();
         	socket.emit('createroom',$('#title').val(), $('#description').val(),true);
         	$(this).dialog("close");
         }
@@ -99,6 +121,7 @@ function lobby(socket){
       dialogClass:'no-close',
       buttons: {
         "accept": function() {
+        	//document.forms['nameform'].submit();
         	if($('#nameinput').val()){
         		socket.emit('newplayer', $('#nameinput').val());
         	}

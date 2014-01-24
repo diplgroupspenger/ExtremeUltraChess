@@ -4,7 +4,8 @@ var express = require('express'),
   , mysql=require('mysql')
   , http = require('http')
   , server = http.createServer(app)
-  , io = require('socket.io').listen(server);
+  , io = require('socket.io').listen(server)
+  , config = require('./config');
 
 io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
 
@@ -13,22 +14,7 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
-var userdbPool=mysql.createPool({
-  host:'127.0.0.1',
-  port:'3306',
-  user:'spengerg',
-  password:'NietyephahynWoi',
-  database:'spengerg_chess',
-  socket:'/var/lib/mysql/mysql.sock',
-});
-
-/*var userdbPool=mysql.createPool({
-  host:'127.0.0.1',
-  port:'3306',
-  user:'root',
-  password:'pw',
-  database:'chess',
-});*/
+var userdbPool=mysql.createPool(config.database);
 
 var activeClients = 0;
 var roominc=0;
