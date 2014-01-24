@@ -20,10 +20,6 @@ var Board = function(importedBoard){
 		[-2,-2,-2,new Figure(FigureType.ROOK,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.QUEEN,Color.WHITE),new Figure(FigureType.KING,Color.WHITE),new Figure(FigureType.BISHOP,Color.WHITE),new Figure(FigureType.KNIGHT,Color.WHITE),new Figure(FigureType.ROOK,Color.WHITE),-2,-2,-2]];
 	}
 	else {
-
-		//this.board = importedBoard;
-
-		///* ka was der code machen soll -aaron
 		//import board
 		this.board = [];
 		var ylength = importedBoard.length;
