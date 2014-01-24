@@ -1,4 +1,5 @@
 var express = require('express'),
+    config = require('./config'),
     app = express(),
     uuid=require('node-uuid'),
     mysql=require('mysql'),
@@ -13,7 +14,8 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
-/*
+
+
 var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -22,9 +24,9 @@ var userdbPool=mysql.createPool({
   database:'spengerg_chess',
   socket:'/var/lib/mysql/mysql.sock',
 });
-*/
 
 
+/*
 var userdbPool = mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -32,6 +34,9 @@ var userdbPool = mysql.createPool({
   password:'pw',
   database:'chess',
 });
+*/
+
+var userdbPool=mysql.createPool(config.database);
 
 var activeClients = 0;
 var roominc=0;

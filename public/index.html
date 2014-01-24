@@ -9,17 +9,19 @@
 <script src='/js/jquery-1.10.2.min.js'></script>
 <script src='/js/jquery-ui-1.10.3.custom.js'></script>
 <script src='js/kinetic-v4.7.2.min.js'></script>
-<script src="/socket.io/socket.io.js"></script>
-<script src="/js/room.js"></script>
-<script src='/js/lobby.js'></script>
-<script src='/js/switch.js'></script>
+<script src="socket.io/socket.io.js"></script>
+<script src="js/room.js"></script>
+<script src='js/jquery.validate.js'></script>
+<script src='js/lobby.js'></script>
+<script src='js/switch.js'></script>
 <script src='js/turn.js'></script>
 <script src='js/color.js'></script>
 <script src='js/figureType.js'></script>
 <script src='js/figure.js'></script>
 <script src='js/board.js'></script>
 <script src='js/chess.js'></script>
-<script>$(document).ready(execjs)</script>
+<script>
+$(document).ready(execjs)</script>
 </head>
 
 <body>
@@ -35,19 +37,23 @@ open room
 
 <div id='dialog-form'>
 	<h2>Options</h2>
+	<form id='createform'>
 	<label>Title:</label>
 	<br/>
-	<input id='title' placeholder='Title'/>
+	<input id='title' name='title' placeholder='Title'/>
 	<br/>
 	<label>Description:</label>
 	<br/>
-	<input id='description' placeholder='Description'/>
+	<input id='description' name='description' placeholder='Description'/>
+	</form>
 </div>
 
 <div id='name-dialog' class='no-close'>
+	<form id='nameform'>
 	<label>Name:</label>
 	<br/>
-	<input id='nameinput' placeholder='Name'/>
+	<input id='nameinput' name='nameinput' placeholder='Name'/>
+	</form>
 </div>
 </div>
 
