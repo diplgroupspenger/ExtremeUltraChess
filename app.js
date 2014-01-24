@@ -1,10 +1,10 @@
 var express = require('express'),
-    app = express()
-  , uuid=require('node-uuid')
-  , mysql=require('mysql')
-  , http = require('http')
-  , server = http.createServer(app)
-  , io = require('socket.io').listen(server);
+    app = express(),
+    uuid=require('node-uuid'),
+    mysql=require('mysql'),
+    http = require('http'),
+    server = http.createServer(app),
+    io = require('socket.io').listen(server);
 
 io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
 
@@ -62,7 +62,7 @@ io.sockets.on('connection',function(socket){
   socket.on('connect syn', function(){
     socket.join('lobby');
     socket.emit('connect ack');
-  })
+  });
 
   socket.on('getGame', function(){
     socket.emit('message', io.sockets.manager.roomClients[socket.id]);
@@ -123,7 +123,7 @@ function joinRoom(id,color, socket){
   infinite:
   while(true) {
       color = Math.floor((Math.random()*4)+1)*100;
-      if(rooms[id].people.length == 0) break;
+      if(rooms[id].people.length === 0) break;
 
       for(var i = 0; i<rooms[id].people.length; i++) {
         if(color != rooms[id].people[i].color){
@@ -150,7 +150,7 @@ function createRoom(title, description,color, socket){
         io.sockets.in('lobby').emit('roomcreated', rooms[roominc], roominc);
         joinRoom(roominc, color, socket);
         roominc++;
-      };
+      }
       connection.release();
     });
   });

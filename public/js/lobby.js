@@ -1,15 +1,15 @@
-function lobby(socket){		
+function lobby(socket){
 	var opengames=[];
     var myname="";
 
-    $("#colorpicker").spectrum({
-    	showPaletteOnly: true,
-	    showPalette:true,
-	    color: 'black',
-	    palette: [
-        	['black', 'white'],
-        	['red','green']
-    	]
+	$("#colorpicker").spectrum({
+		showPaletteOnly: true,
+		showPalette:true,
+		color: 'black',
+		palette: [
+			['black', 'white'],
+			['red','green']
+		]
 	});
 
 	socket.on('connect', function(){
@@ -17,7 +17,7 @@ function lobby(socket){
 		socket.on('connect ack', function(){
 			if(localStorage.id){
 				socket.emit('getname', localStorage.id);
-			};
+			}
 			socket.on('name', function(name, id){
 				console.log(name);
 				myname=name;
@@ -53,40 +53,40 @@ function lobby(socket){
 			drawroom(i, opengames[i].title, opengames[i].description, opengames[i].owner);
 		}
 		$("li").on("click", function() {
-  			$(this)
-    		.toggleClass("open")
+			$(this)
+			.toggleClass("open")
 			.find(".details")
 			.slideToggle();
 		});
 		$("button.join").on("click", function(){
-	  		socket.emit('joinroom', $(this).attr('id'));
+			socket.emit('joinroom', $(this).attr('id'));
 		});
 	}
 	function drawroom(room, id){
 		$('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><input class='colorpicker'/><button class='join'  id="+id+">Join</button></div></li>");
 		$(".colorpicker").spectrum({
-	    	showPaletteOnly: true,
-		    showPalette:true,
-		    color: 'black',
-		    palette: [
-	        	['black', 'white'],
-	        	['red','green']
-	    	]
+			showPaletteOnly: true,
+			showPalette:true,
+			color: 'black',
+			palette: [
+				['black', 'white'],
+				['red','green']
+			]
 		});
 		$("li").off('click').on("click", function() {
-  			$(this)
-    		.toggleClass("open")
+			$(this)
+			.toggleClass("open")
 			.find(".details")
 			.slideToggle();
 		});
 		$("button.join").off('click').on("click", function(){
-	  		socket.emit('joinroom', $(this).attr('id'), $(this).parent().children("#colorpicker").val());
+			socket.emit('joinroom', $(this).attr('id'), $(this).parent().children("#colorpicker").val());
 		});
 	}
 	$( "#openroom" )
       .button()
       .click(function() {
-        	$( "#dialog-form" ).dialog( "open" );
+			$( "#dialog-form" ).dialog( "open" );
         });
 	$( "#dialog-form" ).dialog({
       autoOpen: false,
@@ -96,8 +96,8 @@ function lobby(socket){
       draggable:false,
       buttons: {
         "accept": function() {
-        	socket.emit('createroom',$('#title').val(), $('#description').val(), $('#colorpicker').val());
-        	$( this ).dialog( "close" );
+			socket.emit('createroom',$('#title').val(), $('#description').val(), $('#colorpicker').val());
+			$( this ).dialog( "close" );
         }
       }
     });
@@ -112,9 +112,9 @@ function lobby(socket){
       dialogClass:'no-close',
       buttons: {
         "accept": function() {
-        	if($('#nameinput').val()){
-        		socket.emit('newplayer', $('#nameinput').val());
-        	}
+			if($('#nameinput').val()){
+				socket.emit('newplayer', $('#nameinput').val());
+			}
         }
       }
     });
