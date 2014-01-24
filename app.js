@@ -13,6 +13,7 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
+/*
 var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -21,14 +22,16 @@ var userdbPool=mysql.createPool({
   database:'spengerg_chess',
   socket:'/var/lib/mysql/mysql.sock',
 });
+*/
 
-/*var userdbPool=mysql.createPool({
+
+var userdbPool = mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
   user:'root',
   password:'pw',
   database:'chess',
-});*/
+});
 
 var activeClients = 0;
 var roominc=0;
@@ -37,9 +40,9 @@ var Board = require('./public/js/board.js');
 var Turn = require('./public/js/turn.js');
 myBoard = new Board();
 turn = new Turn();
-for(var y = 0; y < 14; y++){
-  for(var x = 0; x < 14; x++){
-    if(myBoard.board[y][x] != -1 && myBoard.board[y][x] != -2){
+for(var y = 0; y < myBoard.board.length; y++){
+  for(var x = 0; x < myBoard.board[0].length; x++){
+    if(myBoard.board[y][x] !== -1 && myBoard.board[y][x] !== -2){
       myBoard.board[y][x].x = x;
       myBoard.board[y][x].y = y;
     }
@@ -200,6 +203,6 @@ function newPerson(name, socket){
 }
  
 function clientDisconnect(){
-  activeClients -=1;
+  activeClients -= 1;
   io.sockets.emit('message', {clients:activeClients});
 }

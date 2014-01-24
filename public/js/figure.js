@@ -1,6 +1,6 @@
 var Figure = function(type, color, importFigure){
     //if no figure to import is passed call normal constructor
-    if(typeof importFigure === "undefined") {
+    if(importFigure === undefined) {
         this.type = type;
         this.color = color;
         this.x = 0;
@@ -13,7 +13,7 @@ var Figure = function(type, color, importFigure){
 };
 
 Figure.prototype.importFigure = function(importFigure){
-    this.type = importFigure.type;
+    this.type = FigureType[importFigure.name];
     this.color = importFigure.color;
     this.x = importFigure.x;
     this.y = importFigure.y;
@@ -23,12 +23,13 @@ Figure.prototype.importFigure = function(importFigure){
 
 Figure.prototype.exportFigure = function(){
     return {
-    'name': this.type.name,
-    'color':this.color,
-    'x':this.x,
-    'y':this.y,
-    'hasMoved':this.hasMoved,
-    'enPassant':this.enPassant};
+        'name': this.type.name,
+        'color':this.color,
+        'x':this.x,
+        'y':this.y,
+        'hasMoved':this.hasMoved,
+        'enPassant':this.enPassant
+    };
 };
 
 Figure.prototype.possibleMoves = function(board){

@@ -118,14 +118,10 @@ function drawBoard(TILE_SIZE) {
                     strokeWidth: 1
                 });
                 boardLayer.add(rect);
-                if(myBoard.board[y][x] != -1){
+                if(myBoard.board[y][x] !== -1){
                     //set figure coordinate property
 
-                    var playerColor;
-                    if(myBoard.board[y][x].color == player)
-                        playerColor = true;
-                    else
-                        playerColor = false;
+                    var playerColor = (myBoard.board[y][x].color === player);
 
                     drawFigure(x,y, TILE_SIZE, playerColor);
                 }

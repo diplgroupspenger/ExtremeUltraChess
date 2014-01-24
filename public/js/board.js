@@ -51,14 +51,15 @@ var Board = function(importedBoard){
 };
 
 Board.prototype.exportBoard = function (){
+	
 	var newBoard = [];
-	for(var i=0; i<this.board.length;i++){
+	for(var i=0; i < this.board.length;i++){
 		newBoard.push([]);
 	}
 
 	for(var y = 0; y < this.board.length; y++){
 		for(var x = 0; x < this.board[0].length; x++){
-			if(this.isFigure(x,y)){
+			if(this.isFigure(x, y)){
 				newBoard[y][x] = this.board[y][x].exportFigure();
 			} else {
 				newBoard[y][x] = this.board[y][x];
