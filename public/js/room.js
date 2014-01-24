@@ -4,7 +4,7 @@ function Room(title, description, owner){
 	this.owner=owner;
 	this.people=[];
 	this.status="available";
-};
+}
 
 Room.prototype.addPerson=function(personID, color){
 	if(this.status=="available"){

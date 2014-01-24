@@ -1,5 +1,5 @@
-function lobby(socket){		
-	var opengames=[];
+function lobby(socket){                
+        var opengames=[];
     var myname="";
 
     $('#createform').validate({
@@ -94,9 +94,9 @@ function lobby(socket){
 	$("#openroom")
       .button()
       .click(function() {
-        	$("#dialog-form").dialog("open");
+                $("#dialog-form").dialog("open");
         });
-	$("#dialog-form").dialog({
+        $("#dialog-form").dialog({
       autoOpen: false,
       height: 300,
       width: 350,
@@ -131,8 +131,7 @@ function lobby(socket){
     $("#name-dialog").keydown(function (event) {
         if (event.keyCode == 13) {
             if($('#nameinput').val()){
-        		socket.emit('newplayer', $('#nameinput').val());
-        	}
+                        socket.emit('newplayer', $('#nameinput').val());
+                }
         }
-    });
-}
+ });

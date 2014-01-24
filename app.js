@@ -1,11 +1,11 @@
 var express = require('express'),
-    app = express()
-  , uuid=require('node-uuid')
-  , mysql=require('mysql')
-  , http = require('http')
-  , server = http.createServer(app)
-  , io = require('socket.io').listen(server)
-  , config = require('./config');
+    config = require('./config'),
+    app = express(),
+    uuid=require('node-uuid'),
+    mysql=require('mysql'),
+    http = require('http'),
+    server = http.createServer(app),
+    io = require('socket.io').listen(server);
 
 io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
 
@@ -52,7 +52,7 @@ io.sockets.on('connection',function(socket){
   socket.on('connect syn', function(){
     socket.join('lobby');
     socket.emit('connect ack');
-  })
+  });
 
   socket.on('getGame', function(){
     socket.emit('message', io.sockets.manager.roomClients[socket.id]);
@@ -117,7 +117,7 @@ function joinRoom(id,color, socket){
     infinite:
     while(true) {
         color = Math.floor((Math.random()*4)+1)*100;
-        if(rooms[id].people.length == 0) break;
+        if(rooms[id].people.length === 0) break;
 
         //count if it`s not equal to any color of the joined people
         var countColor = 0;

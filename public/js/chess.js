@@ -77,15 +77,15 @@ function checkForGameEnd() {
     var countKings = 0;
     for(var i = 0; i < figureList.length; i++) {
         if(figureList[i].figure.type == FigureType.KING &&
-            figureList[i].taken == undefined) {
+            figureList[i].taken === undefined) {
             countKings++;
         }
 
-        if(countKings == 4)
+        if(countKings === 4)
             break;
     }
 
-    if(countKings == 1)
+    if(countKings === 1)
         console.log("game over");
 }
 
@@ -103,8 +103,8 @@ function drawBoard(TILE_SIZE) {
     moveLayer = new Kinetic.Layer(); //where the figures can go to
     figureLayer = new Kinetic.Layer(); //layer for figures
 
-    for(var y = 0 ; y < 14 ; y++){
-        for(var x = 0 ; x < 14 ; x++){
+    for(var y = 0 ; y < myBoard.board.length; y++){
+        for(var x = 0 ; x < myBoard.board[0].length; x++){
             var tilex = x * TILE_SIZE;
             var tiley = y * TILE_SIZE;
             if(myBoard.board[y][x] != -2) {
@@ -122,7 +122,7 @@ function drawBoard(TILE_SIZE) {
                     //set figure coordinate property
 
                     var playerColor;
-                    if(myBoard.board[y][x].color == player) 
+                    if(myBoard.board[y][x].color == player)
                         playerColor = true;
                     else
                         playerColor = false;
@@ -169,7 +169,7 @@ function drawFigure(x,y, TILE_SIZE, playerColor) {
 
         if(player == turn.player && figureColor == player &&
             myBoard.isPossibleToMove(oldPos, tilePos)){
-            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID,player);     
+            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID,player);
         }
         else {
             //place figure back to old tile
@@ -217,25 +217,24 @@ function boardClicked(e) {
     var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
     var moveLayerChildren = moveLayer.getChildren();
-    for(var i = 0; i < moveLayerChildren.length; i++) {
+    var i = 0;
+    for(i = 0; i < moveLayerChildren.length; i++) {
         //click on tile, which is possible to move to
         if(moveLayerChildren[i].getPosition().x == nodePos.x && moveLayerChildren[i].getPosition().y == nodePos.y) {
             var clickedFigure = moveLayer.currentFigure;
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
-            moveLayer.draw();
             return;
         }
     }
 
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
-        if(myBoard.board[tilePos.y][tilePos.x].color == player
-            && turn.player == player) {
+        if(myBoard.board[tilePos.y][tilePos.x].color == player && turn.player == player) {
             var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
             moveLayer.removeChildren();
             moveLayer.currentFigure = e.targetNode;
-            for(var i = 0; i< possibleMoves.length; i++){
+            for(i = 0; i< possibleMoves.length; i++){
                 var rect = new Kinetic.Rect({
                     x: possibleMoves[i].x * TILE_SIZE,
                     y: possibleMoves[i].y * TILE_SIZE,
@@ -247,8 +246,9 @@ function boardClicked(e) {
                 moveLayer.add(rect);
             }
         }
-        moveLayer.draw();
-    }    
+    }
+       
+    moveLayer.draw();
 }
 
 //get tile coordinates from total coordinates

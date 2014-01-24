@@ -1,6 +1,6 @@
 var socket;
 
-function execjs(){		
+function execjs(){
     socket = io.connect();
     lobby(socket);
 }

@@ -13,7 +13,7 @@ var Figure = function(type, color, importFigure){
 };
 
 Figure.prototype.importFigure = function(importFigure){
-    this.type = FigureType[importFigure.name];
+    this.type = importFigure.type;
     this.color = importFigure.color;
     this.x = importFigure.x;
     this.y = importFigure.y;
@@ -50,6 +50,11 @@ Figure.prototype.setPosition = function(newX, newY){
     this.x = newX;
     this.y = newY;
     this.hasMoved = true;
+};
+
+Figure.prototype.setPositionRelentless = function(x, y){
+    this.x = x;
+    this.y = y;
 };
 
 Figure.prototype.inFront = function(){
@@ -89,6 +94,7 @@ Figure.prototype.right = function(){
 };
 
 Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions){
+
     if(myBoard.isLegalTile(xtmp, ytmp)){
         if (!myBoard.isPotentiallyWalkable(xtmp, ytmp, this.color)) {
             return false;
@@ -98,6 +104,7 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions){
             return false;
         }
     }
+    console.log("x: " + xtmp + ", y: " + ytmp);
     return true;
 };
 
