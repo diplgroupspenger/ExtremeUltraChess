@@ -15,7 +15,7 @@ server.listen(63924);
 app.use(express.static(__dirname+'/public'));
 
 
-
+/*
 var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -24,10 +24,10 @@ var userdbPool=mysql.createPool({
   database:'spengerg_chess',
   socket:'/var/lib/mysql/mysql.sock',
 });
+*/
 
 
-/*
-var userdbPool = mysql.createPool({
+/*var userdbPool = mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
   user:'root',
@@ -115,7 +115,8 @@ function setPosition(oldPos, newPos, figureIndex, color){
 
   if(color == turn.curPlayer.color) {
     if(myBoard.isPossibleToMove(oldPos, newPos)){
-      //look if another a figure is already on the tile
+
+      //look if another figure is already on the tile
       if(myBoard.isFigure(newPos.x, newPos.y)){
           if(myBoard.board[newPos.y][newPos.x].type == FigureType.KING) {
             var figureColor = myBoard.board[newPos.y][newPos.x].color;
