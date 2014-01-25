@@ -43,6 +43,7 @@ var roominc=0;
 
 var Board = require('./public/js/board.js');
 var Turn = require('./public/js/turn.js');
+var FigureType = require('./public/js/figureType.js');
 myBoard = new Board();
 turn = new Turn();
 for(var y = 0; y < myBoard.board.length; y++){
@@ -83,7 +84,7 @@ io.sockets.on('connection',function(socket){
     //io.sockets.in(id).emit('message', rooms[id]);
   });
   socket.on('getBoard', function(){
-    socket.emit('sendBoard', myBoard.exportBoard());
+    socket.emit('sendStatus', myBoard.exportBoard(), turn);
   });
   socket.on('getname', function(id){
     getName(id, socket);
@@ -111,11 +112,16 @@ function getName(id, socket){
 }
 
 function setPosition(oldPos, newPos, figureIndex, color){
-  console.log("oldx: "+oldPos.x+" oldy: "+oldPos.y+ " newX: "+newPos.x+ " newY: "+newPos.y);
-  if(color === turn.player) {
+
+  if(color == turn.curPlayer.color) {
     if(myBoard.isPossibleToMove(oldPos, newPos)){
       //look if another a figure is already on the tile
       if(myBoard.isFigure(newPos.x, newPos.y)){
+          if(myBoard.board[newPos.y][newPos.x].type == FigureType.KING) {
+            var figureColor = myBoard.board[newPos.y][newPos.x].color;
+            turn.remove(figureColor);
+          }
+      
           myBoard.board[newPos.y][newPos.x] = -1;
       }
       myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
@@ -130,9 +136,8 @@ function setPosition(oldPos, newPos, figureIndex, color){
     }
     
   }
-  else{
-    io.sockets.emit('setPosition', oldPos, figureIndex, false);
-  }
+  //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
+  io.sockets.emit('setPosition', oldPos, figureIndex, false);
 }
 
 function joinRoom(id,color, socket){
