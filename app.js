@@ -126,10 +126,12 @@ function setPosition(oldPos, newPos, figureIndex, color){
 
       io.sockets.emit('setPosition', newPos, figureIndex, true);
       turn.nextTurn();
+      return;
     }
-    else{
-      io.sockets.emit('setPosition', oldPos, figureIndex, false);
-    }
+    
+  }
+  else{
+    io.sockets.emit('setPosition', oldPos, figureIndex, false);
   }
 }
 
