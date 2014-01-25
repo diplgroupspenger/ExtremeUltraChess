@@ -3,8 +3,11 @@ var TILE_SIZE = 50;
 function startgame(socket, color){
     socket.on('setPosition',setPosition);
        
-    socket.on('sendBoard', function(serverBoard){
+    socket.on('sendStatus', function(serverBoard, serverTurn){
         myBoard = new Board(serverBoard);
+        turn = new Turn();
+        turn.player = serverTurn.player;
+        turn.curPlayer = serverTurn.curPlayer;
         tryDrawBoard();
     });
     socket.emit('getGame');
@@ -35,8 +38,14 @@ function setPosition(newPos, figureID, moved){
 
     //remove figure if captured
     if(myBoard.isFigure(newPos.x, newPos.y)){
-        if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)
+        if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)  {
+            //check if a king was taken and remove player from turn system
+            if(myBoard.board[newPos.y][newPos.x].type == FigureType.KING) {
+                var figureColor = myBoard.board[newPos.y][newPos.x].color;
+                turn.remove(figureColor);
+            }
             removeFigure(newPos);
+        }
     }
 
     //figureList[figureID].setPosition(newPos.x * TILE_SIZE , newPos.y * TILE_SIZE);
@@ -301,5 +310,5 @@ function colorToString(color) {
 }
 
 function getBoardColor(x, y) {
-    return (x + y) % 2 === 0 ? '#FCEF5D': '#E718F2';
+    return (x + y) % 2 === 0 ? '#FF6600': '#336699';
 }
