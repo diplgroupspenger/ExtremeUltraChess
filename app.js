@@ -96,36 +96,39 @@ io.sockets.on('connection',function(socket){
 
 function getName(id, socket){
   userdbPool.getConnection(function(err, connection){
+    if (err) throw err;
+    connection.query("SELECT name FROM users WHERE id=?",[id], function(err, result){
       if (err) throw err;
-      connection.query("SELECT name FROM users WHERE id=?",[id], function(err, result){
-        if (err) throw err;
-        if(result[0]){
-          connection.query("UPDATE users SET socket=? WHERE id=?",[socket.id, id], function(err, result){
-            if (err) throw err;
-          });
-          socket.emit('name', result[0].name, id);
-        }
-        connection.release();
-      });
+      if(result[0]){
+        connection.query("UPDATE users SET socket=? WHERE id=?",[socket.id, id], function(err, result){
+          if (err) throw err;
+        });
+        socket.emit('name', result[0].name, id);
+      }
+      connection.release();
     });
+  });
 }
 
 function setPosition(oldPos, newPos, figureIndex, color){
   console.log("oldx: "+oldPos.x+" oldy: "+oldPos.y+ " newX: "+newPos.x+ " newY: "+newPos.y);
-  if(color == turn.player) {
+  if(color === turn.player) {
     if(myBoard.isPossibleToMove(oldPos, newPos)){
-        //look if another a figure is already on the tile
-        if(myBoard.isFigure(newPos.x, newPos.y)){
-            myBoard.board[newPos.y][newPos.x] = -1;
-        }
-        myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+      //look if another a figure is already on the tile
+      if(myBoard.isFigure(newPos.x, newPos.y)){
+          myBoard.board[newPos.y][newPos.x] = -1;
+      }
+      myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
 
-        if(myBoard.isEnPassant()){
-            myBoard.board[newPos.y][newPos.x] = -1;
-        }
+      if(myBoard.isEnPassant()){
+          myBoard.board[newPos.y][newPos.x] = -1;
+      }
 
-        io.sockets.emit('setPosition',newPos, figureIndex, true);
-        turn.nextTurn();
+      io.sockets.emit('setPosition', newPos, figureIndex, true);
+      turn.nextTurn();
+    }
+    else{
+      io.sockets.emit('setPosition', oldPos, figureIndex, false);
     }
   }
 }

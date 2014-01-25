@@ -135,11 +135,9 @@ Board.prototype.moveFigureTo = function(oldX, oldY, newX, newY){
 //returns false if there is no figure at oldPos or the figure is not allwed to move to newPos
 Board.prototype.isPossibleToMove = function(oldPos, newPos){
     var possibleMoves = this.getFigureAtPos(oldPos.x, oldPos.y).possibleMoves(this);
-    console.log(possibleMoves.length);
     for(var i = 0; i < possibleMoves.length; i++){
-		console.log("x: " + possibleMoves[i].x + ", y: " + possibleMoves[i].y);
         if(possibleMoves[i].x === newPos.x && possibleMoves[i].y === newPos.y){
-          return true;
+			return true;
         }
     }
     return false;

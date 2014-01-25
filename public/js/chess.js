@@ -47,11 +47,10 @@ function setPosition(newPos, figureID, moved){
 
     figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
-    if(myBoard.isEnPassant()){
-        removeFigure(oldPos);
-    }
-
     if(moved) {
+        if(myBoard.isEnPassant()){
+            removeFigure(oldPos);
+        }
        turn.nextTurn();
        $('#curPlayer').text(colorToString(turn.player));
     }
@@ -158,18 +157,19 @@ function drawFigure(x,y, TILE_SIZE, playerColor) {
 
     figureImage.on("dragend", function dragend(){
         var pos = figureImage.getPosition();
-        var tilePos = getTileFromPosRound(pos.x,pos.y);
+        var newPos = getTileFromPosRound(pos.x,pos.y);
         var figureID = figureList.indexOf(figureImage);
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
         var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
-        if(player == turn.player && figureColor == player &&
-            myBoard.isPossibleToMove(oldPos, tilePos)){
-            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID,player);
+        if(player === turn.player && figureColor === player &&
+            myBoard.isPossibleToMove(oldPos, newPos)){
+            setPosition(newPos, figureID, false);
+            socket.emit('sendPosition', oldPos, newPos, figureID, player);
         }
         else {
             //place figure back to old tile
-            setPosition({"x": oldPos.x, "y": oldPos.y}, figureID, false);
+            setPosition(oldPos, figureID, false);
         }
         stage.draw();
     });
