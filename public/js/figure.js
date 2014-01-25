@@ -105,7 +105,6 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions){
             return false;
         }
     }
-    console.log("x: " + xtmp + ", y: " + ytmp);
     return true;
 };
 

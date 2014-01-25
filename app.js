@@ -15,7 +15,7 @@ server.listen(63924);
 app.use(express.static(__dirname+'/public'));
 
 
-
+/*
 var userdbPool=mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
@@ -24,10 +24,10 @@ var userdbPool=mysql.createPool({
   database:'spengerg_chess',
   socket:'/var/lib/mysql/mysql.sock',
 });
+*/
 
 
-/*
-var userdbPool = mysql.createPool({
+/*var userdbPool = mysql.createPool({
   host:'127.0.0.1',
   port:'3306',
   user:'root',
@@ -119,6 +119,7 @@ function setPosition(oldPos, newPos, figureIndex, color){
             if(myBoard.board[newPos.y][newPos.x].type == FigureType.KING) {
               var figureColor = myBoard.board[newPos.y][newPos.x].color;
               turn.remove(figureColor);
+
             }
         
             myBoard.board[newPos.y][newPos.x] = -1;
@@ -133,7 +134,7 @@ function setPosition(oldPos, newPos, figureIndex, color){
         turn.nextTurn();
     }
   }
-
+}
 function joinRoom(id,color, socket){
   var countPeople = rooms[id].people.length;
   if(countPeople < 4) {

@@ -18,7 +18,6 @@ function startgame(socket, color){
     pieces.src = 'img/figures.png';
 
     player = color;
-    turn = new Turn();
     $('#curPlayer').text('White');
 
     var onceCb = false;
@@ -62,7 +61,7 @@ function setPosition(newPos, figureID, moved){
 
     if(moved) {
        turn.nextTurn();
-       $('#curPlayer').text(colorToString(turn.player));
+       $('#curPlayer').text(colorToString(turn.curPlayer.color));
     }
 
     moveLayer.removeChildren();
@@ -171,12 +170,13 @@ function drawFigure(x,y, TILE_SIZE, playerColor) {
         var figureID = figureList.indexOf(figureImage);
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
         var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
-
-        if(player == turn.player && figureColor == player &&
+        if(player == turn.curPlayer.color && figureColor == player &&
             myBoard.isPossibleToMove(oldPos, tilePos)){
+            console.log("canmove");
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID,player);
         }
         else {
+            console.log("moveback");
             //place figure back to old tile
             setPosition({"x": oldPos.x, "y": oldPos.y}, figureID, false);
         }
@@ -230,12 +230,13 @@ function boardClicked(e) {
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
+            moveLayer.draw();
             return;
         }
     }
 
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
-        if(myBoard.board[tilePos.y][tilePos.x].color == player && turn.player == player) {
+        if(myBoard.board[tilePos.y][tilePos.x].color == player && turn.curPlayer.color == player) {
             var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
             moveLayer.removeChildren();
             moveLayer.currentFigure = e.targetNode;
@@ -251,9 +252,8 @@ function boardClicked(e) {
                 moveLayer.add(rect);
             }
         }
+        moveLayer.draw();
     }
-       
-    moveLayer.draw();
 }
 
 //get tile coordinates from total coordinates
