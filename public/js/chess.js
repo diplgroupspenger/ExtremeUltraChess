@@ -8,6 +8,7 @@ function startgame(socket, color){
         turn = new Turn();
         turn.player = serverTurn.player;
         turn.curPlayer = serverTurn.curPlayer;
+        $('#curPlayer').text('White');
         tryDrawBoard();
     });
     socket.emit('getGame');
@@ -18,7 +19,6 @@ function startgame(socket, color){
     pieces.src = 'img/figures.png';
 
     player = color;
-    $('#curPlayer').text('White');
 
     var onceCb = false;
 
@@ -230,7 +230,7 @@ function boardClicked(e) {
             var clickedFigure = moveLayer.currentFigure;
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
-            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID);
+            socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID, player);
             moveLayer.draw();
             return;
         }

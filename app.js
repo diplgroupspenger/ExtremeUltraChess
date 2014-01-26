@@ -114,6 +114,7 @@ function getName(id, socket){
 function setPosition(oldPos, newPos, figureIndex, color){
 
   if(color == turn.curPlayer.color) {
+
     if(myBoard.isPossibleToMove(oldPos, newPos)){
 
       //look if another figure is already on the tile
@@ -150,8 +151,10 @@ function joinRoom(id,color, socket){
     infinite:
     while(true) {
         color = Math.floor((Math.random()*4)+1)*100;
-        if(rooms[id].people.length === 0) break;
-
+        if(rooms[id].people.length === 0) {
+          color = 100; // DEBUG - REMOVE IN FINAL!!!!!!
+          break;
+        }
         //count if it`s not equal to any color of the joined people
         var countColor = 0;
         for(var i = 0; i<rooms[id].people.length; i++) {
