@@ -5,7 +5,7 @@ function lobby(socket){
     socket.on('connect', function(){
         socket.emit('connect syn');
         socket.on('syncRooms', function(rooms) {
-                console.log(rooms.length);
+                //console.log(rooms.length);
                 for (var i = 0; i < rooms.length; i++) {
                         drawroom(rooms[i],i);
                 }
@@ -15,15 +15,15 @@ function lobby(socket){
                         socket.emit('getname', localStorage.id);
                 }
                 socket.on('name', function(name, id){
-                        console.log(name);
+                        //console.log(name);
                         myname=name;
                         localStorage.id=id;
-                        console.log(localStorage.id);
+                        //console.log(localStorage.id);
                         $('#name').text(myname);
                         $('#name-dialog').dialog("close");
                 });
                 socket.on('message', function(data){
-                        console.log(data);
+                        //console.log(data);
                 });
                 socket.on('roomcreated', function(newRoom, id){
                         opengames[id]=newRoom;

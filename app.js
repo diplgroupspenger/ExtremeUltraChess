@@ -27,6 +27,7 @@ var Color = require('./public/js/color.js');
 
 //DEBUG
 var turnOn = true;
+var ignPossible = false;
 //ENDDEBUG
 
 myBoard = new Board();
@@ -34,7 +35,7 @@ turn = new Turn();
 for(var y = 0; y < myBoard.board.length; y++){
   for(var x = 0; x < myBoard.board[0].length; x++){
     if(myBoard.board[y][x] !== -1 && myBoard.board[y][x] !== -2){
-      myBoard.board[y][x].setPosition(x, y);
+      myBoard.board[y][x].setPositionRelentless(x, y);
     }
   }
 }
@@ -82,7 +83,10 @@ io.sockets.on('connection',function(socket){
   //DEBUG
   socket.on('sendTurnStatus', function(turn) {
     turnOn = turn;
-  })
+  });
+  socket.on('sendPossibleStatus', function(possible) {
+    ignPossible = possible;
+  });
 });
 
 function getName(id, socket){
@@ -102,9 +106,11 @@ function getName(id, socket){
 }
 
 function setPosition(oldPos, newPos, figureIndex, color){
-  if(color == turn.curPlayer.color) {
-    if(myBoard.isPossibleToMove(oldPos, newPos)){
-
+  console.log("turn: "+turnOn);
+    console.log("possible: "+ignPossible);
+  if(!turnOn || color == turn.curPlayer.color) {
+    if(myBoard.isPossibleToMove(oldPos, newPos) || ignPossible){
+      console.log("ignore");
       //look if another figure is already on the tile
       if(myBoard.isFigure(newPos.x, newPos.y)){
         console.dir(myBoard.board[newPos.y][newPos.x]);
@@ -120,9 +126,12 @@ function setPosition(oldPos, newPos, figureIndex, color){
       if(myBoard.isEnPassant()){
           myBoard.board[newPos.y][newPos.x] = -1;
       }
+      
+      if(!checkForPawnConvertion(myBoard.board[newPos.y][newPos.x].type, newPos)) {
+        turn.nextTurn();
+      }
 
       io.sockets.emit('setPosition', newPos, figureIndex, true);
-      turn.nextTurn();
       return;
     }
     
@@ -131,11 +140,21 @@ function setPosition(oldPos, newPos, figureIndex, color){
   io.sockets.emit('setPosition', oldPos, figureIndex, false);
 }
 
+function checkForPawnConvertion(type, pos) {
+    if(type === FigureType.PAWN) {
+        if(pos.y == 0){
+            return true;
+        }
+    }
+    return false;
+}
+
 function convertPawn(figure, posX, posY) {
     if(myBoard.board[posY][posX].type === FigureType.PAWN) {
         if(posY == 0){
             myBoard.board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
             myBoard.board[posY][posX].setPosition(posX, posY);
+            turn.nextTurn();
         }
     }
 }

@@ -1,5 +1,7 @@
 var TILE_SIZE = 50;
+//DEBUG
 var turnOn = true;
+var ignPossible = false;
 
 function startgame(socket, color){
     //DEBUG
@@ -66,16 +68,21 @@ function setPosition(newPos, figureID, moved){
     figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
     if(moved) {
-        checkForPawnConvertion(figureID, newPos);
         if(myBoard.isEnPassant()){
             removeFigure(oldPos);
         }
-        turn.nextTurn();
-        $('#curPlayer').text(colorToString(turn.curPlayer.color));
+        
+        if(!pawnConvertion(figureID, newPos)){
+            setNextTurn();
+        }
     }
-
     moveLayer.removeChildren();
     stage.draw();
+}
+
+function setNextTurn() {
+      turn.nextTurn();
+            $('#curPlayer').text(colorToString(turn.curPlayer.color));
 }
 
 function removeFigure(pos){
@@ -107,12 +114,16 @@ function checkForGameEnd() {
         console.log("game over");
 }
 
-function checkForPawnConvertion(id, pos) {
+function pawnConvertion(id, pos) {
     if(figureList[id].figure.type === FigureType.PAWN) {
-        if(pos.y == 0){
-            convertPawn(id, pos); //convertPawn.js
+        if(player === turn.curPlayer.color && figureList[id].figure.color === player) {
+            if(pos.y == 0){
+                convertPawn(id, pos); //convertPawn.js
+                return true;
+            }
         }
     }
+    return false;
 }
 
 //draw Board on load
@@ -216,8 +227,8 @@ function drawFigure(x,y, playerColor) {
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
         var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
-        if(player === turn.curPlayer.color && figureColor === player &&
-            myBoard.isPossibleToMove(oldPos, newPos)){
+        if((player === turn.curPlayer.color && figureColor === player)||!turnOn &&
+            (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible )){
             setPosition(newPos, figureID, false);
             socket.emit('sendPosition', oldPos, newPos, figureID, player);
         }
@@ -271,8 +282,9 @@ function boardClicked(e) {
     var i = 0;
     for(i = 0; i < moveLayerChildren.length; i++) {
         //click on tile, which is possible to move to
-        if(moveLayerChildren[i].getPosition().x === nodePos.x && moveLayerChildren[i].getPosition().y === nodePos.y) {
+        if((moveLayerChildren[i].getPosition().x === nodePos.x && moveLayerChildren[i].getPosition().y === nodePos.y)|| ignPossible) {
             var clickedFigure = moveLayer.currentFigure;
+            console.dir(clickedFigure.getLayer());
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID, player);
@@ -282,7 +294,7 @@ function boardClicked(e) {
     }
 
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
-        if(myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player) {
+        if((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player) ||!turnOn) {
             var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
             moveLayer.removeChildren();
             moveLayer.currentFigure = e.targetNode;

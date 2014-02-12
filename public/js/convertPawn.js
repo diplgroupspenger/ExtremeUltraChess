@@ -47,6 +47,7 @@ function draw(figure, posX, posY, figureId) {
     	foreGroundLayer.removeChildren();
     	foreGroundLayer.draw();
     	socket.emit('convertPawn', figure, x, y);
+    	setNextTurn();
 	});
     
     foreGroundLayer.add(figureImage);

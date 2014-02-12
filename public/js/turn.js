@@ -22,7 +22,6 @@ function Turn() {
 };
 
 Turn.prototype.nextTurn = function() {
-	/*
 	if(this.curPlayer.color != Color.GREEN) {
 		for(var key in this.player) {
 			if(this.player[key].color == this.curPlayer.color + 100) {
@@ -38,9 +37,6 @@ Turn.prototype.nextTurn = function() {
 
 	if(this.curPlayer.dead)
 		this.nextTurn();
-
-	console.log("currentPlayer: "+this.curPlayer.color);
-	*/
 };
 
 Turn.prototype.remove = function(player) {
