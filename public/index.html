@@ -4,12 +4,12 @@
 <meta charset='utf-8'>
 <title>chess</title>
 <link rel="stylesheet" type="text/css" href="/css/lobbystyle.css"/>
-<link rel="stylesheet" type="text/css" href="css/style.css">
+<link rel="stylesheet" type="text/css" href="css/style.css"/>
 <link rel="stylesheet" type="text/css" href='/css/ui-lightness/jquery-ui-1.10.3.custom.css'/>
 <script src='/js/jquery-1.10.2.min.js'></script>
 <script src='/js/jquery-ui-1.10.3.custom.js'></script>
-<script src='js/kinetic-v4.7.2.min.js'></script>
-<script src="socket.io/socket.io.js"></script>
+<script src='js/kinetic-v4.4.3.min.js'></script>
+<script src='socket.io/socket.io.js'></script>
 <script src="js/room.js"></script>
 <script src='js/jquery.validate.js'></script>
 <script src='js/lobby.js'></script>
@@ -20,49 +20,52 @@
 <script src='js/figure.js'></script>
 <script src='js/board.js'></script>
 <script src='js/chess.js'></script>
+<script src='js/convertPawn.js'></script>
+<script src='js/commands.js'></script>
 <script>
-$(document).ready(execjs)</script>
+	$(document).ready(execjs)
+</script>
 </head>
 
 <body>
 <div id='lobby'>
-<p id='name'></p>
-<br/>
-<br/>
-<ul id='list1'>
-</ul>
-<button id='openroom'>
-open room
-</button>
+	<p id='name'></p>
+	<br/>
+	<br/>
+	<ul id='list1'>
+	</ul>
+	<button id='openroom'>
+	open room
+	</button>
 
-<div id='dialog-form'>
-	<h2>Options</h2>
-	<form id='createform'>
-	<label>Title:</label>
-	<br/>
-	<input id='title' name='title' placeholder='Title'/>
-	<br/>
-	<label>Description:</label>
-	<br/>
-	<input id='description' name='description' placeholder='Description'/>
-	</form>
-</div>
+	<div id='dialog-form'>
+		<h2>Options</h2>
+		<form id='createform'>
+		<label>Title:</label>
+		<br/>
+		<input id='title' name='title' placeholder='Title'/>
+		<br/>
+		<label>Description:</label>
+		<br/>
+		<input id='description' name='description' placeholder='Description'/>
+		</form>
+	</div>
 
-<div id='name-dialog' class='no-close'>
-	<form id='nameform'>
-	<label>Name:</label>
-	<br/>
-	<input id='nameinput' name='nameinput' placeholder='Name'/>
-	</form>
-</div>
+	<div id='name-dialog' class='no-close'>
+		<form id='nameform'>
+		<label>Name:</label>
+		<br/>
+		<input id='nameinput' name='nameinput' placeholder='Name'/>
+		</form>
+	</div>
 </div>
 
 <div id='game' style='display:none;'> 
 	<p>Current Player:</p>
 	<p id='curPlayer'></p>
+	<input type="text" id="cmdField"/>
 	<div id='canvas'> </div>
 </div>
 
 </body>
-
 </html>

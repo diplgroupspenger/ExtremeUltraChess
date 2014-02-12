@@ -14,43 +14,27 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
-
-/*
-var userdbPool=mysql.createPool({
-  host:'127.0.0.1',
-  port:'3306',
-  user:'spengerg',
-  password:'NietyephahynWoi',
-  database:'spengerg_chess',
-  socket:'/var/lib/mysql/mysql.sock',
-});
-*/
-
-
-/*var userdbPool = mysql.createPool({
-  host:'127.0.0.1',
-  port:'3306',
-  user:'root',
-  password:'pw',
-  database:'chess',
-});
-*/
-
 var userdbPool=mysql.createPool(config.database);
 
 var activeClients = 0;
-var roominc=0;
+var roominc = 0;
 
 var Board = require('./public/js/board.js');
 var Turn = require('./public/js/turn.js');
 var FigureType = require('./public/js/figureType.js');
+var Figure = require('./public/js/figure.js');
+var Color = require('./public/js/color.js');
+
+//DEBUG
+var turnOn = true;
+//ENDDEBUG
+
 myBoard = new Board();
 turn = new Turn();
 for(var y = 0; y < myBoard.board.length; y++){
   for(var x = 0; x < myBoard.board[0].length; x++){
     if(myBoard.board[y][x] !== -1 && myBoard.board[y][x] !== -2){
-      myBoard.board[y][x].x = x;
-      myBoard.board[y][x].y = y;
+      myBoard.board[y][x].setPosition(x, y);
     }
   }
 }
@@ -61,10 +45,12 @@ var rooms=[];
 io.sockets.on('connection',function(socket){
   
   socket.emit('syncRooms', rooms);
-  socket.on('disconnect', clientDisconnect);
+  socket.on('disconnect', function(socket) {
+  console.log(io.sockets.manager.roomClients[socket.id]);
+  });
 
-  socket.on('sendPosition',setPosition);
-  
+  socket.on('sendPosition', setPosition);
+  socket.on('convertPawn', convertPawn);
   socket.on('createroom', function(title, description, color){
       createRoom(title, description,color, socket);
   });
@@ -93,6 +79,10 @@ io.sockets.on('connection',function(socket){
     newPerson(name, socket);
   });
 
+  //DEBUG
+  socket.on('sendTurnStatus', function(turn) {
+    turnOn = turn;
+  })
 });
 
 function getName(id, socket){
@@ -112,13 +102,12 @@ function getName(id, socket){
 }
 
 function setPosition(oldPos, newPos, figureIndex, color){
-
   if(color == turn.curPlayer.color) {
-
     if(myBoard.isPossibleToMove(oldPos, newPos)){
 
       //look if another figure is already on the tile
       if(myBoard.isFigure(newPos.x, newPos.y)){
+        console.dir(myBoard.board[newPos.y][newPos.x]);
           if(myBoard.board[newPos.y][newPos.x].type == FigureType.KING) {
             var figureColor = myBoard.board[newPos.y][newPos.x].color;
             turn.remove(figureColor);
@@ -140,6 +129,15 @@ function setPosition(oldPos, newPos, figureIndex, color){
   }
   //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
   io.sockets.emit('setPosition', oldPos, figureIndex, false);
+}
+
+function convertPawn(figure, posX, posY) {
+    if(myBoard.board[posY][posX].type === FigureType.PAWN) {
+        if(posY == 0){
+            myBoard.board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
+            myBoard.board[posY][posX].setPosition(posX, posY);
+        }
+    }
 }
 
 function joinRoom(id,color, socket){

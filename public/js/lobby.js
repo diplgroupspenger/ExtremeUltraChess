@@ -49,10 +49,10 @@ function lobby(socket){
                     drawroom(i, opengames[i].title, opengames[i].description, opengames[i].owner);
             }
             $("li").on("click", function() {
-                      $(this)
+                $(this)
                 .toggleClass("open")
-                    .find(".details")
-                    .slideToggle();
+                .find(".details")
+                .slideToggle();
             });
             $("button.join").on("click", function(){
                       socket.emit('joinroom', $(this).attr('id'));
@@ -61,10 +61,10 @@ function lobby(socket){
     function drawroom(room, id){
             $('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><button class='join'  id="+id+">Join</button></div></li>");
             $("li").off('click').on("click", function() {
-                      $(this)
+                $(this)
                 .toggleClass("open")
-                    .find(".details")
-                    .slideToggle();
+                .find(".details")
+                .slideToggle();
             });
             $("button.join").off('click').on("click", function(){
                       socket.emit('joinroom', $(this).attr('id'), true);
