@@ -51,10 +51,10 @@ function lobby(socket){
     function drawroom(room){
             $('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><button class='join'  id="+room.id+">Join</button></div></li>");
             $("li").off('click').on("click", function() {
-                      $(this)
+                $(this)
                 .toggleClass("open")
-                    .find(".details")
-                    .slideToggle();
+                .find(".details")
+                .slideToggle();
             });
             $("button.join").off('click').on("click", function(){
                       socket.emit('joinroom', $(this).attr('id'), true);

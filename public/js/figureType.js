@@ -9,16 +9,17 @@ var FigureType = {
             var inFront2 = {"x": inFront.x + this.inFront().x, "y": inFront.y + this.inFront().y};
 
             //nothing infront
-            if(myBoard.board[inFront.y][inFront.x] === -1){
-                positions.push(inFront);
+            if(myBoard.isLegalTile(inFront.x, inFront.y)) {
+                if(myBoard.board[inFront.y][inFront.x] === -1){
+                    positions.push(inFront);
 
-            //check if the double-move is available
-            if(!this.hasMoved){
-                if(myBoard.board[inFront2.y][inFront2.x] === -1)
-                    positions.push(inFront2);
+                    //check if the double-move is available
+                    if(!this.hasMoved){
+                        if(myBoard.board[inFront2.y][inFront2.x] === -1)
+                            positions.push(inFront2);
+                    }
                 }
             }
-
             var leftFront =  {"x": inFront.x + this.left().x, "y": inFront.y + this.left().y};
             var rightFront = {"x": inFront.x + this.right().x, "y": inFront.y + this.right().y};
 

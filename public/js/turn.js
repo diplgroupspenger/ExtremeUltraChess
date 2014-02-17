@@ -37,8 +37,6 @@ Turn.prototype.nextTurn = function() {
 
 	if(this.curPlayer.dead)
 		this.nextTurn();
-
-	console.log("currentPlayer: "+this.curPlayer.color);
 };
 
 Turn.prototype.remove = function(player) {

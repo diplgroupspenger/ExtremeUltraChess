@@ -1,6 +1,18 @@
 var TILE_SIZE = 50;
+//DEBUG
+var turnOn = true;
+var ignPossible = false;
 
 function startgame(socket, color){
+    //DEBUG
+    $('#cmdField').on("keypress", function(e) {
+        if (e.keyCode == 13) {
+            var text = $('#cmdField').val();
+            //if(text.charAt(0) == '/'){
+                checkCmd(text);
+            //}
+        }
+    });
     socket.on('setPosition',setPosition);
        
     socket.on('sendStatus', function(serverBoard, serverTurn){
@@ -8,7 +20,7 @@ function startgame(socket, color){
         turn = new Turn();
         turn.player = serverTurn.player;
         turn.curPlayer = serverTurn.curPlayer;
-        $('#curPlayer').text('White');
+        $('#curPlayer').text(colorToString(turn.curPlayer));
         tryDrawBoard();
     });
     socket.emit('getGame');
@@ -59,12 +71,18 @@ function setPosition(newPos, figureID, moved){
         if(myBoard.isEnPassant()){
             removeFigure(oldPos);
         }
-        turn.nextTurn();
-        $('#curPlayer').text(colorToString(turn.curPlayer.color));
+        
+        if(!pawnConvertion(figureID, newPos)){
+            setNextTurn();
+        }
     }
-
     moveLayer.removeChildren();
     stage.draw();
+}
+
+function setNextTurn() {
+      turn.nextTurn();
+            $('#curPlayer').text(colorToString(turn.curPlayer.color));
 }
 
 function removeFigure(pos){
@@ -96,6 +114,18 @@ function checkForGameEnd() {
         console.log("game over");
 }
 
+function pawnConvertion(id, pos) {
+    if(figureList[id].figure.type === FigureType.PAWN) {
+        if(player === turn.curPlayer.color && figureList[id].figure.color === player) {
+            if(pos.y == 0){
+                convertPawn(id, pos); //convertPawn.js
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 //draw Board on load
 function drawBoard(TILE_SIZE) {
     stage = new Kinetic.Stage({container: 'canvas',width: 700,height: 700});
@@ -103,12 +133,19 @@ function drawBoard(TILE_SIZE) {
         boardClicked(e);
     });
 
+    //canvas boundaries
+    minX = stage.getX();
+    maxX = stage.getX() + stage.getWidth();
+    minY = stage.getY();
+    maxY = stage.getY() + stage.getHeight();
+
     figureList = [];
     
     //board tiles
     boardLayer = new Kinetic.Layer(); //background layer for the chessboard
     moveLayer = new Kinetic.Layer(); //where the figures can go to
     figureLayer = new Kinetic.Layer(); //layer for figures
+    foreGroundLayer = new Kinetic.Layer(); //layer on the top, pawn convertion and ui
 
     for(var y = 0 ; y < myBoard.board.length; y++){
         for(var x = 0 ; x < myBoard.board[0].length; x++){
@@ -127,10 +164,8 @@ function drawBoard(TILE_SIZE) {
                 boardLayer.add(rect);
                 if(myBoard.board[y][x] !== -1){
                     //set figure coordinate property
-
                     var playerColor = (myBoard.board[y][x].color === player);
-
-                    drawFigure(x,y, TILE_SIZE, playerColor);
+                    drawFigure(x, y, playerColor);
                 }
             }
         }
@@ -141,10 +176,11 @@ function drawBoard(TILE_SIZE) {
     stage.add(boardLayer);
     stage.add(moveLayer);
     stage.add(figureLayer);
+    stage.add(foreGroundLayer);
 }
 
 //draw single figure with canvas
-function drawFigure(x,y, TILE_SIZE, playerColor) {
+function drawFigure(x,y, playerColor) {
     var figurePos = getFigureFromSpritesheet(myBoard.board[y][x]);
     var figureImage = new Kinetic.Image({
         x: x * TILE_SIZE,
@@ -153,6 +189,27 @@ function drawFigure(x,y, TILE_SIZE, playerColor) {
         width: TILE_SIZE,
         height: TILE_SIZE,
         draggable: playerColor,
+        dragBoundFunc: function (pos) {
+            var X = pos.x;
+            var Y = pos.y;
+            var offset = this.getOffset();
+            if (X < minX + offset.x) {
+                X = 0 + offset.x;
+            }
+            if (X > maxX-this.getWidth() + offset.x) {
+                X = maxX-this.getWidth() + offset.x;
+            }
+            if (Y < 0 + offset.y) {
+                Y = 0 + offset.y;
+            }
+            if (Y > maxY - this.getHeight() + offset.y) {
+                Y = maxX - this.getHeight() + offset.y;
+            }
+            return ({
+                x: X,
+                y: Y
+            });
+        },
         crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
     });
     figureImage.figure = myBoard.board[y][x];
@@ -170,13 +227,12 @@ function drawFigure(x,y, TILE_SIZE, playerColor) {
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
         var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
-        if(player === turn.curPlayer.color && figureColor === player &&
-            myBoard.isPossibleToMove(oldPos, newPos)){
+        if((player === turn.curPlayer.color && figureColor === player)||!turnOn &&
+            (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible )){
             setPosition(newPos, figureID, false);
             socket.emit('sendPosition', oldPos, newPos, figureID, player);
         }
         else {
-            console.log("moveback");
             //place figure back to old tile
             setPosition(oldPos, figureID, false);
         }
@@ -226,8 +282,9 @@ function boardClicked(e) {
     var i = 0;
     for(i = 0; i < moveLayerChildren.length; i++) {
         //click on tile, which is possible to move to
-        if(moveLayerChildren[i].getPosition().x === nodePos.x && moveLayerChildren[i].getPosition().y === nodePos.y) {
+        if((moveLayerChildren[i].getPosition().x === nodePos.x && moveLayerChildren[i].getPosition().y === nodePos.y)|| ignPossible) {
             var clickedFigure = moveLayer.currentFigure;
+            console.dir(clickedFigure.getLayer());
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID, player);
@@ -237,10 +294,11 @@ function boardClicked(e) {
     }
 
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
-        if(myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player) {
+        if((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player) ||!turnOn) {
             var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
             moveLayer.removeChildren();
             moveLayer.currentFigure = e.targetNode;
+            console.log(myBoard.board[tilePos.y][tilePos.x]);
             for(i = 0; i< possibleMoves.length; i++){
                 var rect = new Kinetic.Rect({
                     x: possibleMoves[i].x * TILE_SIZE,

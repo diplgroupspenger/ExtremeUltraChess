@@ -6,7 +6,7 @@ var Board = function(importedBoard){
 	if(typeof importedBoard === "undefined") {
 		this.board = [[-2,-2,-2,new Figure(FigureType.ROOK, Color.BLACK),new Figure(FigureType.KNIGHT, Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.KING,Color.BLACK),new Figure(FigureType.QUEEN,Color.BLACK),new Figure(FigureType.BISHOP,Color.BLACK),new Figure(FigureType.KNIGHT,Color.BLACK),new Figure(FigureType.ROOK,Color.BLACK),-2,-2,-2],
 		[-2,-2,-2,new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),new Figure(FigureType.PAWN,Color.BLACK),-2,-2,-2],
-		[-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-2,-2,-2],
+		[-2,-2,-2,-1,-1,-1,new Figure(FigureType.PAWN, Color.WHITE),-1,-1,-1,-1,-2,-2,-2],
 		[new Figure(FigureType.ROOK,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.ROOK,Color.GREEN)],
 		[new Figure(FigureType.KNIGHT,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.KNIGHT,Color.GREEN)],
 		[new Figure(FigureType.BISHOP,Color.RED),new Figure(FigureType.PAWN,Color.RED),-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,new Figure(FigureType.PAWN,Color.GREEN),new Figure(FigureType.BISHOP,Color.GREEN)],
@@ -51,7 +51,6 @@ var Board = function(importedBoard){
 };
 
 Board.prototype.exportBoard = function (){
-	
 	var newBoard = [];
 	for(var i=0; i < this.board.length;i++){
 		newBoard.push([]);
@@ -134,7 +133,7 @@ Board.prototype.moveFigureTo = function(oldX, oldY, newX, newY){
 //returns true if the figure at oldPos is allowed to move to newPos
 //returns false if there is no figure at oldPos or the figure is not allwed to move to newPos
 Board.prototype.isPossibleToMove = function(oldPos, newPos){
-    var possibleMoves = this.getFigureAtPos(oldPos.x, oldPos.y).possibleMoves(this);
+    var possibleMoves = this.getFigureAtPos(oldPos.x, oldPos.y).possibleMoves(this,oldPos);
     for(var i = 0; i < possibleMoves.length; i++){
         if(possibleMoves[i].x === newPos.x && possibleMoves[i].y === newPos.y){
 			return true;
