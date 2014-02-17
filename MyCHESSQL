@@ -6,3 +6,47 @@ CREATE  TABLE `chess`.`users` (
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `name_UNIQUE` (`name` ASC) ,
   UNIQUE INDEX `socket_UNIQUE` (`socket` ASC) );
+
+
+
+CREATE  TABLE `chess`.`rooms` (
+  `roomid` INT NOT NULL ,
+  `title` VARCHAR(45) NULL ,
+  `description` VARCHAR(45) NULL ,
+  `owner` VARCHAR(36) NULL ,
+  `turnplayer` VARCHAR(36) NULL ,
+  PRIMARY KEY (`roomid`) ,
+  INDEX `owner_idx` (`owner` ASC) ,
+  INDEX `turnplayer_idx` (`turnplayer` ASC) ,
+  CONSTRAINT `owner`
+    FOREIGN KEY (`owner` )
+    REFERENCES `chess`.`users` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `turnplayer`
+    FOREIGN KEY (`turnplayer` )
+    REFERENCES `chess`.`users` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+
+
+CREATE  TABLE `chess`.`roomusers` (
+  `roomuserid` INT NOT NULL ,
+  `user` VARCHAR(36) NULL ,
+  `room` INT NULL ,
+  PRIMARY KEY (`roomuserid`) ,
+  INDEX `user_idx` (`user` ASC) ,
+  INDEX `room_idx` (`room` ASC) ,
+  CONSTRAINT `user`
+    FOREIGN KEY (`user` )
+    REFERENCES `chess`.`users` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `room`
+    FOREIGN KEY (`room` )
+    REFERENCES `chess`.`rooms` (`roomid` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+ALTER TABLE `chess`.`roomusers` ADD COLUMN `color` INT NULL  AFTER `room` ;
+ALTER TABLE `chess`.`roomusers` CHANGE COLUMN `roomuserid` `roomuserid` INT(11) NOT NULL AUTO_INCREMENT  ;

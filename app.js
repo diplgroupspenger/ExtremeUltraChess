@@ -14,28 +14,6 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
-
-/*
-var userdbPool=mysql.createPool({
-  host:'127.0.0.1',
-  port:'3306',
-  user:'spengerg',
-  password:'NietyephahynWoi',
-  database:'spengerg_chess',
-  socket:'/var/lib/mysql/mysql.sock',
-});
-*/
-
-
-/*var userdbPool = mysql.createPool({
-  host:'127.0.0.1',
-  port:'3306',
-  user:'root',
-  password:'pw',
-  database:'chess',
-});
-*/
-
 var userdbPool=mysql.createPool(config.database);
 
 var activeClients = 0;
@@ -56,20 +34,19 @@ for(var y = 0; y < myBoard.board.length; y++){
 }
 
 var Room=require('./public/js/room.js');
-var rooms=[];
 
 io.sockets.on('connection',function(socket){
-  
-  socket.emit('syncRooms', rooms);
+  console.log(io.rooms);
+  socket.json.emit('syncRooms', io.rooms);
   socket.on('disconnect', clientDisconnect);
 
   socket.on('sendPosition',setPosition);
   
-  socket.on('createroom', function(title, description, color){
-      createRoom(title, description,color, socket);
+  socket.on('createroom', function(title, description){
+      createRoom(title, description, socket);
   });
-  socket.on('joinroom', function(id, color){
-      joinRoom(id,color, socket);
+  socket.on('joinroom', function(id){
+      joinRoom(id, socket);
   });
 
   socket.on('connect syn', function(){
@@ -104,6 +81,7 @@ function getName(id, socket){
         connection.query("UPDATE users SET socket=? WHERE id=?",[socket.id, id], function(err, result){
           if (err) throw err;
         });
+        socket.username=result[0].name;
         socket.emit('name', result[0].name, id);
       }
       connection.release();
@@ -142,34 +120,45 @@ function setPosition(oldPos, newPos, figureIndex, color){
   io.sockets.emit('setPosition', oldPos, figureIndex, false);
 }
 
-function joinRoom(id,color, socket){
-  var countPeople = rooms[id].people.length;
+function joinRoom(id, socket){
+  var countPeople = io.rooms[('/'+id)].length-1;
   if(countPeople < 4) {
     socket.leave('lobby');
     socket.join(id);
 
-    infinite:
-    while(true) {
+    //infinite:
+    //while(true) {
         color = Math.floor((Math.random()*4)+1)*100;
-        if(rooms[id].people.length === 0) {
+        if(io.rooms[('/'+id)].length-1 === 1) {
           color = 100; // DEBUG - REMOVE IN FINAL!!!!!!
-          break;
+          //break;
         }
         //count if it`s not equal to any color of the joined people
         var countColor = 0;
-        for(var i = 0; i<rooms[id].people.length; i++) {
-          console.log("color: "+color +" peoplecolor: "+rooms[id].people[i].color);
-          if(color != rooms[id].people[i].color){
-            countColor++;
-            console.log("countColor+: "+countColor);
+        getUsedColors(id, function(usedColors){
+          for(var i = 0; i<usedColors.length; i++) {
+            //console.log("color: "+color +" peoplecolor: "+rooms[id].people[i].color);
+            if(color != usedColors[i]){
+              countColor++;
+              //console.log("countColor+: "+countColor);
+            }
+            //console.log("people: "+countPeople+" color: "+countColor);
+            if(usedColors.length == countPeople) {
+              //break infinite;
+            }
           }
-          console.log("people: "+countPeople+" color: "+countColor);
-          if(countColor == countPeople) {
-            break infinite;
-          }
-        }
-    }
-    rooms[id].addPerson(socket.id, color);
+        });
+        userdbPool.getConnection(function(err, connection){
+          connection.query('SELECT id from users where socket=?', [socket.id], function(err, result){
+            if(result[0]){
+            connection.query('INSERT into roomusers(user, room, color) VALUES(?, ?, ?)', [result[0], id, color], function(err){
+              connection.release();
+            });
+            }
+          });
+        });
+    //}
+    //rooms[id].addPerson(socket.id, color);
     socket.emit('roomjoined', color);
     io.sockets.in(id).emit('popul inc', id);
   }
@@ -178,23 +167,26 @@ function joinRoom(id,color, socket){
   }
 }
 
-function createRoom(title, description,color, socket){
-  color = Math.floor((Math.random()*4)+1)*100;
-  console.log("ROOMLENGTH: "+rooms.length);
-  rooms[roominc]=new Room(title, description, socket.id);
-  console.log("ROOMLENGTH2: "+rooms.length+ " title:"+rooms[roominc].title);
-  //rooms[roominc].addPerson(socket.id, color);
+function createRoom(title, description, socket){
+  socket.join(roominc);
+  console.log(io.rooms);
+  io.rooms[('/'+roominc)].push({"details":{"id":roominc, "title":title, "description":description, "owner":socket.id}});
+  //io.rooms[('/'+roominc)].details.title=title;
+  //console.log("ROOMLENGTH2: "+io.sockets.rooms.length+ " title:"+io.sockets.rooms[roominc].title);
   userdbPool.getConnection(function(err, connection){
-    connection.query("SELECT name FROM users WHERE socket=?", [socket.id], function(err, result){
-      if (err) throw err;
-      if(result[0]){
-        console.log(roominc);
-        rooms[roominc].owner=result[0].name;
-        io.sockets.in('lobby').emit('roomcreated', rooms[roominc], roominc);
-        //joinRoom(roominc, color, socket);
-        roominc++;
-      }
-      connection.release();
+    connection.query("insert into rooms(roomid, title, description, owner) VALUES(?, ?, ?, ?)", [roominc, title, description, socket.id], function(err){
+      connection.query("SELECT name FROM users WHERE socket=?", [socket.id], function(err, result){
+        if (err) throw err;
+        if(result[0]){
+          console.log(roominc);
+          io.rooms[('/'+roominc)][1].details.owner=result[0].name;
+          joinRoom(roominc, socket);
+          console.log(io.rooms);
+          io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roominc)][1].details);
+          roominc++;
+        }
+        connection.release();
+      });
     });
   });
 }
@@ -213,6 +205,7 @@ function newPerson(name, socket){
       else{
         connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)",[id, name, socket.id], function(err, result){
           if (err) throw err;
+          socket.username=name;
           socket.emit('name', name, id);
           connection.release();
         });
@@ -224,4 +217,20 @@ function newPerson(name, socket){
 function clientDisconnect(){
   activeClients -= 1;
   io.sockets.emit('message', {clients:activeClients});
+}
+
+function getUsedColors(roomid, callb){
+  var colors=[];
+  userdbPool.getConnection(function(err, connection){
+    connection.query('select color from roomusers where room=?', [roomid], function(err, result){
+      for(i=0; i<result.length; i++){
+        if(result[0].color){
+          colors.push(result[0].color);
+        }
+      }
+      console.log('used colors: '+colors);
+      callb(colors);
+      connection.release();
+    });
+  });
 }
