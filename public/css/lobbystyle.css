@@ -1,8 +1,3 @@
-/*
-* {
-  box-sizing: border-box;
-}
-*/
 #list1 {
   list-style: none;
   padding-left: 10px;
@@ -20,9 +15,9 @@
 }
 
 .details{
-	display:none;
-	line-height: 1.4;
-	padding-bottom: 10px;
+  display:none;
+  line-height: 1.4;
+  padding-bottom: 10px;
 }
 
 .owner{
