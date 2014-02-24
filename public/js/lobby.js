@@ -20,14 +20,14 @@ function lobby(socket){
         }
         socket.on('name', function(name, id){
           console.log(name);
-          myname=name;
-          localStorage.id=id;
+          myname = name;
+          localStorage.id = id;
           console.log(localStorage.id);
           $('#name').text(myname);
           $('#name-dialog').dialog("close");
         });
         socket.on('message', function(data){
-                console.log(data);
+            console.log(data);
         });
         socket.on('roomcreated', function(newRoom){
           console.log(newRoom);
@@ -36,7 +36,7 @@ function lobby(socket){
         });
         socket.on('init', function(rooms){
           for (var i=0; i<rooms.length; i++){
-                  opengames.push(new Room(rooms[i], 'pre'+i, 'a'));
+              opengames.push(new Room(rooms[i], 'pre'+i, 'a'));
           }
           drawgames();
         });
@@ -49,23 +49,23 @@ function lobby(socket){
       });
     });
     function drawroom(room){
-            $('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><button class='join'  id="+room.id+">Join</button></div></li>");
-            $("li").off('click').on("click", function() {
-                $(this)
-                .toggleClass("open")
-                .find(".details")
-                .slideToggle();
-            });
-            $("button.join").off('click').on("click", function(){
-                      socket.emit('joinroom', $(this).attr('id'), true);
-            });
+      $('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><button class='join'  id="+room.id+">Join</button></div></li>");
+      $("li").off('click').on("click", function() {
+          $(this)
+          .toggleClass("open")
+          .find(".details")
+          .slideToggle();
+      });
+      $("button.join").off('click').on("click", function(){
+          socket.emit('joinroom', $(this).attr('id'), true);
+      });
     }
     $("#openroom")
       .button()
       .click(function() {
-                $("#dialog-form").dialog("open");
-        });
-        $("#dialog-form").dialog({
+          $("#dialog-form").dialog("open");
+      });
+      $("#dialog-form").dialog({
       autoOpen: false,
       height: 300,
       width: 350,
@@ -73,8 +73,8 @@ function lobby(socket){
       draggable:false,
       buttons: {
         "accept": function() {
-                socket.emit('createroom',$('#title').val(), $('#description').val(),true);
-                $(this).dialog("close");
+            socket.emit('createroom',$('#title').val(), $('#description').val(),true);
+            $(this).dialog("close");
         }
       }
     });
@@ -89,14 +89,14 @@ function lobby(socket){
       dialogClass:'no-close',
       buttons: {
         "accept": function() {
-                if($('#nameinput').val()){
-                        socket.emit('newplayer', $('#nameinput').val());
-                }
+            if($('#nameinput').val()){
+                socket.emit('newplayer', $('#nameinput').val());
+            }
         }
       }
     });
     $("#name-dialog").keydown(function (event) {
-        if (event.keyCode == 13) {
+        if(event.keyCode == 13) {
             if($('#nameinput').val()){
                 socket.emit('newplayer', $('#nameinput').val());
             }

@@ -284,7 +284,6 @@ function boardClicked(e) {
         //click on tile, which is possible to move to
         if((moveLayerChildren[i].getPosition().x === nodePos.x && moveLayerChildren[i].getPosition().y === nodePos.y)|| ignPossible) {
             var clickedFigure = moveLayer.currentFigure;
-            console.dir(clickedFigure.getLayer());
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID, player);

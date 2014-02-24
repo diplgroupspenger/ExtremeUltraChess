@@ -14,7 +14,7 @@ server.listen(63924);
 
 app.use(express.static(__dirname+'/public'));
 
-var userdbPool=mysql.createPool(config.database);
+var userdbPool = mysql.createPool(config.database);
 
 var activeClients = 0;
 var roominc = 0;
@@ -30,17 +30,11 @@ var turnOn = true;
 var ignPossible = false;
 //ENDDEBUG
 
-myBoard = new Board();
-turn = new Turn();
-for(var y = 0; y < myBoard.board.length; y++){
-  for(var x = 0; x < myBoard.board[0].length; x++){
-    if(myBoard.board[y][x] !== -1 && myBoard.board[y][x] !== -2){
-      myBoard.board[y][x].setPositionRelentless(x, y);
-    }
-  }
-}
+var boards = [];
+var turn = new Turn();
 
-var Room=require('./public/js/room.js');
+
+var Room = require('./public/js/room.js');
 
 io.sockets.on('connection',function(socket){
   console.log(io.rooms);
@@ -68,7 +62,7 @@ io.sockets.on('connection',function(socket){
     //io.sockets.in(id).emit('message', rooms[id]);
   });
   socket.on('getBoard', function(){
-    socket.emit('sendStatus', myBoard.exportBoard(), turn);
+    socket.emit('sendStatus', boards[id].exportBoard(), turn);
   });
   socket.on('getname', function(id){
     getName(id, socket);
@@ -88,9 +82,9 @@ io.sockets.on('connection',function(socket){
 
 function getName(id, socket){
   userdbPool.getConnection(function(err, connection){
-    if (err) throw err;
+    if(err) throw err;
     connection.query("SELECT name FROM users WHERE id=?",[id], function(err, result){
-      if (err) throw err;
+      if(err) throw err;
       if(result[0]){
         connection.query("UPDATE users SET socket=? WHERE id=?",[socket.id, id], function(err, result){
           if (err) throw err;
@@ -107,25 +101,25 @@ function setPosition(oldPos, newPos, figureIndex, color){
   console.log("turn: "+turnOn);
     console.log("possible: "+ignPossible);
   if(!turnOn || color == turn.curPlayer.color) {
-    if(myBoard.isPossibleToMove(oldPos, newPos) || ignPossible){
+    if(boards[id].isPossibleToMove(oldPos, newPos) || ignPossible){
       console.log("ignore");
       //look if another figure is already on the tile
-      if(myBoard.isFigure(newPos.x, newPos.y)){
-        console.dir(myBoard.board[newPos.y][newPos.x]);
-          if(myBoard.board[newPos.y][newPos.x].type == FigureType.KING) {
-            var figureColor = myBoard.board[newPos.y][newPos.x].color;
+      if(boards[id].isFigure(newPos.x, newPos.y)){
+        console.dir(boards[id].board[newPos.y][newPos.x]);
+          if(boards[id].board[newPos.y][newPos.x].type == FigureType.KING) {
+            var figureColor = boards[id].board[newPos.y][newPos.x].color;
             turn.remove(figureColor);
           }
       
-          myBoard.board[newPos.y][newPos.x] = -1;
+          boards[id].board[newPos.y][newPos.x] = -1;
       }
-      myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+      boards[id].moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
 
-      if(myBoard.isEnPassant()){
-          myBoard.board[newPos.y][newPos.x] = -1;
+      if(boards[id].isEnPassant()){
+          boards[id].board[newPos.y][newPos.x] = -1;
       }
       
-      if(!checkForPawnConvertion(myBoard.board[newPos.y][newPos.x].type, newPos)) {
+      if(!checkForPawnConvertion(boards[id].board[newPos.y][newPos.x].type, newPos)) {
         turn.nextTurn();
       }
 
@@ -148,10 +142,10 @@ function checkForPawnConvertion(type, pos) {
 }
 
 function convertPawn(figure, posX, posY) {
-    if(myBoard.board[posY][posX].type === FigureType.PAWN) {
+    if(boards[id].board[posY][posX].type === FigureType.PAWN) {
         if(posY == 0){
-            myBoard.board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
-            myBoard.board[posY][posX].setPosition(posX, posY);
+            boards[id].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
+            boards[id].board[posY][posX].setPosition(posX, posY, boards[id].board);
             turn.nextTurn();
         }
     }
@@ -213,19 +207,31 @@ function createRoom(title, description, socket){
   userdbPool.getConnection(function(err, connection){
     connection.query("insert into rooms(roomid, title, description, owner) VALUES(?, ?, ?, ?)", [roominc, title, description, socket.id], function(err){
       connection.query("SELECT name FROM users WHERE socket=?", [socket.id], function(err, result){
-        if (err) throw err;
+        if(err) throw err;
         if(result[0]){
           console.log(roominc);
-          io.rooms[('/'+roominc)][1].details.owner=result[0].name;
+          io.rooms[('/'+roominc)][1].details.owner = result[0].name;
           joinRoom(roominc, socket);
           console.log(io.rooms);
           io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roominc)][1].details);
           roominc++;
+          addBoard(roominc);
         }
         connection.release();
       });
     });
   });
+}
+
+function addBoard(id) {
+  boards[id] = new Board();
+  for(var y = 0; y < boards[id].board.length; y++){
+    for(var x = 0; x < boards[id].board[0].length; x++){
+      if(boards[id].board[y][x] !== -1 && boards[id].board[y][x] !== -2){
+        boards[id].board[y][x].setPositionRelentless(x, y);
+      }
+    }
+  }
 }
 
 function newPerson(name, socket){

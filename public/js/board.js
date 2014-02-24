@@ -83,7 +83,7 @@ Board.prototype.isLegalTile = function(x, y){
 Board.prototype.isPotentiallyWalkable = function (x, y, color){
 	if(!this.isLegalTile(x, y)) return false;
 	var tile = this.board[y][x];
-	//console.log("" + tile);
+
 	if(tile !== -2 && (tile === -1 || tile.color !== color))
 		return true;
 	else
@@ -124,9 +124,9 @@ Board.prototype.moveFigureTo = function(oldX, oldY, newX, newY){
 	this.board[newY][newX] = temp;
 	
 	if(this.getFigureAtPos(oldX, oldY) !== null)
-		this.board[oldY][oldX].setPosition(oldX,oldY);
+		this.board[oldY][oldX].setPosition(oldX,oldY, this);
 	if(this.getFigureAtPos(newX, newY) !== null)
-		this.board[newY][newX].setPosition(newX,newY);
+		this.board[newY][newX].setPosition(newX,newY, this);
 	return true;
 };
 
@@ -144,12 +144,12 @@ Board.prototype.isPossibleToMove = function(oldPos, newPos){
 
 //called when a figure moved
 Board.prototype.isEnPassant = function(){
-    for(var y = 0; y < myBoard.board[0].length; y++){
-        for(var x = 0; x < myBoard.board.length; x++){
-            if(myBoard.isFigure(x, y)){
-                if(myBoard.board[y][x].enPassant){
-                    var behind = {"x": x + myBoard.board[y][x].behind().x, "y": y + myBoard.board[y][x].behind().y};
-                    if(myBoard.isEnemy(behind.x, behind.y)){
+    for(var y = 0; y < this.board[0].length; y++){
+        for(var x = 0; x < this.board.length; x++){
+            if(this.isFigure(x, y)){
+                if(this.board[y][x].enPassant){
+                    var behind = {"x": x + this.board[y][x].behind().x, "y": y + this.board[y][x].behind().y};
+                    if(this.isEnemy(behind.x, behind.y)){
                         return true;
                     }
                 }
