@@ -38,7 +38,7 @@ io.sockets.on('connection',function(socket){
   socket.json.emit('syncRooms', io.rooms);
   socket.on('disconnect', clientDisconnect);
 
-  socket.on('sendPosition',setPosition);
+  socket.on('sendPosition',setPosition(oldPos, newPos, figureIndex, color, socket));
   socket.on('convertPawn', convertPawn);
   socket.on('createroom', function(title, description){
       createRoom(title, description, socket);
@@ -94,8 +94,8 @@ function getName(id, socket){
   });
 }
 
-function setPosition(oldPos, newPos, figureIndex, color){
-  console.log("turn: "+turnOn);
+function setPosition(oldPos, newPos, figureIndex, color, socket){
+  console.log("ROOM; "+io.sockets.manager.roomClients[socket.id]);
     console.log("possible: "+ignPossible);
   if(!turnOn || color == turn.curPlayer.color) {
     if(boards[id].isPossibleToMove(oldPos, newPos) || ignPossible){
@@ -214,7 +214,7 @@ function addBoard(id) {
 }
 
 function newPerson(name, socket){
-  var id=uuid.v4();
+  var id = uuid.v4();
 
   userdbPool.getConnection(function(err, connection){
     if(err) throw err;
