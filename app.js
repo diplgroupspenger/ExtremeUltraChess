@@ -17,7 +17,6 @@ app.use(express.static(__dirname+'/public'));
 var userdbPool=mysql.createPool(config.database);
 
 var activeClients = 0;
-var roominc = 0;
 
 var Board = require('./public/js/board.js');
 var Turn = require('./public/js/turn.js');
@@ -43,7 +42,9 @@ for(var y = 0; y < myBoard.board.length; y++){
 io.sockets.on('connection',function(socket){
   console.log(io.rooms);
   socket.json.emit('syncRooms', io.rooms);
-  socket.on('disconnect', clientDisconnect);
+  socket.on('disconnect', function(){
+    clientDisconnect(socket);
+  });
 
   socket.on('sendPosition',setPosition);
   socket.on('convertPawn', convertPawn);
@@ -73,6 +74,9 @@ io.sockets.on('connection',function(socket){
   });
   socket.on('newplayer', function(name){
     newPerson(name, socket);
+  });
+  socket.on('leave', function(){
+    leaveRoom(socket);
   });
 
   //DEBUG
@@ -169,8 +173,8 @@ function joinRoom(id, socket){
       connection.query('SELECT id from users where socket=?', [socket.id], function(err, result){
         if(result[0]){
           socket.emit('roomjoined', io.rooms[('/'+id)][1].details.colors[colornum]);
-          io.sockets.in(id).emit('popul inc', id);
-          connection.query('INSERT into roomusers(user, room, color) VALUES(?, ?, ?)', [result[0], id, io.rooms[('/'+id)][1].details.colors[colornum]], function(err){
+          io.sockets.emit('popul inc', id);
+          connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?)', [result[0].id, id, io.rooms[('/'+id)][1].details.colors[colornum]], function(err){
             io.rooms[('/'+id)][1].details.colors.splice(colornum, 1);
             connection.release();
           });
@@ -184,26 +188,33 @@ function joinRoom(id, socket){
 }
 
 function createRoom(title, description, socket){
-  socket.join(roominc);
-  console.log(io.rooms);
-  io.rooms[('/'+roominc)].push({"details":{"id":roominc, "title":title, "description":description, "owner":socket.id}});
-  io.rooms[('/'+roominc)][1].details.colors=[100, 200, 300, 400];
-  //io.rooms[('/'+roominc)].details.title=title;
-  //console.log("ROOMLENGTH2: "+io.sockets.rooms.length+ " title:"+io.sockets.rooms[roominc].title);
+  var roomid=0;
   userdbPool.getConnection(function(err, connection){
-    connection.query("insert into rooms(roomid, title, description, owner) VALUES(?, ?, ?, ?)", [roominc, title, description, socket.id], function(err){
-      connection.query("SELECT name FROM users WHERE socket=?", [socket.id], function(err, result){
-        if (err) throw err;
-        if(result[0]){
-          console.log(roominc);
-          io.rooms[('/'+roominc)][1].details.owner=result[0].name;
-          joinRoom(roominc, socket);
-          console.log(io.rooms);
-          io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roominc)][1].details);
-          roominc++;
-        }
+    connection.query("SELECT id, name FROM users WHERE socket=?", [socket.id], function(err, result){
+      if (err) throw err;
+      if(result[0]){
+        connection.query("CALL insertgetid(?, ?, ?)", [title, description, result[0].id], function(err, idresult){
+          console.log(idresult);
+          if(idresult[0][0].id){
+            roomid=idresult[0][0].id;
+            console.log(roomid);
+            socket.join(roomid);
+
+            io.rooms[('/'+roomid)].push({"details":{"id":roomid, "title":title, "description":description, "owner":socket.id}});
+            io.rooms[('/'+roomid)][1].details.colors=[100, 200, 300, 400];
+            
+            io.rooms[('/'+roomid)][1].details.owner=result[0].name;
+            joinRoom(roomid, socket);
+
+            io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roomid)][1].details);
+            roomid++;
+            connection.release();
+          }
+        });
+      }
+      else{
         connection.release();
-      });
+      }
     });
   });
 }
@@ -231,7 +242,19 @@ function newPerson(name, socket){
   });
 }
  
-function clientDisconnect(){
+function clientDisconnect(socket){
   activeClients -= 1;
   io.sockets.emit('message', {clients:activeClients});
 }
+
+function leaveRoom(socket){
+  userdbPool.getConnection(function(err, connection){
+    connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result){
+      if(result[0]){
+        socket.leave(result[0].room);
+        socket.json.emit('syncRooms', io.rooms);
+      }
+      connection.release();
+    });
+  });
+};

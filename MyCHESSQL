@@ -50,3 +50,19 @@ CREATE  TABLE `chess`.`roomusers` (
     ON UPDATE NO ACTION);
 ALTER TABLE `chess`.`roomusers` ADD COLUMN `color` INT NULL  AFTER `room` ;
 ALTER TABLE `chess`.`roomusers` CHANGE COLUMN `roomuserid` `roomuserid` INT(11) NOT NULL AUTO_INCREMENT  ;
+
+
+
+ALTER TABLE `chess`.`rooms` CHANGE COLUMN `roomid` `roomid` INT(11) NOT NULL AUTO_INCREMENT  ;
+USE `chess`;
+DROP procedure IF EXISTS `insertgetid`;
+
+DELIMITER $$
+USE `chess`$$
+CREATE PROCEDURE `chess`.`insertgetid` (IN roomtitle VARCHAR(45), IN roomdescription VARCHAR(45), IN roomowner VARCHAR(36))
+BEGIN
+  insert into rooms (title, description, owner) VALUES(roomtitle, roomdescription, roomowner);
+  select LAST_INSERT_ID() as id;
+END$$
+
+DELIMITER ;

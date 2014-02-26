@@ -13,6 +13,13 @@ function startgame(socket, color){
             //}
         }
     });
+    $("#leave")
+      .button()
+      .click(function(){
+        toLobby();
+        socket.emit('leave');
+    });
+
     socket.on('setPosition',setPosition);
        
     socket.on('sendStatus', function(serverBoard, serverTurn){
