@@ -40,6 +40,9 @@ function lobby(socket){
           }
           drawgames();
         });
+        socket.on('popul inc', function(id){
+          $('#'+id+'count').text(parseInt($('#'+id+'count').text())+1);
+        });
         socket.on('roomjoined', function(color){
           toGame(socket, color);
           //$("#content").load("./index.html");
@@ -49,7 +52,7 @@ function lobby(socket){
       });
     });
     function drawroom(room){
-      $('#list1').append("<li><span class='title'>"+room.title+"</span><span class='owner'>"+room.owner+"</span><div class='details'><p>"+room.description+"</p><button class='join'  id="+room.id+">Join</button></div></li>");
+      $('#list1').append("<li id='"+room.id+"'><span class='title'>"+room.title+"</span><span class='usercount'><span id='"+room.id+"count'>"+(4-room.colors.length)+"</span>/4</span><br/><span>"+room.description+"</span><span class='owner'>"+room.owner+"</span><div class='details'><button class='join'  id="+room.id+">Join</button></div></li>");
       $("li").off('click').on("click", function() {
           $(this)
           .toggleClass("open")
@@ -63,7 +66,7 @@ function lobby(socket){
     $("#openroom")
       .button()
       .click(function() {
-          $("#dialog-form").dialog("open");
+        $("#dialog-form").dialog("open");
       });
       $("#dialog-form").dialog({
       autoOpen: false,
@@ -75,23 +78,6 @@ function lobby(socket){
         "accept": function() {
             socket.emit('createroom',$('#title').val(), $('#description').val(),true);
             $(this).dialog("close");
-        }
-      }
-    });
-    $('#name-dialog').dialog({
-      autoOpen: true,
-      height: 250,
-      width: 300,
-      modal: true,
-      draggable:false,
-      closeOnEscape:false,
-      resizable:false,
-      dialogClass:'no-close',
-      buttons: {
-        "accept": function() {
-            if($('#nameinput').val()){
-                socket.emit('newplayer', $('#nameinput').val());
-            }
         }
       }
     });

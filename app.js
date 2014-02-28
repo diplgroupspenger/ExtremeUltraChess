@@ -17,7 +17,6 @@ app.use(express.static(__dirname+'/public'));
 var userdbPool = mysql.createPool(config.database);
 
 var activeClients = 0;
-var roominc = 0;
 
 var Board = require('./public/js/board.js');
 var Turn = require('./public/js/turn.js');
@@ -30,19 +29,26 @@ var turnOn = true;
 var ignPossible = false;
 //ENDDEBUG
 
-var boards = [];
+var boards = {};
 var turn = new Turn();
 
 io.sockets.on('connection',function(socket){
   console.log(io.rooms);
   socket.json.emit('syncRooms', io.rooms);
-  socket.on('disconnect', clientDisconnect);
+  socket.on('disconnect', function(){
+    clientDisconnect(socket);
+  });
 
-  socket.on('sendPosition',setPosition(oldPos, newPos, figureIndex, color, socket));
+  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color){
+    setPosition(oldPos, newPos, figureIndex, color, socket);
+  });
+
   socket.on('convertPawn', convertPawn);
+
   socket.on('createroom', function(title, description){
       createRoom(title, description, socket);
   });
+
   socket.on('joinroom', function(id){
       joinRoom(id, socket);
   });
@@ -59,13 +65,19 @@ io.sockets.on('connection',function(socket){
     //io.sockets.in(id).emit('message', rooms[id]);
   });
   socket.on('getBoard', function(){
-    socket.emit('sendStatus', boards[id].exportBoard(), turn);
+    room = getRoomFromSocket(socket);
+    console.log("room: "+room);
+    console.log("board: "+boards[room]);
+    socket.emit('sendStatus', boards[room].exportBoard(), turn);
   });
   socket.on('getname', function(id){
     getName(id, socket);
   });
   socket.on('newplayer', function(name){
     newPerson(name, socket);
+  });
+  socket.on('leave', function(){
+    leaveRoom(socket);
   });
 
   //DEBUG
@@ -94,39 +106,50 @@ function getName(id, socket){
   });
 }
 
+function getRoomFromSocket(socket) {
+  var rooms = io.sockets.manager.roomClients[socket.id];
+  for(var key in rooms) {
+    if(key.charAt(0) == '/') {
+      return key;
+    }
+  }
+}
+
 function setPosition(oldPos, newPos, figureIndex, color, socket){
-  console.log("ROOM; "+io.sockets.manager.roomClients[socket.id]);
-    console.log("possible: "+ignPossible);
-  if(!turnOn || color == turn.curPlayer.color) {
-    if(boards[id].isPossibleToMove(oldPos, newPos) || ignPossible){
+  var room = getRoomFromSocket(socket);
+  console.log("roomupdate: "+room);
+  if(!turnOn || color == boards[room].turn.curPlayer.color) {
+    if(boards[room].isPossibleToMove(oldPos, newPos) || ignPossible){
       console.log("ignore");
       //look if another figure is already on the tile
-      if(boards[id].isFigure(newPos.x, newPos.y)){
-        console.dir(boards[id].board[newPos.y][newPos.x]);
-          if(boards[id].board[newPos.y][newPos.x].type == FigureType.KING) {
-            var figureColor = boards[id].board[newPos.y][newPos.x].color;
-            turn.remove(figureColor);
+      if(boards[room].isFigure(newPos.x, newPos.y)){
+        console.dir(boards[room].board[newPos.y][newPos.x]);
+          if(boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
+            var figureColor = boards[room].board[newPos.y][newPos.x].color;
+            boards[room].turn.remove(figureColor);
           }
       
-          boards[id].board[newPos.y][newPos.x] = -1;
+          boards[room].board[newPos.y][newPos.x] = -1;
       }
-      boards[id].moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
+      boards[room].moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
 
-      if(boards[id].isEnPassant()){
-          boards[id].board[newPos.y][newPos.x] = -1;
+      if(boards[room].isEnPassant()){
+          boards[room].board[newPos.y][newPos.x] = -1;
       }
       
-      if(!checkForPawnConvertion(boards[id].board[newPos.y][newPos.x].type, newPos)) {
-        turn.nextTurn();
+      if(!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
+        boards[room].turn.nextTurn();
       }
-
-      io.sockets.emit('setPosition', newPos, figureIndex, true);
+      var roomName = room.substring(1,room.length);
+      console.log("roomname: "+roomName);
+      io.sockets.in(roomName).emit('setPosition', newPos, figureIndex, true);
+      console.log("position sent to: "+io.sockets.clients('/'+roomName).length);
       return;
     }
     
   }
   //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
-  io.sockets.emit('setPosition', oldPos, figureIndex, false);
+  socket.emit('setPosition', oldPos, figureIndex, false);
 }
 
 function checkForPawnConvertion(type, pos) {
@@ -139,13 +162,14 @@ function checkForPawnConvertion(type, pos) {
 }
 
 function convertPawn(figure, posX, posY) {
-    if(boards[id].board[posY][posX].type === FigureType.PAWN) {
-        if(posY == 0){
-            boards[id].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
-            boards[id].board[posY][posX].setPosition(posX, posY, boards[id].board);
-            turn.nextTurn();
-        }
-    }
+  var room = getRoomFromSocket(socket);
+  if(boards[room].board[posY][posX].type === FigureType.PAWN) {
+      if(posY == 0){
+          boards[room].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
+          boards[room].board[posY][posX].setPosition(posX, posY, boards[room].board);
+          boards[room].turn.nextTurn();
+      }
+  }
 }
 
 function joinRoom(id, socket){
@@ -162,8 +186,8 @@ function joinRoom(id, socket){
       connection.query('SELECT id from users where socket=?', [socket.id], function(err, result){
         if(result[0]){
           socket.emit('roomjoined', io.rooms[('/'+id)][1].details.colors[colornum]);
-          io.sockets.in(id).emit('popul inc', id);
-          connection.query('INSERT into roomusers(user, room, color) VALUES(?, ?, ?)', [result[0], id, io.rooms[('/'+id)][1].details.colors[colornum]], function(err){
+          io.sockets.emit('popul inc', id);
+          connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?)', [result[0].id, id, io.rooms[('/'+id)][1].details.colors[colornum]], function(err){
             io.rooms[('/'+id)][1].details.colors.splice(colornum, 1);
             connection.release();
           });
@@ -177,40 +201,48 @@ function joinRoom(id, socket){
 }
 
 function createRoom(title, description, socket){
-  socket.join(roominc);
-  console.log(io.rooms);
-  io.rooms[('/'+roominc)].push({"details":{"id":roominc, "title":title, "description":description, "owner":socket.id}});
-  io.rooms[('/'+roominc)][1].details.colors=[100, 200, 300, 400];
-  //io.rooms[('/'+roominc)].details.title=title;
-  //console.log("ROOMLENGTH2: "+io.sockets.rooms.length+ " title:"+io.sockets.rooms[roominc].title);
+  var roomid=0;
   userdbPool.getConnection(function(err, connection){
-    connection.query("insert into rooms(roomid, title, description, owner) VALUES(?, ?, ?, ?)", [roominc, title, description, socket.id], function(err){
-      connection.query("SELECT name FROM users WHERE socket=?", [socket.id], function(err, result){
-        if(err) throw err;
-        if(result[0]){
-          console.log(roominc);
-          io.rooms[('/'+roominc)][1].details.owner = result[0].name;
-          joinRoom(roominc, socket);
-          console.log(io.rooms);
-          io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roominc)][1].details);
-          roominc++;
-          addBoard(roominc);
-        }
+    connection.query("SELECT id, name FROM users WHERE socket=?", [socket.id], function(err, result){
+      if (err) throw err;
+      if(result[0]){
+        connection.query("CALL insertgetid(?, ?, ?)", [title, description, result[0].id], function(err, idresult){
+          console.log(idresult);
+          if(idresult[0][0].id){
+            roomid=idresult[0][0].id;
+            console.log(roomid);
+            socket.join(roomid);
+            addBoard(roomid);
+            io.rooms[('/'+roomid)].push({"details":{"id":roomid, "title":title, "description":description, "owner":socket.id}});
+            io.rooms[('/'+roomid)][1].details.colors=[100, 200, 300, 400];
+            
+            io.rooms[('/'+roomid)][1].details.owner=result[0].name;
+            joinRoom(roomid, socket);
+
+            io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roomid)][1].details);
+            roomid++;
+            connection.release();
+          }
+        });
+      }
+      else{
         connection.release();
-      });
+      }
     });
   });
 }
 
-function addBoard(id) {
-  boards[id] = new Board();
-  for(var y = 0; y < boards[id].board.length; y++){
-    for(var x = 0; x < boards[id].board[0].length; x++){
-      if(boards[id].board[y][x] !== -1 && boards[id].board[y][x] !== -2){
-        boards[id].board[y][x].setPositionRelentless(x, y);
+function addBoard(roomid) {
+  var newBoard = new Board();
+  for(var y = 0; y < newBoard.board.length; y++){
+    for(var x = 0; x < newBoard.board[0].length; x++){
+      if(newBoard.board[y][x] !== -1 && newBoard.board[y][x] !== -2){
+        newBoard.board[y][x].setPositionRelentless(x, y);
       }
     }
   }
+  boards[('/'+roomid)] = newBoard;
+  boards[('/'+roomid)].turn = new Turn();
 }
 
 function newPerson(name, socket){
@@ -236,7 +268,19 @@ function newPerson(name, socket){
   });
 }
  
-function clientDisconnect(){
+function clientDisconnect(socket){
   activeClients -= 1;
   io.sockets.emit('message', {clients:activeClients});
 }
+
+function leaveRoom(socket){
+  userdbPool.getConnection(function(err, connection){
+    connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result){
+      if(result[0]){
+        socket.leave(result[0].room);
+        socket.json.emit('syncRooms', io.rooms);
+      }
+      connection.release();
+    });
+  });
+};

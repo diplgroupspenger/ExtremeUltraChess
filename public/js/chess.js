@@ -13,6 +13,13 @@ function startgame(socket, color){
             //}
         }
     });
+    $("#leave")
+      .button()
+      .click(function(){
+        toLobby();
+        socket.emit('leave');
+    });
+
     socket.on('setPosition',setPosition);
        
     socket.on('sendStatus', function(serverBoard, serverTurn){
@@ -20,7 +27,7 @@ function startgame(socket, color){
         turn = new Turn();
         turn.player = serverTurn.player;
         turn.curPlayer = serverTurn.curPlayer;
-        $('#curPlayer').text(colorToString(turn.curPlayer));
+        $('#curPlayer').text(colorToString(turn.curPlayer.color));
         tryDrawBoard();
     });
     socket.emit('getGame');
@@ -68,6 +75,7 @@ function setPosition(newPos, figureID, moved){
     figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
     if(moved) {
+        console.log("setpositionclient");
         if(myBoard.isEnPassant()){
             removeFigure(oldPos);
         }
@@ -81,8 +89,9 @@ function setPosition(newPos, figureID, moved){
 }
 
 function setNextTurn() {
-      turn.nextTurn();
-            $('#curPlayer').text(colorToString(turn.curPlayer.color));
+    turn.nextTurn();
+    console.log("next turn");
+    $('#curPlayer').text(colorToString(turn.curPlayer.color));
 }
 
 function removeFigure(pos){
@@ -182,6 +191,7 @@ function drawBoard(TILE_SIZE) {
 //draw single figure with canvas
 function drawFigure(x,y, playerColor) {
     var figurePos = getFigureFromSpritesheet(myBoard.board[y][x]);
+
     var figureImage = new Kinetic.Image({
         x: x * TILE_SIZE,
         y: y * TILE_SIZE,
@@ -230,6 +240,7 @@ function drawFigure(x,y, playerColor) {
         if((player === turn.curPlayer.color && figureColor === player)||!turnOn &&
             (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible )){
             setPosition(newPos, figureID, false);
+        console.log("dragendsendposition");
             socket.emit('sendPosition', oldPos, newPos, figureID, player);
         }
         else {
@@ -286,6 +297,7 @@ function boardClicked(e) {
             var clickedFigure = moveLayer.currentFigure;
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
+            console.log("boardclickedsendposition");
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID, player);
             moveLayer.draw();
             return;
@@ -297,7 +309,6 @@ function boardClicked(e) {
             var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
             moveLayer.removeChildren();
             moveLayer.currentFigure = e.targetNode;
-            console.log(myBoard.board[tilePos.y][tilePos.x]);
             for(i = 0; i< possibleMoves.length; i++){
                 var rect = new Kinetic.Rect({
                     x: possibleMoves[i].x * TILE_SIZE,
