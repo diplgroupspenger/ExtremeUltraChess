@@ -114,7 +114,6 @@ function checkForGameEnd() {
             figureList[i].taken === undefined) {
             countKings++;
         }
-
         if(countKings === 4)
             break;
     }

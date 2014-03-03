@@ -39,8 +39,7 @@ function draw(figure, posX, posY, figureId) {
 		figureList[figureId].remove();
 
 		myBoard.board[y][x] = figure;
-		myBoard.board[y][x].setPosition(x, y, false);
-
+		myBoard.board[y][x].setPosition(x, y, myBoard);
 		drawFigure(x, y, player);
 		figureLayer.draw();
     	
