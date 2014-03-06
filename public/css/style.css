@@ -7,6 +7,13 @@
     margin-right: auto;
     display: block;
     z-index: 1;
+
+    /* pixel zooming */
+    mage-rendering: optimizeSpeed;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+    -ms-interpolation-mode: nearest-neighbor;
 }
  
 div#sidebar {

@@ -19,12 +19,13 @@ function lobby(socket){
           socket.emit('getname', localStorage.id);
         }
         socket.on('name', function(name, id){
-          console.log(name);
           myname = name;
+          socket.username = name;
           localStorage.id = id;
           console.log(localStorage.id);
           $('#name').text(myname);
           $('#name-dialog').dialog("close");
+          initChat(socket);
         });
         socket.on('message', function(data){
             console.log(data);

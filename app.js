@@ -7,7 +7,7 @@ var express = require('express'),
     server = http.createServer(app),
     io = require('socket.io').listen(server);
 
-io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
+io.set('transports', ['htmlfile', 'xhr-polling', 'jsonp-polling']);
 
 // listen for new web clients:
 server.listen(63924);
@@ -30,7 +30,6 @@ var ignPossible = false;
 //ENDDEBUG
 
 var boards = {};
-var turn = new Turn();
 
 io.sockets.on('connection',function(socket){
   console.log(io.rooms);
@@ -40,24 +39,41 @@ io.sockets.on('connection',function(socket){
   });
 
   socket.on('sendPosition', function(oldPos, newPos, figureIndex, color){
-    setPosition(oldPos, newPos, figureIndex, color, socket);
+    if(isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color)) {
+      setPosition(oldPos, newPos, figureIndex, color, socket);
+    }
   });
 
   socket.on('convertPawn', function(figure, x, y) {
-    convertPawn(figure, x, y, socket);
+    if(isValid(figure) && isValid(x) && isValid(y)) {
+      convertPawn(figure, x, y, socket);
+    }
   });
 
   socket.on('createroom', function(title, description){
+    if(isValid(title) && isValid(description))
       createRoom(title, description, socket);
   });
 
   socket.on('joinroom', function(id){
+    console.log("join");
+    if(isValid(id)) {
       joinRoom(id, socket);
+    }
   });
 
   socket.on('connect syn', function(){
     socket.join('lobby');
     socket.emit('connect ack');
+  });
+
+  socket.on('sendMessage', function(text) {
+    if(!isBlank(text)) {
+      var name = socket.username;
+      var room = getRoomFromSocket(socket);
+      var roomName = room.substring(1,room.length);
+      socket.broadcast.to(roomName).emit('setMessage', text, name);
+    }
   });
 
   socket.on('getGame', function(){
@@ -70,13 +86,15 @@ io.sockets.on('connection',function(socket){
     room = getRoomFromSocket(socket);
     console.log("room: "+room);
     console.log("board: "+boards[room]);
-    socket.emit('sendStatus', boards[room].exportBoard(), turn);
+    socket.emit('sendStatus', boards[room].exportBoard(), boards[room].turn);
   });
   socket.on('getname', function(id){
     getName(id, socket);
   });
   socket.on('newplayer', function(name){
-    newPerson(name, socket);
+    if(!isBlank(name)) {
+      newPerson(name, socket);
+    }
   });
   socket.on('leave', function(){
     leaveRoom(socket);
@@ -84,10 +102,14 @@ io.sockets.on('connection',function(socket){
 
   //DEBUG
   socket.on('sendTurnStatus', function(turn) {
-    turnOn = turn;
+    if(isValid(turn)) {
+      turnOn = turn;
+    }
   });
   socket.on('sendPossibleStatus', function(possible) {
-    ignPossible = possible;
+    if(isValid(possible)) {
+      ignPossible = possible;
+    }
   });
 });
 
@@ -119,32 +141,33 @@ function getRoomFromSocket(socket) {
 
 function setPosition(oldPos, newPos, figureIndex, color, socket){
   var room = getRoomFromSocket(socket);
-  if(!turnOn || color == boards[room].turn.curPlayer.color) {
-    if(boards[room].isPossibleToMove(oldPos, newPos) || ignPossible){
-      //look if another figure is already on the tile
-      if(boards[room].isFigure(newPos.x, newPos.y)){
+  if(boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
+    if(!turnOn || color == boards[room].turn.curPlayer.color) {
+      if(boards[room].isPossibleToMove(oldPos, newPos) || ignPossible){
+        //look if another figure is already on the tile
+        if(boards[room].isFigure(newPos.x, newPos.y)){
 
-        if(boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
-          var figureColor = boards[room].board[newPos.y][newPos.x].color;
-          boards[room].turn.remove(figureColor);
-        }
-    
-        boards[room].board[newPos.y][newPos.x] = -1;
-      }
-      boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
-
-      if(boards[room].isEnPassant()){
-          boards[room].board[newPos.y][newPos.x] = -1;
-      }
+          if(boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
+            var figureColor = boards[room].board[newPos.y][newPos.x].color;
+            boards[room].turn.remove(figureColor);
+          }
       
-      if(!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
-        boards[room].turn.nextTurn();
-      }
-      var roomName = room.substring(1,room.length);
-      io.sockets.in(roomName).emit('setPosition', newPos, figureIndex, true);
-      return;
+          boards[room].board[newPos.y][newPos.x] = -1;
+        }
+        boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
+
+        if(boards[room].isEnPassant()){
+            boards[room].board[newPos.y][newPos.x] = -1;
+        }
+        
+        if(!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
+          boards[room].turn.nextTurn();
+        }
+        var roomName = room.substring(1,room.length);
+        io.sockets.in(roomName).emit('setPosition', newPos, figureIndex, true);
+        return;
+      } 
     }
-    
   }
   //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
   socket.emit('setPosition', oldPos, figureIndex, false);
@@ -247,7 +270,6 @@ function addBoard(roomid) {
 
 function newPerson(name, socket){
   var id = uuid.v4();
-
   userdbPool.getConnection(function(err, connection){
     if(err) throw err;
     connection.query("select socket from users where name=?", [name], function(err, result){
@@ -259,7 +281,8 @@ function newPerson(name, socket){
       else{
         connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)",[id, name, socket.id], function(err, result){
           if (err) throw err;
-          socket.username=name;
+          socket.username = name;
+          console.log(username);
           socket.emit('name', name, id);
           connection.release();
         });
@@ -284,3 +307,12 @@ function leaveRoom(socket){
     });
   });
 };
+
+//For checking if a string is blank, null or undefined
+function isBlank(str) {
+    return (!str || /^\s*$/.test(str) || typeof str === "string");
+}
+
+function isValid(par) {
+  return typeof par !== "undefined" && par !== null;
+}

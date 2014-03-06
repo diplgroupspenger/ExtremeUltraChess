@@ -1,4 +1,6 @@
 var TILE_SIZE = 50;
+//lockFigures while waiting to convertPawn
+var lockFigures = false;
 //DEBUG
 var turnOn = true;
 var ignPossible = false;
@@ -8,28 +10,17 @@ function startgame(socket, color){
     $('#cmdField').on("keypress", function(e) {
         if (e.keyCode == 13) {
             var text = $('#cmdField').val();
-            //if(text.charAt(0) == '/'){
-                checkCmd(text);
-            //}
+            checkCmd(text);
         }
     });
     $("#leave")
       .button()
       .click(function(){
-        toLobby();
-        socket.emit('leave');
+        terminateGame();
     });
 
-    socket.on('setPosition',setPosition);
-       
-    socket.on('sendStatus', function(serverBoard, serverTurn){
-        myBoard = new Board(serverBoard);
-        turn = new Turn();
-        turn.player = serverTurn.player;
-        turn.curPlayer = serverTurn.curPlayer;
-        $('#curPlayer').text(colorToString(turn.curPlayer.color));
-        tryDrawBoard();
-    });
+    socket.on('setPosition', setPosition);
+    socket.on('sendStatus', setStatus);
     socket.emit('getGame');
     socket.emit('getBoard');
 
@@ -38,17 +29,7 @@ function startgame(socket, color){
     pieces.src = 'img/figures.png';
 
     player = color;
-
-    var onceCb = false;
-
-    function tryDrawBoard () {
-        if(!onceCb) {
-            onceCb = true;
-            return;
-        }
-
-        drawBoard(TILE_SIZE);
-    }
+    onceCb = false;   
 }
 
 function setPosition(newPos, figureID, moved){
@@ -88,6 +69,24 @@ function setPosition(newPos, figureID, moved){
     stage.draw();
 }
 
+function setStatus(serverBoard, serverTurn){
+    console.log("Lol");
+    myBoard = new Board(serverBoard);
+    turn = new Turn();
+    turn.player = serverTurn.player;
+    turn.curPlayer = serverTurn.curPlayer;
+    $('#curPlayer').text(colorToString(turn.curPlayer.color));
+    tryDrawBoard();
+}
+
+function tryDrawBoard () {
+    if(!onceCb) {
+        onceCb = true;
+        return;
+    }
+    drawBoard(TILE_SIZE);
+}
+
 function setNextTurn() {
     turn.nextTurn();
     console.log("next turn");
@@ -119,13 +118,16 @@ function checkForGameEnd() {
     }
 
     if(countKings === 1)
-        console.log("game over");
+        terminateGame();
 }
 
 function pawnConvertion(id, pos) {
     if(figureList[id].figure.type === FigureType.PAWN) {
         if(player === turn.curPlayer.color && figureList[id].figure.color === player) {
-            if(pos.y == 0){
+            if((player == Color.WHITE && pos.y == 0) ||
+               (player == Color.BLACK && pos.y == myBoard.board.length) ||
+               (player == Color.RED && pos.x == myBoard.board[0].length) ||
+               (player == Color.GREEN && pos.x == 0)){
                 convertPawn(id, pos); //convertPawn.js
                 return true;
             }
@@ -148,7 +150,7 @@ function drawBoard(TILE_SIZE) {
     maxY = stage.getY() + stage.getHeight();
 
     figureList = [];
-    
+
     //board tiles
     boardLayer = new Kinetic.Layer(); //background layer for the chessboard
     moveLayer = new Kinetic.Layer(); //where the figures can go to
@@ -178,7 +180,6 @@ function drawBoard(TILE_SIZE) {
             }
         }
     }
-    
     rotateBoard();
    
     stage.add(boardLayer);
@@ -236,10 +237,9 @@ function drawFigure(x,y, playerColor) {
         var oldPos = {"x":figureList[figureID].figure.x, "y":figureList[figureID].figure.y};
         var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
-        if((player === turn.curPlayer.color && figureColor === player)||!turnOn &&
+        if((player === turn.curPlayer.color && figureColor === player) && lockFigures === false||!turnOn &&
             (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible )){
             setPosition(newPos, figureID, false);
-        console.log("dragendsendposition");
             socket.emit('sendPosition', oldPos, newPos, figureID, player);
         }
         else {
@@ -292,11 +292,10 @@ function boardClicked(e) {
     var i = 0;
     for(i = 0; i < moveLayerChildren.length; i++) {
         //click on tile, which is possible to move to
-        if((moveLayerChildren[i].getPosition().x === nodePos.x && moveLayerChildren[i].getPosition().y === nodePos.y)|| ignPossible) {
+        if((moveLayerChildren[i].getPosition().x === nodePos.x && moveLayerChildren[i].getPosition().y === nodePos.y && lockFigures === false)|| ignPossible) {
             var clickedFigure = moveLayer.currentFigure;
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {'x':clickedFigure.getPosition().x / TILE_SIZE, 'y':clickedFigure.getPosition().y / TILE_SIZE};
-            console.log("boardclickedsendposition");
             socket.emit('sendPosition',{"x":oldPos.x,"y":oldPos.y},{"x":tilePos.x,"y":tilePos.y},figureID, player);
             moveLayer.draw();
             return;
@@ -304,19 +303,25 @@ function boardClicked(e) {
     }
 
     if(myBoard.isFigure(tilePos.x, tilePos.y)){
-        if((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player) ||!turnOn) {
+        if((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) ||!turnOn) {
             var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
             moveLayer.removeChildren();
             moveLayer.currentFigure = e.targetNode;
             for(i = 0; i< possibleMoves.length; i++){
+                var x = possibleMoves[i].x;
+                var y = possibleMoves[i].y; 
+
                 var rect = new Kinetic.Rect({
                     x: possibleMoves[i].x * TILE_SIZE,
                     y: possibleMoves[i].y * TILE_SIZE,
                     width: TILE_SIZE,
                     height: TILE_SIZE,
-                    fill: 'red'
+                    fill: getBoardColor(x,y),
+                    stroke: colorToString(player),
+                    strokeWidth: 3,
+                    shadowColor: colorToString(player),
+                    shadowBlur: 20
                 });
-
                 moveLayer.add(rect);
             }
         }
@@ -379,4 +384,17 @@ function colorToString(color) {
 
 function getBoardColor(x, y) {
     return (x + y) % 2 === 0 ? '#FF6600': '#336699';
+}
+
+function terminateGame() {
+    $('#cmdField').off("keypress");
+    $("#leave").off("click");
+    socket.removeListener('setPosition',setPosition);
+    socket.removeListener('sendStatus', setStatus);
+    stage.removeChildren();
+    stage.draw();
+    stage=null;
+    $("#canvas").empty();
+    toLobby();
+    socket.emit('leave');
 }

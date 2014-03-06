@@ -1,4 +1,4 @@
-function Turn() {
+var Turn = function() {
 	this.player = {
 		WHITE: {
 			color: Color.WHITE,
