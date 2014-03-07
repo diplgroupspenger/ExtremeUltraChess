@@ -15,6 +15,15 @@
     image-rendering: optimize-contrast;
     -ms-interpolation-mode: nearest-neighbor;
 }
+
+#leave {
+    right: 0;
+    position: fixed;
+}
+
+#toolbar {
+    position: fixed;
+}
  
 div#sidebar {
     background-color: grey;
