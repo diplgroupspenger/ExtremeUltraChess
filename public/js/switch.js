@@ -1,18 +1,21 @@
 var socket;
-function execjs(){
+
+function execjs() {
   socket = io.connect();
   $('#name-dialog').dialog({
     autoOpen: true,
     height: 250,
     width: 300,
     modal: true,
-    draggable:false,
-    closeOnEscape:false,
-    resizable:false,
-    dialogClass:'no-close',
+    draggable: false,
+    closeOnEscape: false,
+    resizable: false,
+    dialogClass: 'no-close',
     buttons: {
-      "accept": function() {
-        if($('#nameinput').val()){
+      "accept": {
+        text: "accept",
+        id: "acceptname",
+        click: function() {
           socket.emit('newplayer', $('#nameinput').val());
         }
       }
@@ -21,17 +24,17 @@ function execjs(){
   lobby(socket);
 }
 
-function toGame(socket, color){
-	$('#lobby').toggle();
-	$('#game').toggle();
-	$('#list1').val('');
+function toGame(socket, color) {
+  $('#lobby').toggle();
+  $('#game').toggle();
+  $('#list1').val('');
   $('#chat').hide();
   $('#chatlog').empty();
-	startgame(socket, color);
+  startgame(socket, color);
 }
 
-function toLobby(){
-	$('#game').toggle();
-	$('#lobby').toggle();
-	lobby(socket);
+function toLobby() {
+  $('#game').toggle();
+  $('#lobby').toggle();
+  lobby(socket);
 }

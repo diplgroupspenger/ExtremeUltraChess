@@ -28,10 +28,6 @@
   float: right;
 }
 
-#nameerror{
-  color:blue;
-}
-
 #list1 li {
   transition: background 0.2s ease;
 }
@@ -52,6 +48,18 @@
 #name{
   float:right;
   margin-right: 10px;
+}
+
+.errormsg{
+  color: red;
+}
+
+.openinput{
+  width:100%;
+}
+
+#description{
+  height:100px;
 }
 
 .no-close .ui-dialog-titlebar-close {display: none }

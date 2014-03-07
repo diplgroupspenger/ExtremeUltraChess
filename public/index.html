@@ -39,25 +39,25 @@
 	open room
 	</button>
 
-	<div id='dialog-form'>
+	<div id='open-dialog'>
 		<h2>Options</h2>
-		<form id='createform'>
 		<label>Title:</label>
 		<br/>
-		<input id='title' name='title' placeholder='Title'/>
+		<input id='title' class='openinput' placeholder='Title'/>
 		<br/>
 		<label>Description:</label>
 		<br/>
-		<input id='description' name='description' placeholder='Description'/>
-		</form>
+		<textarea id='description' class='openinput' placeholder='Description'></textarea>
+		<br/>
+		<label class='errormsg' id='openerror'></label>
 	</div>
 
 	<div id='name-dialog' class='no-close'>
-		<form id='nameform'>
 		<label>Name:</label>
 		<br/>
 		<input id='nameinput' name='nameinput' placeholder='Name'/>
-		</form>
+		<br/>
+		<label class='errormsg' id='nameerror'></label>
 	</div>
 </div>
 
