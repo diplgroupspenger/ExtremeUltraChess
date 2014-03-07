@@ -1,4 +1,4 @@
-function Turn() {
+var Turn = function() {
 	this.player = {
 		WHITE: {
 			color: Color.WHITE,
@@ -22,6 +22,7 @@ function Turn() {
 };
 
 Turn.prototype.nextTurn = function() {
+	console.log("nextturn");
 	if(this.curPlayer.color != Color.GREEN) {
 		for(var key in this.player) {
 			if(this.player[key].color == this.curPlayer.color + 100) {

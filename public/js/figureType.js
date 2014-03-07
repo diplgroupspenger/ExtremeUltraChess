@@ -52,28 +52,28 @@ var FigureType = {
         name: 'PAWN'
     },
     'KNIGHT': {
-    possibleMoves: function(myBoard) {
-        var positions = [];
+        possibleMoves: function(myBoard) {
+            var positions = [];
 
-        this.pushIfPossible(this.x - 1, this.y - 2, positions);
-        this.pushIfPossible(this.x + 1, this.y - 2, positions);
-        this.pushIfPossible(this.x - 2, this.y - 1, positions);
-        this.pushIfPossible(this.x + 2, this.y - 1, positions);
-        this.pushIfPossible(this.x - 1, this.y + 2, positions);
-        this.pushIfPossible(this.x + 1, this.y + 2, positions);
-        this.pushIfPossible(this.x - 2, this.y + 1, positions);
-        this.pushIfPossible(this.x + 2, this.y + 1, positions);
+            this.pushIfPossible(this.x - 1, this.y - 2, positions, myBoard);
+            this.pushIfPossible(this.x + 1, this.y - 2, positions, myBoard);
+            this.pushIfPossible(this.x - 2, this.y - 1, positions, myBoard);
+            this.pushIfPossible(this.x + 2, this.y - 1, positions, myBoard);
+            this.pushIfPossible(this.x - 1, this.y + 2, positions, myBoard);
+            this.pushIfPossible(this.x + 1, this.y + 2, positions, myBoard);
+            this.pushIfPossible(this.x - 2, this.y + 1, positions, myBoard);
+            this.pushIfPossible(this.x + 2, this.y + 1, positions, myBoard);
 
-        return positions;
-    },
-    id: 1,
-    name: 'KNIGHT'
+            return positions;
+        },
+        id: 1,
+        name: 'KNIGHT'
     },
     'BISHOP': {
         possibleMoves: function(myBoard) {
             var positions = [];
 
-            this.addPossibleDiagonalMoves(positions, myBoard.board.length);
+            this.addPossibleDiagonalMoves(positions, myBoard.board.length, myBoard);
 
             return positions;
         },
@@ -84,8 +84,8 @@ var FigureType = {
         possibleMoves: function(myBoard) {
             var positions = [];
 
-            this.addPossibleDiagonalMoves(positions, myBoard.board.length);
-            this.addPossibleYandXaxisMoves(positions, myBoard.board.length);
+            this.addPossibleDiagonalMoves(positions, myBoard.board.length, myBoard);
+            this.addPossibleYandXaxisMoves(positions, myBoard.board.length, myBoard);
 
             return positions;
         },
@@ -96,8 +96,8 @@ var FigureType = {
         possibleMoves: function(myBoard) {
             var positions = [];
 
-            this.addPossibleDiagonalMoves(positions, 2);
-            this.addPossibleYandXaxisMoves(positions, 2);
+            this.addPossibleDiagonalMoves(positions, 2, myBoard);
+            this.addPossibleYandXaxisMoves(positions, 2, myBoard);
 
             return positions;
         },
@@ -108,7 +108,7 @@ var FigureType = {
         possibleMoves: function(myBoard) {
             var positions = [];
 
-            this.addPossibleYandXaxisMoves(positions, myBoard.board.length);
+            this.addPossibleYandXaxisMoves(positions, myBoard.board.length, myBoard);
 
             return positions;
         },

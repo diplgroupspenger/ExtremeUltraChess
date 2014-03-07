@@ -1,4 +1,5 @@
 function convertPawn(figureId, pos) {
+	lockFigures = true;
 	var queen = new Figure(FigureType.QUEEN, player);
 	var rook = new Figure(FigureType.ROOK, player);
 	var bishop = new Figure(FigureType.BISHOP, player);
@@ -20,6 +21,7 @@ function draw(figure, posX, posY, figureId) {
         height: TILE_SIZE,
         crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
     });
+    rotateFigure(figureImage);
 
     figureImage.on('mouseover', function() {
         this.setOpacity(1);
@@ -32,6 +34,7 @@ function draw(figure, posX, posY, figureId) {
 	});
 
 	figureImage.on('click', function() {
+		lockFigures = false;
 		var x = figureList[figureId].figure.x;
 		var y = figureList[figureId].figure.y;
 
@@ -39,8 +42,7 @@ function draw(figure, posX, posY, figureId) {
 		figureList[figureId].remove();
 
 		myBoard.board[y][x] = figure;
-		myBoard.board[y][x].setPosition(x, y, false);
-
+		myBoard.board[y][x].setPosition(x, y, myBoard);
 		drawFigure(x, y, player);
 		figureLayer.draw();
     	
@@ -51,4 +53,19 @@ function draw(figure, posX, posY, figureId) {
 	});
     
     foreGroundLayer.add(figureImage);
+}
+
+function rotateFigure(img) {
+	if(player == Color.BLACK) {
+		img.rotateDeg(180);
+		img.setOffset(img.getHeight(), img.getWidth());
+	}
+	else if(player == Color.RED) {
+		img.rotateDeg(90);
+		img.setOffset(0, img.getWidth());
+	}
+	else if(player == Color.GREEN) {
+		img.rotateDeg(-90);
+		img.setOffset(img.getHeight(), 0);
+	}
 }

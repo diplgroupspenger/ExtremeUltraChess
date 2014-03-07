@@ -32,11 +32,11 @@ Figure.prototype.exportFigure = function(){
     };
 };
 
-Figure.prototype.possibleMoves = function(board){
-    return this.type.possibleMoves.call(this,board);
+Figure.prototype.possibleMoves = function(myBoard){
+    return this.type.possibleMoves.call(this,myBoard);
 };
 
-Figure.prototype.setPosition = function(newX, newY){
+Figure.prototype.setPosition = function(newX, newY, myBoard){
     for(var y = 0; y < myBoard.board[0].length; y++){
         for(var x = 0; x < myBoard.board.length; x++){
             if(myBoard.isFigure(x, y)){
@@ -86,7 +86,7 @@ Figure.prototype.left = function(){
 };
 
 Figure.prototype.right = function(){
-  switch(this.color){
+    switch(this.color){
         case Color.WHITE: return {"x" : 1, "y" : 0};
         case Color.BLACK: return {"x" : -1, "y" : 0};
         case Color.RED: return {"x" : 0, "y" : 1};
@@ -94,8 +94,7 @@ Figure.prototype.right = function(){
     }
 };
 
-Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions){
-
+Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard){
     if(myBoard.isLegalTile(xtmp, ytmp)){
         if (!myBoard.isPotentiallyWalkable(xtmp, ytmp, this.color)) {
             return false;
@@ -108,58 +107,58 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions){
     return true;
 };
 
-Figure.prototype.addPossibleYandXaxisMoves = function(positions, length){
+Figure.prototype.addPossibleYandXaxisMoves = function(positions, length, myBoard){
     var xtmp = 0;
     var ytmp = 0;
 
     for(var i = 1; i < length; i++){
         xtmp = this.x + i;
-        if(!this.pushIfPossible(xtmp, this.y, positions))
+        if(!this.pushIfPossible(xtmp, this.y, positions, myBoard))
             break;
     }
     for(i = 1; i < length; i++){
         xtmp = this.x - i;
-        if(!this.pushIfPossible(xtmp, this.y, positions))
+        if(!this.pushIfPossible(xtmp, this.y, positions, myBoard))
             break;
     }
     for(i = 1; i < length; i++){
         ytmp = this.y + i;
-        if(!this.pushIfPossible(this.x, ytmp, positions))
+        if(!this.pushIfPossible(this.x, ytmp, positions, myBoard))
             break;
     }
     for(i = 1; i < length; i++){
         ytmp = this.y - i;
-        if(!this.pushIfPossible(this.x, ytmp, positions))
+        if(!this.pushIfPossible(this.x, ytmp, positions, myBoard))
             break;
     }
 };
 
-Figure.prototype.addPossibleDiagonalMoves = function(positions, length){
+Figure.prototype.addPossibleDiagonalMoves = function(positions, length, myBoard){
   var xtmp = 0;
   var ytmp = 0;
 
   for(var i = 1; i < length; i++){
     xtmp = this.x + i;
     ytmp = this.y + i;
-    if(!this.pushIfPossible(xtmp, ytmp, positions))
+    if(!this.pushIfPossible(xtmp, ytmp, positions, myBoard))
         break;
     }
     for(i = 1; i < length; i++){
         xtmp = this.x - i;
         ytmp = this.y - i;
-        if(!this.pushIfPossible(xtmp, ytmp, positions))
+        if(!this.pushIfPossible(xtmp, ytmp, positions, myBoard))
             break;
     }
     for(i = 1; i < length; i++){
         xtmp = this.x + i;
         ytmp = this.y - i;
-        if (!this.pushIfPossible(xtmp, ytmp, positions))
+        if (!this.pushIfPossible(xtmp, ytmp, positions, myBoard))
             break;
     }
     for(i = 1; i < length; i++){
         xtmp = this.x - i;
         ytmp = this.y + i;
-        if (!this.pushIfPossible(xtmp, ytmp, positions))
+        if (!this.pushIfPossible(xtmp, ytmp, positions, myBoard))
             break;
     }
 };

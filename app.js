@@ -1,20 +1,20 @@
 var express = require('express'),
-    config = require('./config'),
-    app = express(),
-    uuid=require('node-uuid'),
-    mysql=require('mysql'),
-    http = require('http'),
-    server = http.createServer(app),
-    io = require('socket.io').listen(server);
+  config = require('./config'),
+  app = express(),
+  uuid = require('node-uuid'),
+  mysql = require('mysql'),
+  http = require('http'),
+  server = http.createServer(app),
+  io = require('socket.io').listen(server);
 
-io.set('transports', [ 'htmlfile', 'xhr-polling', 'jsonp-polling' ]);
+io.set('transports', ['htmlfile', 'xhr-polling', 'jsonp-polling']);
 
 // listen for new web clients:
 server.listen(63924);
 
-app.use(express.static(__dirname+'/public'));
+app.use(express.static(__dirname + '/public'));
 
-var userdbPool=mysql.createPool(config.database);
+var userdbPool = mysql.createPool(config.database);
 
 var activeClients = 0;
 
@@ -29,75 +29,100 @@ var turnOn = true;
 var ignPossible = false;
 //ENDDEBUG
 
-myBoard = new Board();
-turn = new Turn();
-for(var y = 0; y < myBoard.board.length; y++){
-  for(var x = 0; x < myBoard.board[0].length; x++){
-    if(myBoard.board[y][x] !== -1 && myBoard.board[y][x] !== -2){
-      myBoard.board[y][x].setPositionRelentless(x, y);
-    }
-  }
-}
+var boards = {};
 
-io.sockets.on('connection',function(socket){
+io.sockets.on('connection', function(socket) {
   console.log(io.rooms);
   socket.json.emit('syncRooms', io.rooms);
-  socket.on('disconnect', function(){
+  socket.on('disconnect', function() {
     clientDisconnect(socket);
   });
 
-  socket.on('sendPosition',setPosition);
-  socket.on('convertPawn', convertPawn);
-  socket.on('createroom', function(title, description){
-      createRoom(title, description, socket);
-  });
-  socket.on('joinroom', function(id){
-      joinRoom(id, socket);
+  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color) {
+    if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color)) {
+      setPosition(oldPos, newPos, figureIndex, color, socket);
+    }
   });
 
-  socket.on('connect syn', function(){
+  socket.on('convertPawn', function(figure, x, y) {
+    if (isValid(figure) && isValid(x) && isValid(y)) {
+      convertPawn(figure, x, y, socket);
+    }
+  });
+
+  socket.on('createroom', function(title, description) {
+    if (isValid(title) && isValid(description))
+      createRoom(title, description, socket);
+  });
+
+  socket.on('joinroom', function(id) {
+    console.log("join");
+    if (isValid(id)) {
+      joinRoom(id, socket);
+    }
+  });
+
+  socket.on('connect syn', function() {
     socket.join('lobby');
     socket.emit('connect ack');
   });
 
-  socket.on('getGame', function(){
+  socket.on('sendMessage', function(text) {
+    if (!isBlank(text)) {
+      var name = socket.username;
+      var room = getRoomFromSocket(socket);
+      var roomName = room.substring(1, room.length);
+      socket.broadcast.to(roomName).emit('setMessage', text, name);
+    }
+  });
+
+  socket.on('getGame', function() {
     socket.emit('message', io.sockets.manager.roomClients[socket.id]);
     //io.sockets.emit("name", players[socket.id].name);
     //io.sockets.emit('message', socket.id);
     //io.sockets.in(id).emit('message', rooms[id]);
   });
-  socket.on('getBoard', function(){
-    socket.emit('sendStatus', myBoard.exportBoard(), turn);
+  socket.on('getBoard', function() {
+    room = getRoomFromSocket(socket);
+    console.log("room: " + room);
+    console.log("board: " + boards[room]);
+    socket.emit('sendStatus', boards[room].exportBoard(), boards[room].turn);
   });
-  socket.on('getname', function(id){
+  socket.on('getname', function(id) {
     getName(id, socket);
   });
-  socket.on('newplayer', function(name){
-    newPerson(name, socket);
+  socket.on('newplayer', function(name) {
+    if (!isBlank(name)) {
+      newPerson(name, socket);
+    }
   });
-  socket.on('leave', function(){
+  socket.on('leave', function() {
     leaveRoom(socket);
   });
 
   //DEBUG
   socket.on('sendTurnStatus', function(turn) {
-    turnOn = turn;
+    if (isValid(turn)) {
+      turnOn = turn;
+    }
   });
   socket.on('sendPossibleStatus', function(possible) {
-    ignPossible = possible;
+    if (isValid(possible)) {
+      ignPossible = possible;
+    }
   });
 });
 
-function getName(id, socket){
-  userdbPool.getConnection(function(err, connection){
+function getName(id, socket) {
+  userdbPool.getConnection(function(err, connection) {
     if (err) throw err;
-    connection.query("SELECT name FROM users WHERE id=?",[id], function(err, result){
+    connection.query("SELECT name FROM users WHERE id=?", [id], function(err, result) {
       if (err) throw err;
-      if(result[0]){
-        connection.query("UPDATE users SET socket=? WHERE id=?",[socket.id, id], function(err, result){
+      if (result[0]) {
+        connection.query("UPDATE users SET socket=? WHERE id=?", [socket.id, id], function(err, result) {
           if (err) throw err;
         });
-        socket.username=result[0].name;
+        socket.username = result[0].name;
         socket.emit('name', result[0].name, id);
       }
       connection.release();
@@ -105,147 +130,173 @@ function getName(id, socket){
   });
 }
 
-function setPosition(oldPos, newPos, figureIndex, color){
-  console.log("turn: "+turnOn);
-    console.log("possible: "+ignPossible);
-  if(!turnOn || color == turn.curPlayer.color) {
-    if(myBoard.isPossibleToMove(oldPos, newPos) || ignPossible){
-      console.log("ignore");
-      //look if another figure is already on the tile
-      if(myBoard.isFigure(newPos.x, newPos.y)){
-        console.dir(myBoard.board[newPos.y][newPos.x]);
-          if(myBoard.board[newPos.y][newPos.x].type == FigureType.KING) {
-            var figureColor = myBoard.board[newPos.y][newPos.x].color;
-            turn.remove(figureColor);
-          }
-      
-          myBoard.board[newPos.y][newPos.x] = -1;
-      }
-      myBoard.moveFigureTo(oldPos.x, oldPos.y,newPos.x,newPos.y);
-
-      if(myBoard.isEnPassant()){
-          myBoard.board[newPos.y][newPos.x] = -1;
-      }
-      
-      if(!checkForPawnConvertion(myBoard.board[newPos.y][newPos.x].type, newPos)) {
-        turn.nextTurn();
-      }
-
-      io.sockets.emit('setPosition', newPos, figureIndex, true);
-      return;
+function getRoomFromSocket(socket) {
+  var rooms = io.sockets.manager.roomClients[socket.id];
+  for (var key in rooms) {
+    if (key.charAt(0) == '/') {
+      return key;
     }
-    
+  }
+}
+
+function setPosition(oldPos, newPos, figureIndex, color, socket) {
+  var room = getRoomFromSocket(socket);
+  if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
+    if (!turnOn || color == boards[room].turn.curPlayer.color) {
+      if (boards[room].isPossibleToMove(oldPos, newPos) || ignPossible) {
+        //look if another figure is already on the tile
+        if (boards[room].isFigure(newPos.x, newPos.y)) {
+
+          if (boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
+            var figureColor = boards[room].board[newPos.y][newPos.x].color;
+            boards[room].turn.remove(figureColor);
+          }
+
+          boards[room].board[newPos.y][newPos.x] = -1;
+        }
+        boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
+
+        if (boards[room].isEnPassant()) {
+          boards[room].board[newPos.y][newPos.x] = -1;
+        }
+
+        if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
+          boards[room].turn.nextTurn();
+        }
+        var roomName = room.substring(1, room.length);
+        io.sockets. in (roomName).emit('setPosition', newPos, figureIndex, true);
+        return;
+      }
+    }
   }
   //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
-  io.sockets.emit('setPosition', oldPos, figureIndex, false);
+  socket.emit('setPosition', oldPos, figureIndex, false);
 }
 
 function checkForPawnConvertion(type, pos) {
-    if(type === FigureType.PAWN) {
-        if(pos.y == 0){
-            return true;
-        }
+  if (type === FigureType.PAWN) {
+    if (pos.y == 0) {
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
-function convertPawn(figure, posX, posY) {
-    if(myBoard.board[posY][posX].type === FigureType.PAWN) {
-        if(posY == 0){
-            myBoard.board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
-            myBoard.board[posY][posX].setPosition(posX, posY);
-            turn.nextTurn();
-        }
+function convertPawn(figure, posX, posY, socket) {
+  console.log(figure);
+  var room = getRoomFromSocket(socket);
+  if (boards[room].board[posY][posX].type === FigureType.PAWN) {
+    if (posY == 0) {
+      boards[room].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
+      console.log("board: " + boards[room].board);
+      boards[room].board[posY][posX].setPosition(posX, posY, boards[room]);
+      boards[room].turn.nextTurn();
     }
+  }
 }
 
-function joinRoom(id, socket){
-  var availableColors = io.rooms[('/'+id)][1].details.colors.length;
-  if(availableColors > 0) {
+function joinRoom(id, socket) {
+  var availableColors = io.rooms[('/' + id)][1].details.colors.length;
+  if (availableColors > 0) {
     socket.leave('lobby');
     socket.join(id);
 
-    colornum=Math.floor(Math.random()*(io.rooms[('/'+id)][1].details.colors.length));
-    if(io.rooms[('/'+id)].length-1 === 1) {
+    colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
+    if (io.rooms[('/' + id)].length - 1 === 1) {
       colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
     }
-    userdbPool.getConnection(function(err, connection){
-      connection.query('SELECT id from users where socket=?', [socket.id], function(err, result){
-        if(result[0]){
-          socket.emit('roomjoined', io.rooms[('/'+id)][1].details.colors[colornum]);
+    userdbPool.getConnection(function(err, connection) {
+      connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
+        if (result[0]) {
+          socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
           io.sockets.emit('popul inc', id);
-          connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/'+id)][1].details.colors[colornum], id, io.rooms[('/'+id)][1].details.colors[colornum]], function(err){
-            io.rooms[('/'+id)][1].details.colors.splice(colornum, 1);
+          connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
+            io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
             connection.release();
           });
         }
       });
     });
-  }
-  else {
+  } else {
     console.log("room is full");
   }
 }
 
-function createRoom(title, description, socket){
-  var roomid=0;
-  if(title){
-    userdbPool.getConnection(function(err, connection){
-      connection.query("SELECT id, name FROM users WHERE socket=?", [socket.id], function(err, result){
+function createRoom(title, description, socket) {
+  var roomid = 0;
+  if (title) {
+    userdbPool.getConnection(function(err, connection) {
+      connection.query("SELECT id, name FROM users WHERE socket=?", [socket.id], function(err, result) {
         if (err) throw err;
-        if(result[0]){
-          connection.query("CALL insertgetid(?, ?, ?)", [title, description, result[0].id], function(err, idresult){
+        if (result[0]) {
+          connection.query("CALL insertgetid(?, ?, ?)", [title, description, result[0].id], function(err, idresult) {
             console.log(idresult);
-            if(idresult[0][0].id){
-              roomid=idresult[0][0].id;
+            if (idresult[0][0].id) {
+              roomid = idresult[0][0].id;
               console.log(roomid);
               socket.join(roomid);
+              addBoard(roomid);
 
-              io.rooms[('/'+roomid)].push({"details":{"id":roomid, "title":title, "description":description, "owner":socket.id}});
-              io.rooms[('/'+roomid)][1].details.colors=[100, 200, 300, 400];
-              
-              io.rooms[('/'+roomid)][1].details.owner=result[0].name;
+              io.rooms[('/' + roomid)].push({
+                "details": {
+                  "id": roomid,
+                  "title": title,
+                  "description": description,
+                  "owner": socket.id
+                }
+              });
+              io.rooms[('/' + roomid)][1].details.colors = [100, 200, 300, 400];
+
+              io.rooms[('/' + roomid)][1].details.owner = result[0].name;
               joinRoom(roomid, socket);
 
-              io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roomid)][1].details);
+              io.sockets. in ('lobby').emit('roomcreated', io.rooms[('/' + roomid)][1].details);
               roomid++;
               connection.release();
             }
           });
-        }
-        else{
+        } else {
           connection.release();
         }
       });
     });
-  }
-  else{
-    socket.emit("error", {type:'openerror', msg:'Enter a title plox'});
+  } else {
+    socket.emit("error", {
+      type: 'openerror',
+      msg: 'Enter a title plox'
+    });
   }
 }
 
-function newPerson(name, socket){
-  if(!socket.username){
-    var id=uuid.v4();
-    if(!name){
-      socket.emit("error", {type:'nameerror', msg:'You have to enter a name!'});
-    }
-    else if(name.length>45){
-      socket.emit("error", {type:'nameerror', msg:'The maximum length of the name is 45 letters!'})
-    }
-    else{
-      userdbPool.getConnection(function(err, connection){
-        if(err) throw err;
-        connection.query("select socket from users where name=?", [name], function(err, result){
-          if(err) throw err;
-          if(result[0]){
-            socket.emit("error", {type:'nameerror', msg:'This name is already in use. Please try a different one.'});
+
+function newPerson(name, socket) {
+  if (!socket.username) {
+    var id = uuid.v4();
+    if (!name) {
+      socket.emit("error", {
+        type: 'nameerror',
+        msg: 'You have to enter a name!'
+      });
+    } else if (name.length > 45) {
+      socket.emit("error", {
+        type: 'nameerror',
+        msg: 'The maximum length of the name is 45 letters!'
+      })
+    } else {
+      userdbPool.getConnection(function(err, connection) {
+        if (err) throw err;
+        connection.query("select socket from users where name=?", [name], function(err, result) {
+          if (err) throw err;
+          if (result[0]) {
+            socket.emit("error", {
+              type: 'nameerror',
+              msg: 'This name is already in use. Please try a different one.'
+            });
             connection.release();
-          }
-          else{
-            connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)",[id, name, socket.id], function(err, result){
+          } else {
+            connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)", [id, name, socket.id], function(err, result) {
               if (err) throw err;
-              socket.username=name;
+              socket.username = name;
               socket.emit('name', name, id);
               connection.release();
             });
@@ -255,18 +306,33 @@ function newPerson(name, socket){
     }
   }
 }
- 
-function clientDisconnect(socket){
-  activeClients -= 1;
-  io.sockets.emit('message', {clients:activeClients});
+
+function addBoard(roomid) {
+  var newBoard = new Board();
+  for (var y = 0; y < newBoard.board.length; y++) {
+    for (var x = 0; x < newBoard.board[0].length; x++) {
+      if (newBoard.board[y][x] !== -1 && newBoard.board[y][x] !== -2) {
+        newBoard.board[y][x].setPositionRelentless(x, y);
+      }
+    }
+  }
+  boards[('/' + roomid)] = newBoard;
+  boards[('/' + roomid)].turn = new Turn();
 }
 
-function leaveRoom(socket){
-  userdbPool.getConnection(function(err, connection){
-    connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result){
-      if(result[0]){
-        if(io.rooms[('/'+result[0].room)].length==2){
-          io.sockets.in('lobby').emit('roomclosed', result[0].room);
+function clientDisconnect(socket) {
+  activeClients -= 1;
+  io.sockets.emit('message', {
+    clients: activeClients
+  });
+}
+
+function leaveRoom(socket) {
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result) {
+      if (result[0]) {
+        if (io.rooms[('/' + result[0].room)].length == 2) {
+          io.sockets. in ('lobby').emit('roomclosed', result[0].room);
         }
         socket.leave(result[0].room);
         socket.join('lobby');
@@ -276,3 +342,12 @@ function leaveRoom(socket){
     });
   });
 };
+
+//For checking if a string is blank, null or undefined
+function isBlank(str) {
+  return (!str || /^\s*$/.test(str) || typeof str === "string");
+}
+
+function isValid(par) {
+  return typeof par !== "undefined" && par !== null;
+}

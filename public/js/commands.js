@@ -33,6 +33,10 @@ function checkCmd(text) {
 			socket.emit('sendPossibleStatus', ignPossible);
 			console.log("sendPossibleStatus");
 		}
+
+		if(text == "endgame"){
+			terminateGame();
+		}
 	}
 }
 
