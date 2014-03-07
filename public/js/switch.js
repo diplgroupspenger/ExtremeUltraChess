@@ -12,11 +12,13 @@ function execjs(){
       resizable:false,
       dialogClass:'no-close',
       buttons: {
-        "accept": function() {
-                if($('#nameinput').val()){
-                        socket.emit('newplayer', $('#nameinput').val());
-                }
-        }
+        "accept": {
+        	text: "accept",
+        	id: "acceptname",
+        	click: function() {
+            	socket.emit('newplayer', $('#nameinput').val());
+        	}
+    	}
       }
     });
     lobby(socket);

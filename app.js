@@ -174,7 +174,7 @@ function joinRoom(id, socket){
         if(result[0]){
           socket.emit('roomjoined', io.rooms[('/'+id)][1].details.colors[colornum]);
           io.sockets.emit('popul inc', id);
-          connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?)', [result[0].id, id, io.rooms[('/'+id)][1].details.colors[colornum]], function(err){
+          connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/'+id)][1].details.colors[colornum], id, io.rooms[('/'+id)][1].details.colors[colornum]], function(err){
             io.rooms[('/'+id)][1].details.colors.splice(colornum, 1);
             connection.release();
           });
@@ -189,57 +189,71 @@ function joinRoom(id, socket){
 
 function createRoom(title, description, socket){
   var roomid=0;
-  userdbPool.getConnection(function(err, connection){
-    connection.query("SELECT id, name FROM users WHERE socket=?", [socket.id], function(err, result){
-      if (err) throw err;
-      if(result[0]){
-        connection.query("CALL insertgetid(?, ?, ?)", [title, description, result[0].id], function(err, idresult){
-          console.log(idresult);
-          if(idresult[0][0].id){
-            roomid=idresult[0][0].id;
-            console.log(roomid);
-            socket.join(roomid);
+  if(title){
+    userdbPool.getConnection(function(err, connection){
+      connection.query("SELECT id, name FROM users WHERE socket=?", [socket.id], function(err, result){
+        if (err) throw err;
+        if(result[0]){
+          connection.query("CALL insertgetid(?, ?, ?)", [title, description, result[0].id], function(err, idresult){
+            console.log(idresult);
+            if(idresult[0][0].id){
+              roomid=idresult[0][0].id;
+              console.log(roomid);
+              socket.join(roomid);
 
-            io.rooms[('/'+roomid)].push({"details":{"id":roomid, "title":title, "description":description, "owner":socket.id}});
-            io.rooms[('/'+roomid)][1].details.colors=[100, 200, 300, 400];
-            
-            io.rooms[('/'+roomid)][1].details.owner=result[0].name;
-            joinRoom(roomid, socket);
+              io.rooms[('/'+roomid)].push({"details":{"id":roomid, "title":title, "description":description, "owner":socket.id}});
+              io.rooms[('/'+roomid)][1].details.colors=[100, 200, 300, 400];
+              
+              io.rooms[('/'+roomid)][1].details.owner=result[0].name;
+              joinRoom(roomid, socket);
 
-            io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roomid)][1].details);
-            roomid++;
-            connection.release();
-          }
-        });
-      }
-      else{
-        connection.release();
-      }
+              io.sockets.in('lobby').emit('roomcreated', io.rooms[('/'+roomid)][1].details);
+              roomid++;
+              connection.release();
+            }
+          });
+        }
+        else{
+          connection.release();
+        }
+      });
     });
-  });
+  }
+  else{
+    socket.emit("error", {type:'openerror', msg:'Enter a title plox'});
+  }
 }
 
 function newPerson(name, socket){
-  var id=uuid.v4();
-
-  userdbPool.getConnection(function(err, connection){
-    if(err) throw err;
-    connection.query("select socket from users where name=?", [name], function(err, result){
-      if(err) throw err;
-      if(result[0]){
-        console.log('schon vorhanden');
-        connection.release();
-      }
-      else{
-        connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)",[id, name, socket.id], function(err, result){
-          if (err) throw err;
-          socket.username=name;
-          socket.emit('name', name, id);
-          connection.release();
+  if(!socket.username){
+    var id=uuid.v4();
+    if(!name){
+      socket.emit("error", {type:'nameerror', msg:'You have to enter a name!'});
+    }
+    else if(name.length>45){
+      socket.emit("error", {type:'nameerror', msg:'The maximum length of the name is 45 letters!'})
+    }
+    else{
+      userdbPool.getConnection(function(err, connection){
+        if(err) throw err;
+        connection.query("select socket from users where name=?", [name], function(err, result){
+          if(err) throw err;
+          if(result[0]){
+            socket.emit("error", {type:'nameerror', msg:'This name is already in use. Please try a different one.'});
+            connection.release();
+          }
+          else{
+            connection.query("insert into users (id, name, socket) VALUES (?, ?, ?)",[id, name, socket.id], function(err, result){
+              if (err) throw err;
+              socket.username=name;
+              socket.emit('name', name, id);
+              connection.release();
+            });
+          }
         });
-      }
-    });
-  });
+      });
+    }
+  }
 }
  
 function clientDisconnect(socket){
@@ -251,7 +265,11 @@ function leaveRoom(socket){
   userdbPool.getConnection(function(err, connection){
     connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result){
       if(result[0]){
+        if(io.rooms[('/'+result[0].room)].length==2){
+          io.sockets.in('lobby').emit('roomclosed', result[0].room);
+        }
         socket.leave(result[0].room);
+        socket.join('lobby');
         socket.json.emit('syncRooms', io.rooms);
       }
       connection.release();

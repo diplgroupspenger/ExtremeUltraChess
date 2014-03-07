@@ -25,6 +25,7 @@ function lobby(socket){
           console.log(localStorage.id);
           $('#name').text(myname);
           $('#name-dialog').dialog("close");
+          $('#nameerror').text('');
         });
         socket.on('message', function(data){
                 console.log(data);
@@ -44,15 +45,17 @@ function lobby(socket){
           $('#'+id+'count').text(parseInt($('#'+id+'count').text())+1);
         });
         socket.on('roomjoined', function(color){
+          $("#open-dialog").dialog("close");
           toGame(socket, color);
-          //$("#content").load("./index.html");
-          //socket.emit('getGame', 1);
-          //console.log(id);
         });
+        socket.on('roomclosed', function(id){
+          $('#'+id).remove();
+        });
+        socket.on('error', showerror);
       });
     });
     function drawroom(room){
-            $('#list1').append("<li id='"+room.id+"'><span class='title'>"+room.title+"</span><span class='usercount'><span id='"+room.id+"count'>"+(4-room.colors.length)+"</span>/4</span><br/><span>"+room.description+"</span><span class='owner'>"+room.owner+"</span><div class='details'><button class='join'  id="+room.id+">Join</button></div></li>");
+            $('#list1').append("<li id='"+room.id+"'><span class='title'>"+room.title+"</span><span class='usercount'><span id='"+room.id+"count'>"+(4-room.colors.length)+"</span>/4</span><br/><span class='description'>"+room.description+"</span><span class='owner'>"+room.owner+"</span><div class='details'><button class='join'  id="+room.id+">Join</button></div></li>");
             $("li").off('click').on("click", function() {
                 $(this)
                 .toggleClass("open")
@@ -62,30 +65,45 @@ function lobby(socket){
             $("button.join").off('click').on("click", function(){
                       socket.emit('joinroom', $(this).attr('id'), true);
             });
-    }
+    };
+    function showerror(error){
+      $('#'+error.type).text(error.msg);
+    };
     $("#openroom")
       .button()
       .click(function() {
-                $("#dialog-form").dialog("open");
+                $("#open-dialog").dialog("open");
         });
-      $("#dialog-form").dialog({
+      $("#open-dialog").dialog({
       autoOpen: false,
-      height: 300,
-      width: 350,
+      height: 400,
+      width: 450,
       modal: true,
-      draggable:false,
+      draggable: false,
+      close: function(event, ui){
+        $('#openerror').text('');
+        $('.openinput').val('');
+      },
       buttons: {
-        "accept": function() {
-                socket.emit('createroom',$('#title').val(), $('#description').val(),true);
-                $(this).dialog("close");
+        "accept": {
+          text: "accept",
+          id: "acceptopen",
+          click: function() {
+            socket.emit('createroom',$('#title').val(), $('#description').val(),true);
+          }
         }
       }
     });
-    $("#name-dialog").keydown(function (event) {
-        if (event.keyCode == 13) {
-            if($('#nameinput').val()){
-                socket.emit('newplayer', $('#nameinput').val());
-            }
-        }
-	});
+  $("#nameinput").keyup(function (event) {
+    if (event.keyCode == 13) {
+      $("#acceptname").focus();
+      $("#acceptname").click();
+    }
+  });
+  $(".openinput").keyup(function (event) {
+    if (event.keyCode == 13) {
+      $("#acceptopen").focus();
+      $("#acceptopen").click();
+    }
+  });
 }
