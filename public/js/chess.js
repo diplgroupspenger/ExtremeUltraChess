@@ -1,4 +1,6 @@
-var TILE_SIZE = 50;
+TILE_SIZE = 50;
+TOTAL_HEIGHT = 0;
+TOTAL_WIDTH = 0;
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
 //DEBUG
@@ -91,7 +93,7 @@ function tryDrawBoard() {
         onceCb = true;
         return;
     }
-    drawBoard(TILE_SIZE);
+    initCanvas();
 }
 
 function setNextTurn() {
@@ -142,13 +144,64 @@ function pawnConvertion(id, pos) {
     return false;
 }
 
-//draw Board on load
-function drawBoard(TILE_SIZE) {
+window.onresize = function() {
+    if(onceCb !== undefined && onceCb) {
+        resizeCanvas();
+    }
+}
+
+function resizeCanvas() {
+    oldHeight = stage.getHeight();
+    oldWidth = stage.getWidth();
+    newWidth = window.innerWidth;
+    newHeight = window.innerHeight;
+      
+    if(newHeight < newWidth) {
+        TILE_SIZE = newHeight / myBoard.board.length;
+        stage.setHeight(newHeight);
+        stage.setWidth(TILE_SIZE * myBoard.board[0].length);
+    }
+    else {
+        TILE_SIZE = newWidth / myBoard.board[0].length;
+        stage.setWidth(newWidth);
+        stage.setHeight(TILE_SIZE * myBoard.board.length);  
+    }
+
+    minX = stage.getX();
+    maxX = stage.getX() + stage.getWidth();
+    minY = stage.getY();
+    maxY = stage.getY() + stage.getHeight();
+
+    boardLayer.removeChildren();
+    figureLayer.removeChildren();
+    drawBoard();
+}
+
+function initCanvas() {
+    newWidth = window.innerWidth;
+    newHeight = window.innerHeight;
+
+    canvasHeight = 0;
+    canvasWidth = 0;
+    if(newHeight < newWidth) {
+        TILE_SIZE = newHeight / myBoard.board.length;
+        canvasHeight = newHeight;
+        canvasWidth = TILE_SIZE * myBoard.board[0].length;
+    }
+    else {
+        TILE_SIZE = newWidth / myBoard.board[0].length;
+        canvasWidth = newWidth;
+        canvasHeight = TILE_SIZE * myBoard.board.length;
+    }
     stage = new Kinetic.Stage({
         container: 'canvas',
-        width: 700,
-        height: 700
+        height: canvasHeight,
+        width: canvasWidth
     });
+
+    TOTAL_HEIGHT = canvasHeight;
+    TOTAL_WIDTH = canvasWidth;
+
     stage.on('mousedown', function(e) {
         boardClicked(e);
     });
@@ -167,6 +220,16 @@ function drawBoard(TILE_SIZE) {
     figureLayer = new Kinetic.Layer(); //layer for figures
     foreGroundLayer = new Kinetic.Layer(); //layer on the top, pawn convertion and ui
 
+    stage.add(boardLayer);
+    stage.add(moveLayer);
+    stage.add(figureLayer);
+    stage.add(foreGroundLayer);
+
+    drawBoard();
+}
+
+//draw Board on load
+function drawBoard() {
     for (var y = 0; y < myBoard.board.length; y++) {
         for (var x = 0; x < myBoard.board[0].length; x++) {
             var tilex = x * TILE_SIZE;
@@ -190,18 +253,14 @@ function drawBoard(TILE_SIZE) {
             }
         }
     }
-    rotateBoard();
-
-    stage.add(boardLayer);
-    stage.add(moveLayer);
-    stage.add(figureLayer);
-    stage.add(foreGroundLayer);
+    boardLayer.draw();
+    figureLayer.draw();
+    rotateBoard();    
 }
 
 //draw single figure with canvas
 function drawFigure(x, y, playerColor) {
     var figurePos = getFigureFromSpritesheet(myBoard.board[y][x]);
-
     var figureImage = new Kinetic.Image({
         x: x * TILE_SIZE,
         y: y * TILE_SIZE,
@@ -233,8 +292,8 @@ function drawFigure(x, y, playerColor) {
         crop: {
             x: figurePos.x,
             y: figurePos.y,
-            width: TILE_SIZE,
-            height: TILE_SIZE
+            width: 50,
+            height: 50
         }
     });
     figureImage.figure = myBoard.board[y][x];
