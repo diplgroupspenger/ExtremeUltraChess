@@ -4,13 +4,13 @@ function convertPawn(figureId, pos) {
 	var rook = new Figure(FigureType.ROOK, player);
 	var bishop = new Figure(FigureType.BISHOP, player);
 	var knight = new Figure(FigureType.KNIGHT, player);
-	draw(queen, pos.x, pos.y - 1, figureId);
-	draw(rook, pos.x + 1, pos.y, figureId);
-	draw(bishop, pos.x, pos.y + 1, figureId);
-	draw(knight, pos.x - 1, pos.y, figureId);
+	drawConvertion(queen, pos.x, pos.y - 1, figureId);
+	drawConvertion(rook, pos.x + 1, pos.y, figureId);
+	drawConvertion(bishop, pos.x, pos.y + 1, figureId);
+	drawConvertion(knight, pos.x - 1, pos.y, figureId);
 }
 
-function draw(figure, posX, posY, figureId) {
+function drawConvertion(figure, posX, posY, figureId) {
 	var figurePos = getFigureFromSpritesheet(figure);
 	var figureImage = new Kinetic.Image({
         x: posX * TILE_SIZE,
@@ -19,8 +19,9 @@ function draw(figure, posX, posY, figureId) {
         opacity: 0.5,
         width: TILE_SIZE,
         height: TILE_SIZE,
-        crop: {x: figurePos.x,y: figurePos.y,width: TILE_SIZE,height: TILE_SIZE}
+        crop: {x: figurePos.x, y: figurePos.y, width: 50, height: 50}
     });
+    
     rotateFigure(figureImage);
 
     figureImage.on('mouseover', function() {
@@ -53,6 +54,18 @@ function draw(figure, posX, posY, figureId) {
 	});
     
     foreGroundLayer.add(figureImage);
+}
+
+function redrawConvertion() {
+	_.each(foreGroundLayer.getChildren(), function(img) {
+		//get old tilesize(width and height are equal)
+		oldTileSize = img.getWidth(); 
+		img.setX((img.getX() / oldTileSize) * TILE_SIZE);
+		img.setY((img.getY() / oldTileSize) * TILE_SIZE);
+		img.setWidth(TILE_SIZE);
+		img.setHeight(TILE_SIZE);
+	});
+	foreGroundLayer.draw();
 }
 
 function rotateFigure(img) {

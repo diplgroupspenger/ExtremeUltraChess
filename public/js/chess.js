@@ -3,6 +3,7 @@ TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
+var curPossibleMoves = [];
 //DEBUG
 var turnOn = true;
 var ignPossible = false;
@@ -32,6 +33,9 @@ function startgame(socket, color) {
 
     player = color;
     onceCb = false;
+
+    var lazyLayout = _.debounce(resizeCanvas, 300);
+    $(window).resize(lazyLayout);
 }
 
 function setPosition(newPos, figureID, moved) {
@@ -68,7 +72,9 @@ function setPosition(newPos, figureID, moved) {
             setNextTurn();
         }
     }
+
     moveLayer.removeChildren();
+    curPossibleMoves = [];
     stage.draw();
 }
 
@@ -144,12 +150,6 @@ function pawnConvertion(id, pos) {
     return false;
 }
 
-window.onresize = function() {
-    if(onceCb !== undefined && onceCb) {
-        resizeCanvas();
-    }
-}
-
 function resizeCanvas() {
     oldHeight = stage.getHeight();
     oldWidth = stage.getWidth();
@@ -174,7 +174,12 @@ function resizeCanvas() {
 
     boardLayer.removeChildren();
     figureLayer.removeChildren();
+    moveLayer.removeChildren();
+    curPossibleMoves = [];
     drawBoard();
+    rotateBoardOffset();
+    drawPossibleMoves();
+    redrawConvertion();
 }
 
 function initCanvas() {
@@ -226,6 +231,7 @@ function initCanvas() {
     stage.add(foreGroundLayer);
 
     drawBoard();
+    rotateBoard();
 }
 
 //draw Board on load
@@ -252,10 +258,7 @@ function drawBoard() {
                 }
             }
         }
-    }
-    boardLayer.draw();
-    figureLayer.draw();
-    rotateBoard();    
+    }   
 }
 
 //draw single figure with canvas
@@ -326,35 +329,79 @@ function drawFigure(x, y, playerColor) {
     });
 }
 
+function drawPossibleMoves() {
+    moveLayer.removeChildren();
+    for (i = 0; i < curPossibleMoves.length; i++) {
+        var x = curPossibleMoves[i].x;
+        var y = curPossibleMoves[i].y;
+
+        var rect = new Kinetic.Rect({
+            x: curPossibleMoves[i].x * TILE_SIZE,
+            y: curPossibleMoves[i].y * TILE_SIZE,
+            width: TILE_SIZE,
+            height: TILE_SIZE,
+            fill: getBoardColor(x, y),
+            stroke: colorToString(player),
+            strokeWidth: 3,
+            shadowColor: colorToString(player),
+            shadowBlur: 20
+        });
+        moveLayer.add(rect);
+    }
+
+    moveLayer.draw();
+}
+
+//Initial Rotation
 function rotateBoard() {
     var i = 0;
     //if color == white -> do nothing
     if (player === Color.BLACK) {
         stage.rotateDeg(180);
         stage.setOffset(stage.getHeight(), stage.getWidth());
-        //rotate figures back
-        for (i = 0; i < figureList.length; i++) {
-            image = figureList[i];
-            image.rotateDeg(180);
-            image.setOffset(image.getHeight(), image.getWidth());
-        }
     } else if (player === Color.RED) {
         stage.rotateDeg(-90);
         stage.setOffset(stage.getHeight(), 0);
-        //rotate figures back
-        for (i = 0; i < figureList.length; i++) {
-            image = figureList[i];
-            image.rotateDeg(90);
-            image.setOffset(0, image.getWidth());
-        }
     } else if (player === Color.GREEN) {
         stage.rotateDeg(90);
         stage.setOffset(0, stage.getWidth());
-        //rotate figures back
-        for (i = 0; i < figureList.length; i++) {
-            image = figureList[i];
-            image.rotateDeg(-90);
-            image.setOffset(image.getHeight(), 0);
+    }
+    rotateFigures();
+    stage.draw();
+}
+
+//Called after initial Rotation
+function rotateBoardOffset() {
+    //if color == white -> do nothing
+    if (player === Color.BLACK) {
+        stage.setOffset(stage.getHeight(), stage.getWidth());
+    } else if (player === Color.RED) {
+        stage.setOffset(stage.getHeight(), 0);
+    } else if (player === Color.GREEN) {
+        stage.setOffset(0, stage.getWidth());
+    }
+    rotateFigures();
+    stage.draw();
+}
+
+//rotate figures back, after rotating stage
+function rotateFigures() {
+    //white doesn't need to be rotated
+    if(player !== Color.WHITE) {
+        for (var i = 0; i < figureList.length; i++) {
+            if (player === Color.BLACK) {
+                image = figureList[i];
+                image.rotateDeg(180);
+                image.setOffset(image.getHeight(), image.getWidth());
+            } else if (player === Color.RED) {
+                image = figureList[i];
+                image.rotateDeg(90);
+                image.setOffset(0, image.getWidth());
+            } else if (player === Color.GREEN) {
+                image = figureList[i];
+                image.rotateDeg(-90);
+                image.setOffset(image.getHeight(), 0);
+            }
         }
     }
 }
@@ -372,9 +419,10 @@ function boardClicked(e) {
             var clickedFigure = moveLayer.currentFigure;
             var figureID = figureList.indexOf(clickedFigure);
             var oldPos = {
-                'x': clickedFigure.getPosition().x / TILE_SIZE,
-                'y': clickedFigure.getPosition().y / TILE_SIZE
+                'x': clickedFigure.figure.x,
+                'y': clickedFigure.figure.y
             };
+            console.log("oldPos: "+oldPos.x+ " oldPosy: "+oldPos.y+ " newX: "+tilePos.x+" newY:"+tilePos.y);
             socket.emit('sendPosition', {
                 "x": oldPos.x,
                 "y": oldPos.y
@@ -389,28 +437,10 @@ function boardClicked(e) {
 
     if (myBoard.isFigure(tilePos.x, tilePos.y)) {
         if ((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) || !turnOn) {
-            var possibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
-            moveLayer.removeChildren();
-            moveLayer.currentFigure = e.targetNode;
-            for (i = 0; i < possibleMoves.length; i++) {
-                var x = possibleMoves[i].x;
-                var y = possibleMoves[i].y;
-
-                var rect = new Kinetic.Rect({
-                    x: possibleMoves[i].x * TILE_SIZE,
-                    y: possibleMoves[i].y * TILE_SIZE,
-                    width: TILE_SIZE,
-                    height: TILE_SIZE,
-                    fill: getBoardColor(x, y),
-                    stroke: colorToString(player),
-                    strokeWidth: 3,
-                    shadowColor: colorToString(player),
-                    shadowBlur: 20
-                });
-                moveLayer.add(rect);
-            }
+            curPossibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
+            drawPossibleMoves();
+            moveLayer.currentFigure = e.targetNode;            
         }
-        moveLayer.draw();
     }
 }
 
@@ -419,14 +449,6 @@ function getTileFromPosRound(x, y) {
     var position = {
         'x': Math.round(x / TILE_SIZE),
         'y': Math.round(y / TILE_SIZE)
-    };
-    return position;
-}
-
-function getTileFromPosFloor(x, y) {
-    var position = {
-        'x': Math.floor(x / TILE_SIZE),
-        'y': Math.floor(y / TILE_SIZE)
     };
     return position;
 }

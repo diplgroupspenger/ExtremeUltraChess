@@ -142,6 +142,7 @@ function getRoomFromSocket(socket) {
 }
 
 function setPosition(oldPos, newPos, figureIndex, color, socket) {
+  console.log("oldX: "+oldPos.x+" oldY: "+oldPos.y);
   var room = getRoomFromSocket(socket);
   if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
     if (!turnOn || color == boards[room].turn.curPlayer.color) {
