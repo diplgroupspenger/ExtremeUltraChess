@@ -1,0 +1,35 @@
+.color100{
+	background-color: white;
+	height: 25px;
+	width: 25px;
+	border: 1px solid black;
+}
+
+.color200{
+	background-color: red;
+	height: 25px;
+	width: 25px;
+	border: 1px solid black;
+}
+
+.color300{
+	background-color: black;
+	height: 25px;
+	width: 25px;
+	border: 1px solid black;
+}
+
+.color400{
+	background-color: green;
+	height: 25px;
+	width: 25px;
+	border: 1px solid black;
+}
+
+.subname{
+	width: 250px;
+}
+
+/*table, th, td{
+	border:1px solid black;
+}*/

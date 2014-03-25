@@ -46,8 +46,9 @@
 }
 
 #name{
-  float:right;
+  float: right;
   margin-right: 10px;
+  margin-bottom: 0px;
 }
 
 .errormsg{
@@ -60,6 +61,27 @@
 
 #description{
   height:100px;
+}
+
+#openroom{
+  position: absolute;
+  bottom: 0;
+}
+
+#lobby{
+  position: relative;
+  height: 80%;
+}
+
+#games{
+  overflow-x: auto;
+  width: inherit;
+  height: inherit;
+}
+
+html, body{
+  width: 100%;
+  height: 100%;
 }
 
 .no-close .ui-dialog-titlebar-close {display: none }

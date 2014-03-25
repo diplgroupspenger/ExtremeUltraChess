@@ -32,7 +32,6 @@ var ignPossible = false;
 var boards = {};
 
 io.sockets.on('connection', function(socket) {
-  console.log(io.rooms);
   socket.json.emit('syncRooms', io.rooms);
   socket.on('disconnect', function() {
     clientDisconnect(socket);
@@ -56,7 +55,6 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('joinroom', function(id) {
-    console.log("join");
     if (isValid(id)) {
       joinRoom(id, socket);
     }
@@ -78,23 +76,18 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('getGame', function() {
     socket.emit('message', io.sockets.manager.roomClients[socket.id]);
-    //io.sockets.emit("name", players[socket.id].name);
-    //io.sockets.emit('message', socket.id);
-    //io.sockets.in(id).emit('message', rooms[id]);
   });
   socket.on('getBoard', function() {
     room = getRoomFromSocket(socket);
-    console.log("room: " + room);
-    console.log("board: " + boards[room]);
+    //console.log("room: " + room);
+    //console.log("board: " + boards[room]);
     socket.emit('sendStatus', boards[room].exportBoard(), boards[room].turn.exportTurn());
   });
   socket.on('getname', function(id) {
     getName(id, socket);
   });
   socket.on('newplayer', function(name) {
-    if (!isBlank(name)) {
-      newPerson(name, socket);
-    }
+    newPerson(name, socket);
   });
   socket.on('leave', function() {
     leaveRoom(socket);
@@ -111,6 +104,15 @@ io.sockets.on('connection', function(socket) {
       ignPossible = possible;
     }
   });
+
+
+  socket.on('startgame', function() {
+    var id = getRoomFromSocket(socket).substring(1);
+    addBoard(id);
+    io.sockets. in (id).emit('startgame');
+  });
+
+
 });
 
 function getName(id, socket) {
@@ -124,6 +126,11 @@ function getName(id, socket) {
         });
         socket.username = result[0].name;
         socket.emit('name', result[0].name, id);
+      } else {
+        socket.emit("error", {
+          type: 'nameerror',
+          msg: 'We were not able to retrieve your name, reload the page or enter a new name.'
+        });
       }
       connection.release();
     });
@@ -183,12 +190,12 @@ function checkForPawnConvertion(type, pos) {
 }
 
 function convertPawn(figure, posX, posY, socket) {
-  console.log(figure);
+  //console.log(figure);
   var room = getRoomFromSocket(socket);
   if (boards[room].board[posY][posX].type === FigureType.PAWN) {
     if (posY == 0) {
       boards[room].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
-      console.log("board: " + boards[room].board);
+      //console.log("board: " + boards[room].board);
       boards[room].board[posY][posX].setPosition(posX, posY, boards[room]);
       boards[room].turn.nextTurn();
     }
@@ -209,16 +216,38 @@ function joinRoom(id, socket) {
       connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
         if (result[0]) {
           socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
-          io.sockets.emit('popul inc', id);
+          io.sockets. in ('lobby').emit('popul inc', id);
+          io.sockets. in (id).emit('more people', {
+            'name': socket.username,
+            'color': io.rooms[('/' + id)][1].details.colors[colornum]
+          });
+          socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
+          var players = [];
+          for (i = 0; i < io.sockets.clients(id).length; i++) {
+            if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color) {
+              players.push({
+                'name': io.sockets.clients(id)[i].username,
+                'color': io.sockets.clients(id)[i].color
+              });
+            }
+          }
+          socket.emit('subinit', players);
           connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
             io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
+            if (io.rooms[('/' + id)][1].details.colors.length == 0) {
+              addBoard(id);
+              io.sockets. in (id).emit('startgame');
+            }
             connection.release();
           });
         }
       });
     });
   } else {
-    console.log("room is full");
+    socket.emit("error", {
+      type: id + 'error',
+      msg: 'This room is already full'
+    });
   }
 }
 
@@ -230,12 +259,9 @@ function createRoom(title, description, socket) {
         if (err) throw err;
         if (result[0]) {
           connection.query("CALL insertgetid(?, ?, ?)", [title, description, result[0].id], function(err, idresult) {
-            console.log(idresult);
             if (idresult[0][0].id) {
               roomid = idresult[0][0].id;
-              console.log(roomid);
               socket.join(roomid);
-              addBoard(roomid);
 
               io.rooms[('/' + roomid)].push({
                 "details": {
@@ -263,7 +289,7 @@ function createRoom(title, description, socket) {
   } else {
     socket.emit("error", {
       type: 'openerror',
-      msg: 'Enter a title plox'
+      msg: 'You have to enter a title for the room!'
     });
   }
 }
@@ -328,15 +354,19 @@ function clientDisconnect(socket) {
 }
 
 function leaveRoom(socket) {
-    userdbPool.getConnection(function(err, connection) {
-        connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result) {
-            if (result[0]) {
-                socket.leave(result[0].room);
-                socket.json.emit('syncRooms', io.rooms);
-            }
-            connection.release();
-        });
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result) {
+      if (result[0]) {
+        if (io.rooms[('/' + result[0].room)].length == 2) {
+          io.sockets. in ('lobby').emit('roomclosed', result[0].room);
+        }
+        socket.emit('message', result[0].room);
+        socket.leave(result[0].room);
+        socket.json.emit('syncRooms', io.rooms);
+      }
+      connection.release();
     });
+  });
 };
 
 //For checking if a string is blank, null or undefined

@@ -24,7 +24,7 @@ function lobby(socket) {
         localStorage.id = id;
         console.log(localStorage.id);
         $('#name').text(myname);
-        $('#name-dialog').dialog("close");
+        $('#name-dialog').dialog('close');
         $('#nameerror').text('');
         initChat(socket);
       });
@@ -47,7 +47,7 @@ function lobby(socket) {
       });
       socket.on('roomjoined', function(color) {
         $("#open-dialog").dialog("close");
-        toGame(socket, color);
+        toSublobby(socket, color);
       });
       socket.on('roomclosed', function(id) {
         $('#' + id).remove();
@@ -57,7 +57,7 @@ function lobby(socket) {
   });
 
   function drawroom(room) {
-    $('#list1').append("<li id='" + room.id + "'><span class='title'>" + room.title + "</span><span class='usercount'><span id='" + room.id + "count'>" + (4 - room.colors.length) + "</span>/4</span><br/><span class='description'>" + room.description + "</span><span class='owner'>" + room.owner + "</span><div class='details'><button class='join'  id=" + room.id + ">Join</button></div></li>");
+    $('#list1').append("<li id='" + room.id + "'><span class='title'>" + room.title + "</span><span class='usercount'><span id='" + room.id + "count'>" + (4 - room.colors.length) + "</span>/4</span><br/><span class='description'>" + room.description + "</span><span class='owner'>" + room.owner + "</span><div class='details'><button class='join'  id=" + room.id + ">Join</button><label class='errormsg' id='" + room.id + "error'></label></div></li>");
     $("li").off('click').on("click", function() {
       $(this)
         .toggleClass("open")
@@ -70,43 +70,9 @@ function lobby(socket) {
   };
 
   function showerror(error) {
+    if (error.type == 'nameerror') {
+      $('#name-dialog').dialog('open');
+    }
     $('#' + error.type).text(error.msg);
   };
-  $("#openroom")
-    .button()
-    .click(function() {
-      $("#open-dialog").dialog("open");
-    });
-  $("#open-dialog").dialog({
-    autoOpen: false,
-    height: 400,
-    width: 450,
-    modal: true,
-    draggable: false,
-    close: function(event, ui) {
-      $('#openerror').text('');
-      $('.openinput').val('');
-    },
-    buttons: {
-      "accept": {
-        text: "accept",
-        id: "acceptopen",
-        click: function() {
-          socket.emit('createroom', $('#title').val(), $('#description').val(), true);
-        }
-      }
-    }
-  });
-  $("#nameinput").keyup(function(event) {
-    if (event.keyCode == 13) {
-      $("#acceptname").focus();
-      $("#acceptname").click();
-    }
-  });
-  $(".openinput").keyup(function(event) {
-    if (event.keyCode == 13) {
-      $("#acceptopen").focus();
-      $("#acceptopen").click();
-    }
-  });
 }

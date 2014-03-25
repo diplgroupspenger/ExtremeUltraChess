@@ -4,6 +4,7 @@
 <meta charset='utf-8'>
 <title>chess</title>
 <link rel="stylesheet" type="text/css" href="/css/lobbystyle.css"/>
+<link rel="stylesheet" type="text/css" href="/css/sublobbystyle.css"/>
 <link rel="stylesheet" type="text/css" href="css/style.css"/>
 <link rel="stylesheet" type="text/css" href="css/chat.css"/>
 <link rel="stylesheet" type="text/css" href='/css/ui-lightness/jquery-ui-1.10.3.custom.css'/>
@@ -11,7 +12,7 @@
 <script src='/js/jquery-ui-1.10.3.custom.js'></script>
 <script src='js/kinetic-v4.4.3.min.js'></script>
 <script src='socket.io/socket.io.js'></script>
-<script src='js/jquery.validate.js'></script>
+<script src='js/sublobby.js'></script>
 <script src='js/lobby.js'></script>
 <script src='js/switch.js'></script>
 <script src='js/turn.js'></script>
@@ -33,8 +34,10 @@
 	<p id='name'></p>
 	<br/>
 	<br/>
+	<div id='games'>
 	<ul id='list1'>
 	</ul>
+	</div>
 	<button id='openroom'>
 	open room
 	</button>
@@ -75,9 +78,18 @@
 		<!--ENDDEBUG-->
 	</div>
 	<div id='canvas'> </div>
-
 </div>
-<div id='chat'> 
+
+<div id='sublobby' style='display:none;'>
+	<p>Please wait until enough people are connected.</p>
+	<table id='players'>
+	</table>
+	<button id='debutton'>
+		start game
+	</button>
+</div>
+
+<div id='chat'>
 	<div id='chatlog'></div>
 	<input type='text' id='msgInput'></input>
 </div>
