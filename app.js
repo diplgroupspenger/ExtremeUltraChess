@@ -66,7 +66,9 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendMessage', function(text) {
+    console.log("notsent");
     if (!isBlank(text)) {
+      console.log("send");
       var name = socket.username;
       var room = getRoomFromSocket(socket);
       var roomName = room.substring(1, room.length);
@@ -147,6 +149,7 @@ function getRoomFromSocket(socket) {
 }
 
 function setPosition(oldPos, newPos, figureIndex, color, socket) {
+  console.log("oldX: "+oldPos.x+" oldY: "+oldPos.y);
   var room = getRoomFromSocket(socket);
   if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
     if (!turnOn || color == boards[room].turn.curPlayer.color) {
@@ -371,7 +374,7 @@ function leaveRoom(socket) {
 
 //For checking if a string is blank, null or undefined
 function isBlank(str) {
-  return (!str || /^\s*$/.test(str) || typeof str === "string");
+  return (!str || /^\s*$/.test(str) || typeof str !== "string");
 }
 
 function isValid(par) {

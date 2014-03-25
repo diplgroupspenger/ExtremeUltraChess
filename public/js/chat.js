@@ -1,6 +1,4 @@
 function initChat(socket) {
-	lastMsg = " ";
-
 	$('#msgInput').on("keypress", function(e) {
 	    if(e.keyCode === 13) {
 	    	var text = $('#msgInput').val();
@@ -18,14 +16,13 @@ function initChat(socket) {
 }
 
 function setText(text, user) {
-	lastMsg = text;
 	console.log("Name: "+user);
 	$('#chatlog').append(getTime()+ " " + user + ":" + text + "<br/>");
 	$('#chatlog').scrollTop($('#chatlog')[0].scrollHeight);
 }
 
 function validText(str) {
-	if(str == lastMsg || isBlank(str)) 
+	if(isBlank(str)) 
 		return false;
 
 	return true;
