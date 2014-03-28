@@ -71,7 +71,7 @@ io.sockets.on('connection', function(socket) {
       console.log("send");
       var name = socket.username;
       var room = getRoomFromSocket(socket);
-      var roomName = room.substring(1, room.length);
+      var roomName = room.substring(1);
       socket.broadcast.to(roomName).emit('setMessage', text, name);
     }
   });
@@ -149,7 +149,7 @@ function getRoomFromSocket(socket) {
 }
 
 function setPosition(oldPos, newPos, figureIndex, color, socket) {
-  console.log("oldX: "+oldPos.x+" oldY: "+oldPos.y);
+  console.log("oldX: " + oldPos.x + " oldY: " + oldPos.y);
   var room = getRoomFromSocket(socket);
   if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
     if (!turnOn || color == boards[room].turn.curPlayer.color) {
@@ -365,6 +365,7 @@ function leaveRoom(socket) {
         }
         socket.emit('message', result[0].room);
         socket.leave(result[0].room);
+        socket.join('lobby');
         socket.json.emit('syncRooms', io.rooms);
       }
       connection.release();

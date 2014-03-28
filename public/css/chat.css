@@ -1,5 +1,6 @@
 #chat {
 	position: fixed; 
+	resize: vertical;
     bottom: 0; 
    	width: 100%;
    	height: 20%;
@@ -9,12 +10,21 @@
 }
 
 #chatlog{
-	max-height: 100px;
+	max-height: calc(100% - 25px);
 	overflow: auto;
 	pointer-events: none;
 }
 
 #msgInput{
 	bottom: 0;
+	left: 5px;
 	position: absolute;
+	width: calc(100% - 85px);
+}
+
+#postmsg{
+	bottom: 0;
+	right: 5px;
+	position: absolute;
+	width: 70px;
 }
