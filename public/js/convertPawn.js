@@ -4,7 +4,7 @@ function convertPawn(figureId, pos) {
 	var rook = new Figure(FigureType.ROOK, player);
 	var bishop = new Figure(FigureType.BISHOP, player);
 	var knight = new Figure(FigureType.KNIGHT, player);
-	drawConvertion(queen, pos.x, pos.y - 1, figureId);
+	drawConvertion(queen, pos.x, pos.y, figureId);
 	drawConvertion(rook, pos.x + 1, pos.y, figureId);
 	drawConvertion(bishop, pos.x, pos.y + 1, figureId);
 	drawConvertion(knight, pos.x - 1, pos.y, figureId);

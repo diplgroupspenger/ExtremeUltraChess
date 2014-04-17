@@ -158,12 +158,16 @@ function resizeCanvas() {
 
   if (newHeight < newWidth) {
     TILE_SIZE = newHeight / myBoard.board.length;
+    width = TILE_SIZE * myBoard.board[0].length;
     stage.setHeight(newHeight);
-    stage.setWidth(TILE_SIZE * myBoard.board[0].length);
+    stage.setWidth(width);
+    $('#canvas').height(newHeight).width(width);
   } else {
     TILE_SIZE = newWidth / myBoard.board[0].length;
+    height = TILE_SIZE * myBoard.board.length;
     stage.setWidth(newWidth);
-    stage.setHeight(TILE_SIZE * myBoard.board.length);
+    stage.setHeight(height);
+    $('#canvas').height(height).width(newWidth);
   }
 
   minX = stage.getX();
@@ -189,12 +193,16 @@ function initCanvas() {
   canvasWidth = 0;
   if (newHeight < newWidth) {
     TILE_SIZE = newHeight / myBoard.board.length;
+    width = canvasWidth = TILE_SIZE * myBoard.board[0].length;
     canvasHeight = newHeight;
-    canvasWidth = TILE_SIZE * myBoard.board[0].length;
+    canvasWidth = width;
+    $('#canvas').height(newHeight).width(width);
   } else {
     TILE_SIZE = newWidth / myBoard.board[0].length;
+    height = TILE_SIZE * myBoard.board.length;
     canvasWidth = newWidth;
-    canvasHeight = TILE_SIZE * myBoard.board.length;
+    canvasHeight = height;
+    $('#canvas').height(height).width(newWidth);
   }
   stage = new Kinetic.Stage({
     container: 'canvas',
