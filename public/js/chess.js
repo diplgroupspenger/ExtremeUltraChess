@@ -1,6 +1,7 @@
 TILE_SIZE = 50;
 TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
+
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
 var curPossibleMoves = [];
@@ -85,8 +86,19 @@ function setStatus(serverBoard, exportedTurn) {
   tryDrawBoard();
 }
 
+//countdown callback from turn.js
 function cdCallback() {
+  checkForGameEnd();
   $('#timeCounter').text(turn.curSeconds + '');
+  if(turn.extraSeconds) {
+    $('#timeCounter').addClass('blink');
+    if(player == turn.curPlayer.color)
+      $('#timeOutMessage').show();
+  }
+  else {
+    $('#timeCounter').removeClass('blink');
+    $('#timeOutMessage').hide();
+  }
 }
 
 function turnCallback() {
@@ -116,22 +128,10 @@ function removeFigure(pos) {
       stage.draw();
     }
   }
-  //check if only 1 king is left
-  checkForGameEnd();
 }
 
 function checkForGameEnd() {
-  var countKings = 0;
-  for (var i = 0; i < figureList.length; i++) {
-    if (figureList[i].figure.type === FigureType.KING &&
-      figureList[i].taken === undefined) {
-      countKings++;
-    }
-    if (countKings === 4)
-      break;
-  }
-
-  if (countKings === 1)
+  if(turn.getDeadPlayer() >= 3)
     terminateGame();
 }
 
@@ -497,6 +497,7 @@ function getBoardColor(x, y) {
 }
 
 function terminateGame() {
+  console.log('terminate');
   $('#cmdField').off("keypress");
   $("#leave").off("click");
   socket.removeListener('setPosition', setPosition);

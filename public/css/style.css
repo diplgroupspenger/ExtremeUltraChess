@@ -23,6 +23,24 @@
 
 #toolbar {
     position: fixed;
+    margin-left: 7px;
+}
+
+#timeOutMessage {
+    display: none;
+    color: red;
+}
+
+.blink {
+  color:red;
+  animation: blink 0.5s steps(5, start) infinite;
+  -webkit-animation: blink 0.5s steps(5, start) infinite;
+}
+@keyframes blink {
+  to { visibility: hidden; }
+}
+@-webkit-keyframes blink {
+  to { visibility: hidden; }
 }
  
 div#sidebar {
@@ -31,7 +49,6 @@ div#sidebar {
     display: block;
     width:250px;
     height: 100%;
-
     right: 0;
 
     position: fixed;
