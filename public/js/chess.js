@@ -24,6 +24,7 @@ function startgame(socket, color) {
 
   socket.on('setPosition', setPosition);
   socket.on('sendStatus', setStatus);
+  socket.on('updateCheckedTiles', updateCheckedTiles);
   socket.emit('getGame');
   socket.emit('getBoard');
 
@@ -38,6 +39,10 @@ function startgame(socket, color) {
   $(window).resize(lazyLayout);
 }
 
+function updateCheckedTiles(){
+
+}
+
 function setPosition(newPos, figureID, moved) {
   var oldPos = {
     "x": figureList[figureID].figure.x,
@@ -45,7 +50,7 @@ function setPosition(newPos, figureID, moved) {
   };
 
   //remove figure if captured
-  if (myBoard.isFigure(newPos.x, newPos.y)) {
+  if (myBoard.isFigure(newPos.x, newPos.y) && moved) {
     if (oldPos.x !== newPos.x || oldPos.y !== newPos.y) {
       //check if a king was taken and remove player from turn system
       if (myBoard.board[newPos.y][newPos.x].type === FigureType.KING) {
@@ -65,6 +70,7 @@ function setPosition(newPos, figureID, moved) {
   figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
   if (moved) {
+
     if (myBoard.isEnPassant()) {
       removeFigure(oldPos);
     }
@@ -138,10 +144,10 @@ function checkForGameEnd() {
 function pawnConvertion(id, pos) {
   if (figureList[id].figure.type === FigureType.PAWN) {
     if (player === turn.curPlayer.color && figureList[id].figure.color === player) {
-      if ((player == Color.WHITE && pos.y == 0) ||
+      if ((player == Color.WHITE && pos.y === 0) ||
         (player == Color.BLACK && pos.y == myBoard.board.length) ||
         (player == Color.RED && pos.x == myBoard.board[0].length) ||
-        (player == Color.GREEN && pos.x == 0)) {
+        (player == Color.GREEN && pos.x === 0)) {
         convertPawn(id, pos); //convertPawn.js
         return true;
       }
@@ -323,6 +329,7 @@ function drawFigure(x, y, playerColor) {
       //place figure back to old tile
       setPosition(oldPos, figureID, false);
     }
+
     stage.draw();
   });
 }
@@ -334,7 +341,7 @@ function drawPossibleMoves() {
     var y = curPossibleMoves[i].y;
 
     var rect = new Kinetic.Rect({
-      x: curPossibleMoves[i].x * TILE_SIZE,
+        x: curPossibleMoves[i].x * TILE_SIZE,
       y: curPossibleMoves[i].y * TILE_SIZE,
       width: TILE_SIZE,
       height: TILE_SIZE,

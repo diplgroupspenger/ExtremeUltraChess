@@ -33,6 +33,11 @@ var boards = {};
 
 io.sockets.on('connection', function(socket) {
   socket.json.emit('syncRooms', io.rooms);
+
+  socket.on('updateCheckedTiles', function(){
+    updateCheckedTiles(socket);
+  });
+
   socket.on('disconnect', function() {
     clientDisconnect(socket);
   });
@@ -117,6 +122,10 @@ io.sockets.on('connection', function(socket) {
 
 });
 
+function updateCheckedTiles(socket){
+
+}
+
 function getName(id, socket) {
   userdbPool.getConnection(function(err, connection) {
     if (err) throw err;
@@ -185,7 +194,7 @@ function setPosition(oldPos, newPos, figureIndex, color, socket) {
 
 function checkForPawnConvertion(type, pos) {
   if (type === FigureType.PAWN) {
-    if (pos.y == 0) {
+    if (pos.y === 0) {
       return true;
     }
   }
@@ -196,7 +205,7 @@ function convertPawn(figure, posX, posY, socket) {
   //console.log(figure);
   var room = getRoomFromSocket(socket);
   if (boards[room].board[posY][posX].type === FigureType.PAWN) {
-    if (posY == 0) {
+    if (posY === 0) {
       boards[room].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
       //console.log("board: " + boards[room].board);
       boards[room].board[posY][posX].setPosition(posX, posY, boards[room]);
@@ -237,7 +246,7 @@ function joinRoom(id, socket) {
           socket.emit('subinit', players);
           connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
             io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
-            if (io.rooms[('/' + id)][1].details.colors.length == 0) {
+            if (io.rooms[('/' + id)][1].details.colors.length === 0) {
               addBoard(id);
               io.sockets. in (id).emit('startgame');
             }
@@ -310,7 +319,7 @@ function newPerson(name, socket) {
       socket.emit("error", {
         type: 'nameerror',
         msg: 'The maximum length of the name is 45 letters!'
-      })
+      });
     } else {
       userdbPool.getConnection(function(err, connection) {
         if (err) throw err;
@@ -371,7 +380,7 @@ function leaveRoom(socket) {
       connection.release();
     });
   });
-};
+}
 
 //For checking if a string is blank, null or undefined
 function isBlank(str) {
