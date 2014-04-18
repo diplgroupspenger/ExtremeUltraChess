@@ -1,6 +1,7 @@
 TILE_SIZE = 50;
 TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
+
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
 var curPossibleMoves = [];
@@ -91,8 +92,19 @@ function setStatus(serverBoard, exportedTurn) {
   tryDrawBoard();
 }
 
+//countdown callback from turn.js
 function cdCallback() {
+  checkForGameEnd();
   $('#timeCounter').text(turn.curSeconds + '');
+  if(turn.extraSeconds) {
+    $('#timeCounter').addClass('blink');
+    if(player == turn.curPlayer.color)
+      $('#timeOutMessage').show();
+  }
+  else {
+    $('#timeCounter').removeClass('blink');
+    $('#timeOutMessage').hide();
+  }
 }
 
 function turnCallback() {
@@ -122,22 +134,10 @@ function removeFigure(pos) {
       stage.draw();
     }
   }
-  //check if only 1 king is left
-  checkForGameEnd();
 }
 
 function checkForGameEnd() {
-  var countKings = 0;
-  for (var i = 0; i < figureList.length; i++) {
-    if (figureList[i].figure.type === FigureType.KING &&
-      figureList[i].taken === undefined) {
-      countKings++;
-    }
-    if (countKings === 4)
-      break;
-  }
-
-  if (countKings === 1)
+  if(turn.getDeadPlayer() >= 3)
     terminateGame();
 }
 
@@ -164,12 +164,16 @@ function resizeCanvas() {
 
   if (newHeight < newWidth) {
     TILE_SIZE = newHeight / myBoard.board.length;
+    width = TILE_SIZE * myBoard.board[0].length;
     stage.setHeight(newHeight);
-    stage.setWidth(TILE_SIZE * myBoard.board[0].length);
+    stage.setWidth(width);
+    $('#canvas').height(newHeight).width(width);
   } else {
     TILE_SIZE = newWidth / myBoard.board[0].length;
+    height = TILE_SIZE * myBoard.board.length;
     stage.setWidth(newWidth);
-    stage.setHeight(TILE_SIZE * myBoard.board.length);
+    stage.setHeight(height);
+    $('#canvas').height(height).width(newWidth);
   }
 
   minX = stage.getX();
@@ -195,12 +199,16 @@ function initCanvas() {
   canvasWidth = 0;
   if (newHeight < newWidth) {
     TILE_SIZE = newHeight / myBoard.board.length;
+    width = canvasWidth = TILE_SIZE * myBoard.board[0].length;
     canvasHeight = newHeight;
-    canvasWidth = TILE_SIZE * myBoard.board[0].length;
+    canvasWidth = width;
+    $('#canvas').height(newHeight).width(width);
   } else {
     TILE_SIZE = newWidth / myBoard.board[0].length;
+    height = TILE_SIZE * myBoard.board.length;
     canvasWidth = newWidth;
-    canvasHeight = TILE_SIZE * myBoard.board.length;
+    canvasHeight = height;
+    $('#canvas').height(height).width(newWidth);
   }
   stage = new Kinetic.Stage({
     container: 'canvas',
@@ -496,6 +504,7 @@ function getBoardColor(x, y) {
 }
 
 function terminateGame() {
+  console.log('terminate');
   $('#cmdField').off("keypress");
   $("#leave").off("click");
   socket.removeListener('setPosition', setPosition);
