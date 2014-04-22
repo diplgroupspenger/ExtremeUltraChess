@@ -94,7 +94,6 @@ function setStatus(serverBoard, exportedTurn) {
 
 //countdown callback from turn.js
 function cdCallback() {
-  console.log("cdcallback");
   checkForGameEnd();
   $('#timeCounter').text(turn.curSeconds + '');
   if(turn.extraSeconds) {
@@ -139,7 +138,7 @@ function removeFigure(pos) {
 
 function checkForGameEnd() {
   if(turn.getDeadPlayer() >= 3)
-    showEndDialog();
+    showEndDialog(turn.getWinner());
 }
 
 function pawnConvertion(id, pos) {
@@ -504,8 +503,9 @@ function getBoardColor(x, y) {
   return (x + y) % 2 === 0 ? '#FF6600' : '#336699';
 }
 
-function showEndDialog() {
-  bootbox.alert("Game over!", function() {
+function showEndDialog(winner) {
+  console.log(winner);
+  bootbox.alert("Winner: "+colorToString(winner), function() {
     terminateGame();
   });
 }

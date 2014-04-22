@@ -49,10 +49,6 @@
   font-weight: bold;
 }
 
-#leave{
-  float: right;
-}
-
 #name, #logout{
   float: right;
   margin-right: 10px;
@@ -73,7 +69,7 @@
 
 #openroom{
   position: absolute;
-  bottom: 0;
+  top: 0;
 }
 
 #lobby{

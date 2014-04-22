@@ -26,6 +26,7 @@ var Turn = function(cdCallback, turnCallback, importTurn) {
         this.importTurn(importTurn);
     }
 
+    this.extraSecondsLimit = 6;
     this.cdCallback = cdCallback;
     this.turnCallback = turnCallback;
     this.startCountdown();
@@ -66,6 +67,7 @@ Turn.prototype.nextTurn = function() {
         this.nextTurn();
 
     this.curSeconds = this.turnLimit;
+    this.extraSeconds = false;
     if (this.turnCallback !== undefined) {
         this.turnCallback();
     }
@@ -91,7 +93,7 @@ Turn.prototype.countdown = function() {
         this.curSeconds = this.curSeconds - 1;
         if (this.curSeconds < 0) {
             if(this.extraSeconds === false) {
-                this.curSeconds = 5;
+                this.curSeconds = this.extraSecondsLimit;
                 this.extraSeconds = true;
             }
             else {
@@ -121,6 +123,17 @@ Turn.prototype.getDeadPlayer = function() {
 
     return deadPlayer;
 };
+
+Turn.prototype.getWinner = function() {
+    if(!this.player.WHITE.dead)
+        return Color.WHITE;
+    else if(!this.player.RED.dead)
+        return Color.RED;
+    else if(!this.player.BLACK.dead)
+        return Color.BLACK;
+    else if(!this.player.GREEN.dead)
+        return Color.GREEN;
+}
 
 Turn.prototype.terminate = function() {
     clearInterval(this.counter);
