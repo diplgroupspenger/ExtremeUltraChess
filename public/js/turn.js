@@ -47,11 +47,7 @@ Turn.prototype.exportTurn = function() {
         'turnLimit': this.turnLimit,
         'curSeconds': this.curSeconds,
         'extraSeconds': this.extraSeconds
-<<<<<<< HEAD
     };
-=======
-    }
->>>>>>> bdb1ba2eba2001cf82e9c599a69b703154584a66
 };
 
 Turn.prototype.nextTurn = function() {
@@ -137,7 +133,7 @@ Turn.prototype.getWinner = function() {
         return Color.BLACK;
     else if(!this.player.GREEN.dead)
         return Color.GREEN;
-}
+};
 
 Turn.prototype.terminate = function() {
     clearInterval(this.counter);

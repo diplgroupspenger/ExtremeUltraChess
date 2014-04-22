@@ -21,8 +21,6 @@ function initChat(socket) {
 
 function setText(text, user) {
   console.log("Name: " + user);
- //$('#chatlog').append(getTime() + " " + user + ": " + text + "<br/>");
-  //$('#chatlog').append("<div><span>"+getTime() + "</span>" + $('<span>').text("user") + ":" + $('<span>').text(text) + "<br/></div>");
   var $msg = $('<div>');
   $msg.append($('<span>').text(getTime()+" "));
   $msg.append($('<span>').text(user+":"));
