@@ -45,7 +45,7 @@
   float: right;
 }
 
-#name{
+#name, #logout{
   float: right;
   margin-right: 10px;
   margin-bottom: 0px;

@@ -57,15 +57,43 @@ function lobby(socket) {
   });
 
   function drawroom(room) {
-    $('#list1').append("<li id='" + room.id + "'><span class='title'>" + room.title + "</span><span class='usercount'><span id='" + room.id + "count'>" + (4 - room.colors.length) + "</span>/4</span><br/><span class='description'>" + room.description + "</span><span class='owner'>" + room.owner + "</span><div class='details'><button class='join'  id=" + room.id + ">Join</button><label class='errormsg' id='" + room.id + "error'></label></div></li>");
+    if (room.needpw) {
+      var newroom = "<li id='" + room.id + "' class='room'><span class='title'>" +
+        room.title + "</span><span class='usercount'><span id='" +
+        room.id + "count'>" + (4 - room.colors.length) +
+        "</span>/4</span><br/><span class='description'>" +
+        room.description + "</span><span class='owner'>" +
+        room.owner + "</span><div class='details'><button class='join' id=" +
+        room.id + ">join</button><input placeholder='Password' class='joinpw' type='password' id='pw" +
+        room.id + "'/><label class='errormsg' id='" +
+        room.id + "error'></label></div></li>";
+    } else {
+      var newroom = "<li id='" + room.id + "' class='room'><span class='title'>" +
+        room.title + "</span><span class='usercount'><span id='" +
+        room.id + "count'>" + (4 - room.colors.length) +
+        "</span>/4</span><br/><span class='description'>" +
+        room.description + "</span><span class='owner'>" +
+        room.owner + "</span><div class='details'><button class='join' id=" +
+        room.id + ">join</button><label class='errormsg' id='" +
+        room.id + "error'></label></div></li>";
+    }
+    $('#list1').append(newroom);
     $("li").off('click').on("click", function() {
       $(this)
         .toggleClass("open")
         .find(".details")
         .slideToggle();
     });
-    $("button.join").off('click').on("click", function() {
-      socket.emit('joinroom', $(this).attr('id'), true);
+    $('.joinpw').off('click').on('click', function(e) {
+      e.stopPropagation();
+    });
+    $("button.join").off('click').on("click", function(e) {
+      e.stopPropagation();
+      if ($('#pw' + $(this).attr('id')).length > 0) {
+        socket.emit('joinroom', $(this).attr('id'), $('#pw' + $(this).attr('id')).val());
+      } else {
+        socket.emit('joinroom', $(this).attr('id'));
+      }
     });
   };
 
