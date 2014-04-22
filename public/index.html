@@ -31,6 +31,13 @@
 </head>
 
 <body>
+<div id="sidebar">
+	<div id='chat'>
+		<div id='chatlog'></div>
+		<input type='text' id='msgInput'></input>
+		<button id='postmsg'>post</button>
+	</div>
+</div>
 <div id='lobby'>
 	<p id='name'></p>
 	<br/>
@@ -80,6 +87,7 @@
 	</button>
 	<div id='toolbar'>
 		<p id='timeCounter'> </p>
+		<p id='timeOutMessage'> Please move, or you'll get kicked </p>
 		<p>Current Player:</p>
 		<p id='curPlayer'></p>
 		<!--DEBUG-->
@@ -87,22 +95,18 @@
 		<p id="cmdText">Current Command</p>
 		<!--ENDDEBUG-->
 	</div>
-	<div id='canvas'> </div>
+	<div id='outerCanvas'>
+		<div id='canvas'> </div>
+	</div>
 </div>
 
 <div id='sublobby' style='display:none;'>
-	<p>Please wait until enough people are connected.</p>
+	Please wait until enough people are connected.
 	<table id='players'>
 	</table>
 	<button id='debutton'>
 		start game
 	</button>
-</div>
-
-<div id='chat'>
-	<div id='chatlog'></div>
-	<input type='text' id='msgInput'></input>
-	<button id='postmsg'>post</button>
 </div>
 
 </body>

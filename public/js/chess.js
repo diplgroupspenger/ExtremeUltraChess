@@ -1,6 +1,7 @@
 TILE_SIZE = 50;
 TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
+
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
 var curPossibleMoves = [];
@@ -24,6 +25,7 @@ function startgame(socket, color) {
 
   socket.on('setPosition', setPosition);
   socket.on('sendStatus', setStatus);
+  socket.on('updateCheckedTiles', updateCheckedTiles);
   socket.emit('getGame');
   socket.emit('getBoard');
 
@@ -38,6 +40,10 @@ function startgame(socket, color) {
   $(window).resize(lazyLayout);
 }
 
+function updateCheckedTiles(){
+
+}
+
 function setPosition(newPos, figureID, moved) {
   var oldPos = {
     "x": figureList[figureID].figure.x,
@@ -45,7 +51,7 @@ function setPosition(newPos, figureID, moved) {
   };
 
   //remove figure if captured
-  if (myBoard.isFigure(newPos.x, newPos.y)) {
+  if (myBoard.isFigure(newPos.x, newPos.y) && moved) {
     if (oldPos.x !== newPos.x || oldPos.y !== newPos.y) {
       //check if a king was taken and remove player from turn system
       if (myBoard.board[newPos.y][newPos.x].type === FigureType.KING) {
@@ -65,6 +71,7 @@ function setPosition(newPos, figureID, moved) {
   figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
   if (moved) {
+
     if (myBoard.isEnPassant()) {
       removeFigure(oldPos);
     }
@@ -85,8 +92,19 @@ function setStatus(serverBoard, exportedTurn) {
   tryDrawBoard();
 }
 
+//countdown callback from turn.js
 function cdCallback() {
+  checkForGameEnd();
   $('#timeCounter').text(turn.curSeconds + '');
+  if(turn.extraSeconds) {
+    $('#timeCounter').addClass('blink');
+    if(player == turn.curPlayer.color)
+      $('#timeOutMessage').show();
+  }
+  else {
+    $('#timeCounter').removeClass('blink');
+    $('#timeOutMessage').hide();
+  }
 }
 
 function turnCallback() {
@@ -116,32 +134,20 @@ function removeFigure(pos) {
       stage.draw();
     }
   }
-  //check if only 1 king is left
-  checkForGameEnd();
 }
 
 function checkForGameEnd() {
-  var countKings = 0;
-  for (var i = 0; i < figureList.length; i++) {
-    if (figureList[i].figure.type === FigureType.KING &&
-      figureList[i].taken === undefined) {
-      countKings++;
-    }
-    if (countKings === 4)
-      break;
-  }
-
-  if (countKings === 1)
+  if(turn.getDeadPlayer() >= 3)
     terminateGame();
 }
 
 function pawnConvertion(id, pos) {
   if (figureList[id].figure.type === FigureType.PAWN) {
     if (player === turn.curPlayer.color && figureList[id].figure.color === player) {
-      if ((player == Color.WHITE && pos.y == 0) ||
+      if ((player == Color.WHITE && pos.y === 0) ||
         (player == Color.BLACK && pos.y == myBoard.board.length) ||
         (player == Color.RED && pos.x == myBoard.board[0].length) ||
-        (player == Color.GREEN && pos.x == 0)) {
+        (player == Color.GREEN && pos.x === 0)) {
         convertPawn(id, pos); //convertPawn.js
         return true;
       }
@@ -153,17 +159,21 @@ function pawnConvertion(id, pos) {
 function resizeCanvas() {
   oldHeight = stage.getHeight();
   oldWidth = stage.getWidth();
-  newWidth = window.innerWidth;
+  newWidth = window.innerWidth - 250;
   newHeight = window.innerHeight;
 
   if (newHeight < newWidth) {
     TILE_SIZE = newHeight / myBoard.board.length;
+    width = TILE_SIZE * myBoard.board[0].length;
     stage.setHeight(newHeight);
-    stage.setWidth(TILE_SIZE * myBoard.board[0].length);
+    stage.setWidth(width);
+    $('#canvas').height(newHeight).width(width);
   } else {
     TILE_SIZE = newWidth / myBoard.board[0].length;
+    height = TILE_SIZE * myBoard.board.length;
     stage.setWidth(newWidth);
-    stage.setHeight(TILE_SIZE * myBoard.board.length);
+    stage.setHeight(height);
+    $('#canvas').height(height).width(newWidth);
   }
 
   minX = stage.getX();
@@ -189,12 +199,16 @@ function initCanvas() {
   canvasWidth = 0;
   if (newHeight < newWidth) {
     TILE_SIZE = newHeight / myBoard.board.length;
+    width = canvasWidth = TILE_SIZE * myBoard.board[0].length;
     canvasHeight = newHeight;
-    canvasWidth = TILE_SIZE * myBoard.board[0].length;
+    canvasWidth = width;
+    $('#canvas').height(newHeight).width(width);
   } else {
     TILE_SIZE = newWidth / myBoard.board[0].length;
+    height = TILE_SIZE * myBoard.board.length;
     canvasWidth = newWidth;
-    canvasHeight = TILE_SIZE * myBoard.board.length;
+    canvasHeight = height;
+    $('#canvas').height(height).width(newWidth);
   }
   stage = new Kinetic.Stage({
     container: 'canvas',
@@ -323,6 +337,7 @@ function drawFigure(x, y, playerColor) {
       //place figure back to old tile
       setPosition(oldPos, figureID, false);
     }
+
     stage.draw();
   });
 }
@@ -334,8 +349,8 @@ function drawPossibleMoves() {
     var y = curPossibleMoves[i].y;
 
     var rect = new Kinetic.Rect({
-      x: curPossibleMoves[i].x * TILE_SIZE,
-      y: curPossibleMoves[i].y * TILE_SIZE,
+      x: x * TILE_SIZE,
+      y: y * TILE_SIZE,
       width: TILE_SIZE,
       height: TILE_SIZE,
       fill: getBoardColor(x, y),
@@ -489,6 +504,7 @@ function getBoardColor(x, y) {
 }
 
 function terminateGame() {
+  console.log('terminate');
   $('#cmdField').off("keypress");
   $("#leave").off("click");
   socket.removeListener('setPosition', setPosition);

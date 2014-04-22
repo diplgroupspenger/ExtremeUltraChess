@@ -20,7 +20,8 @@ var Turn = function(cdCallback, turnCallback, importTurn) {
         };
 
         this.curPlayer = this.player.WHITE;
-        this.turnLimit = 11;
+        this.turnLimit = 60;
+        this.extraSeconds = false;
     } else {
         this.importTurn(importTurn);
     }
@@ -35,16 +36,18 @@ Turn.prototype.importTurn = function(importTurn) {
     this.curPlayer = importTurn.curPlayer;
     this.turnLimit = importTurn.turnLimit;
     this.curSeconds = importTurn.curSeconds;
-}
+    this.extraSeconds = importTurn.extraSeconds;
+};
 
 Turn.prototype.exportTurn = function() {
     return {
         'player': this.player,
         'curPlayer': this.curPlayer,
         'turnLimit': this.turnLimit,
-        'curSeconds': this.curSeconds
+        'curSeconds': this.curSeconds,
+        'extraSeconds': this.extraSeconds
     }
-}
+};
 
 Turn.prototype.nextTurn = function() {
     if (this.curPlayer.color != Color.GREEN) {
@@ -72,26 +75,52 @@ Turn.prototype.remove = function(player) {
     for (var key in this.player) {
         if (this.player[key].color == player) {
             this.player[key].dead = true;
+            console.log('remove: '+this.player[key].color);
         }
     }
-}
+};
 
 Turn.prototype.startCountdown = function() {
     this.curSeconds = this.turnLimit;
     this.counter = setInterval(this.countdown.bind(this), 1000);
-}
+};
 
 Turn.prototype.countdown = function() {
+    if(this.getDeadPlayer() >= 3)
+        clearInterval(this.counter);
+
     this.curSeconds = this.curSeconds - 1;
     if (this.curSeconds < 0) {
-        this.nextTurn();
-        this.curSeconds = this.turnLimit;
-        return;
+        if(this.extraSeconds === false) {
+            this.curSeconds = 5;
+            this.extraSeconds = true;
+        }
+        else {
+            this.remove(this.curPlayer.color);
+            //extra seconds are over
+            this.extraSeconds = false;
+            this.nextTurn();
+        }
     }
     if (this.cdCallback !== undefined) {
         this.cdCallback();
     }
-}
+};
+
+Turn.prototype.getDeadPlayer = function() {
+    var deadPlayer = 0;
+
+    if(this.player.WHITE.dead) 
+        deadPlayer++;
+    if(this.player.RED.dead)
+        deadPlayer++;
+    if(this.player.BLACK.dead)
+        deadPlayer++;
+    if(this.player.GREEN.dead)
+        deadPlayer++;
+
+    return deadPlayer;
+};
 
 Turn.prototype.terminate = function() {
     clearInterval(this.counter);

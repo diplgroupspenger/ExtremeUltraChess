@@ -71,12 +71,11 @@
 #lobby{
   position: relative;
   height: 80%;
+  width: calc(100% - 250px);
 }
 
 #games{
   overflow-x: auto;
-  width: inherit;
-  height: inherit;
 }
 
 html, body{

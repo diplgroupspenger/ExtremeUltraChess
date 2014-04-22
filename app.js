@@ -33,6 +33,11 @@ var boards = {};
 
 io.sockets.on('connection', function(socket) {
   socket.json.emit('syncRooms', generateAllRoomJson());
+
+  socket.on('updateCheckedTiles', function() {
+    updateCheckedTiles(socket);
+  });
+
   socket.on('disconnect', function() {
     clientDisconnect(socket);
   });
@@ -80,6 +85,7 @@ io.sockets.on('connection', function(socket) {
     socket.emit('message', io.sockets.manager.roomClients[socket.id]);
   });
   socket.on('getBoard', function() {
+    console.log('GETBOARD');
     room = getRoomFromSocket(socket);
     //console.log("room: " + room);
     //console.log("board: " + boards[room]);
@@ -116,6 +122,10 @@ io.sockets.on('connection', function(socket) {
 
 
 });
+
+function updateCheckedTiles(socket) {
+
+}
 
 function getName(id, socket) {
   userdbPool.getConnection(function(err, connection) {
@@ -185,7 +195,7 @@ function setPosition(oldPos, newPos, figureIndex, color, socket) {
 
 function checkForPawnConvertion(type, pos) {
   if (type === FigureType.PAWN) {
-    if (pos.y == 0) {
+    if (pos.y === 0) {
       return true;
     }
   }
@@ -196,7 +206,7 @@ function convertPawn(figure, posX, posY, socket) {
   //console.log(figure);
   var room = getRoomFromSocket(socket);
   if (boards[room].board[posY][posX].type === FigureType.PAWN) {
-    if (posY == 0) {
+    if (posY === 0) {
       boards[room].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
       //console.log("board: " + boards[room].board);
       boards[room].board[posY][posX].setPosition(posX, posY, boards[room]);
@@ -312,7 +322,7 @@ function newPerson(name, socket) {
       socket.emit("error", {
         type: 'nameerror',
         msg: 'The maximum length of the name is 45 letters!'
-      })
+      });
     } else {
       userdbPool.getConnection(function(err, connection) {
         if (err) throw err;
@@ -373,7 +383,7 @@ function leaveRoom(socket) {
       connection.release();
     });
   });
-};
+}
 
 //For checking if a string is blank, null or undefined
 function isBlank(str) {

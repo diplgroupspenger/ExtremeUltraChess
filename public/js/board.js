@@ -48,8 +48,22 @@ var Board = function(importedBoard){
 			}
 		}
 	}
-};
 
+	this.checkedTiles = [];
+	//initCheckedTiles();
+
+};
+/*
+Board.prototype.initCheckedTiles = function(){
+	for(var y = 0; y < this.board.length; y++){
+		for (var x = 0; x < this.board.length; x++) {
+			if(get(x, y) typeof "object"){
+				possibleMoves = get(x, y).possibleMoves;
+			}
+		}
+	}
+};
+*/
 Board.prototype.exportBoard = function (){
 	var newBoard = [];
 	for(var i=0; i < this.board.length;i++){
@@ -142,7 +156,7 @@ Board.prototype.isPossibleToMove = function(oldPos, newPos){
     return false;
 };
 
-//called when a figure moved
+//called when a figure is moved
 Board.prototype.isEnPassant = function(){
     for(var y = 0; y < this.board[0].length; y++){
         for(var x = 0; x < this.board.length; x++){
