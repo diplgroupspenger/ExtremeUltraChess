@@ -74,7 +74,7 @@ function toGame(socket, color) {
   $('#game').show();
   $('#list1').val('');
   //$('#chat').hide();
-  //$('#chatlog').empty();
+  $('#chatlog').empty();
   startgame(socket, color);
 }
 

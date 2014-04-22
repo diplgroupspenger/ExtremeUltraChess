@@ -20,7 +20,7 @@ var Turn = function(cdCallback, turnCallback, importTurn) {
         };
 
         this.curPlayer = this.player.WHITE;
-        this.turnLimit = 5;
+        this.turnLimit = 60;
         this.extraSeconds = false;
     } else {
         this.importTurn(importTurn);

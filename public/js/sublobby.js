@@ -1,4 +1,5 @@
 function sublobby(socket, color) {
+  window.location = '#sublobby';
   socket.removeAllListeners('startgame');
   socket.removeAllListeners('more people');
   socket.removeAllListeners('subinit');

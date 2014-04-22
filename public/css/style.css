@@ -1,8 +1,9 @@
+#outerCanvas {
+    width: calc(100% - 250px);
+    
+}
 #canvas {
-    padding-left: 0;
-    padding-right: 0;
-    margin: auto;
-    margin-left: 
+    margin: auto; 
     margin-left: auto; 
     margin-right: auto; 
     display: block;
