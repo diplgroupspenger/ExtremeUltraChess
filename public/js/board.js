@@ -50,10 +50,10 @@ var Board = function(importedBoard){
 	}
 
 	this.checkedTiles = [];
-	initCheckedTiles();
+	//initCheckedTiles();
 
 };
-
+/*
 Board.prototype.initCheckedTiles = function(){
 	for(var y = 0; y < this.board.length; y++){
 		for (var x = 0; x < this.board.length; x++) {
@@ -63,7 +63,7 @@ Board.prototype.initCheckedTiles = function(){
 		}
 	}
 };
-
+*/
 Board.prototype.exportBoard = function (){
 	var newBoard = [];
 	for(var i=0; i < this.board.length;i++){

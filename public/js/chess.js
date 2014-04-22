@@ -349,8 +349,8 @@ function drawPossibleMoves() {
     var y = curPossibleMoves[i].y;
 
     var rect = new Kinetic.Rect({
-        x: curPossibleMoves[i].x * TILE_SIZE,
-      y: curPossibleMoves[i].y * TILE_SIZE,
+      x: x * TILE_SIZE,
+      y: y * TILE_SIZE,
       width: TILE_SIZE,
       height: TILE_SIZE,
       fill: getBoardColor(x, y),

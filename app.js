@@ -85,6 +85,7 @@ io.sockets.on('connection', function(socket) {
     socket.emit('message', io.sockets.manager.roomClients[socket.id]);
   });
   socket.on('getBoard', function() {
+    console.log('GETBOARD');
     room = getRoomFromSocket(socket);
     //console.log("room: " + room);
     //console.log("board: " + boards[room]);

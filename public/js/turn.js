@@ -37,7 +37,7 @@ Turn.prototype.importTurn = function(importTurn) {
     this.turnLimit = importTurn.turnLimit;
     this.curSeconds = importTurn.curSeconds;
     this.extraSeconds = importTurn.extraSeconds;
-}
+};
 
 Turn.prototype.exportTurn = function() {
     return {
@@ -47,7 +47,7 @@ Turn.prototype.exportTurn = function() {
         'curSeconds': this.curSeconds,
         'extraSeconds': this.extraSeconds
     }
-}
+};
 
 Turn.prototype.nextTurn = function() {
     if (this.curPlayer.color != Color.GREEN) {
@@ -75,31 +75,27 @@ Turn.prototype.remove = function(player) {
     for (var key in this.player) {
         if (this.player[key].color == player) {
             this.player[key].dead = true;
-            console.log("remove"+ player);
+            console.log('remove: '+this.player[key].color);
         }
     }
-}
+};
 
 Turn.prototype.startCountdown = function() {
     this.curSeconds = this.turnLimit;
     this.counter = setInterval(this.countdown.bind(this), 1000);
-}
+};
 
 Turn.prototype.countdown = function() {
-          console.log("dead: "+this.getDeadPlayer());
-    if(this.getDeadPlayer() >= 3){
-  
+    if(this.getDeadPlayer() >= 3)
         clearInterval(this.counter);
-    }
 
     this.curSeconds = this.curSeconds - 1;
     if (this.curSeconds < 0) {
-        if(this.extraSeconds == false) {
+        if(this.extraSeconds === false) {
             this.curSeconds = 5;
             this.extraSeconds = true;
         }
         else {
-            console.log("extra ocer"+ "curPlayer: "+this.curPlayer.color);
             this.remove(this.curPlayer.color);
             //extra seconds are over
             this.extraSeconds = false;
@@ -109,7 +105,7 @@ Turn.prototype.countdown = function() {
     if (this.cdCallback !== undefined) {
         this.cdCallback();
     }
-}
+};
 
 Turn.prototype.getDeadPlayer = function() {
     var deadPlayer = 0;
@@ -124,8 +120,7 @@ Turn.prototype.getDeadPlayer = function() {
         deadPlayer++;
 
     return deadPlayer;
-
-}
+};
 
 Turn.prototype.terminate = function() {
     clearInterval(this.counter);

@@ -73,8 +73,8 @@ function toGame(socket, color) {
   $('#sublobby').hide();
   $('#game').show();
   $('#list1').val('');
-  $('#chat').hide();
-  $('#chatlog').empty();
+  //$('#chat').hide();
+  //$('#chatlog').empty();
   startgame(socket, color);
 }
 
