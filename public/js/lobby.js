@@ -57,27 +57,22 @@ function lobby(socket) {
   });
 
   function drawroom(room) {
+    var newroom = "<li id='" + room.id +
+      "' class='room'><span class='title'></span><span class='usercount'><span id='" +
+      room.id + "count'></span>/4</span><br/><span class='description'></span><span class='owner'>" +
+      room.owner + "</span><div class='details'><button class='join' id=" +
+      room.id + ">join</button>";
     if (room.needpw) {
-      var newroom = "<li id='" + room.id + "' class='room'><span class='title'>" +
-        room.title + "</span><span class='usercount'><span id='" +
-        room.id + "count'>" + (4 - room.colors.length) +
-        "</span>/4</span><br/><span class='description'>" +
-        room.description + "</span><span class='owner'>" +
-        room.owner + "</span><div class='details'><button type='button' class='join btn btn-success btn-xs' id=" +
-        room.id + ">join</button><input placeholder='Password' class='joinpw' type='password' id='pw" +
-        room.id + "'/><label class='errormsg' id='" +
-        room.id + "error'></label></div></li>";
-    } else {
-      var newroom = "<li id='" + room.id + "' class='room'><span class='title'>" +
-        room.title + "</span><span class='usercount'><span id='" +
-        room.id + "count'>" + (4 - room.colors.length) +
-        "</span>/4</span><br/><span class='description'>" +
-        room.description + "</span><span class='owner'>" +
-        room.owner + "</span><div class='details'><button type='button' class='join btn btn-success btn-xs' id=" +
-        room.id + ">join</button><label class='errormsg' id='" +
-        room.id + "error'></label></div></li>";
+      newroom = newroom + "<input placeholder='Password' class='joinpw' type='password' id='pw" +
+        room.id + "'/>";
     }
+    newroom = newroom + "<label class='errormsg' id='" +
+      room.id + "error'></label></div></li>";
     $('#list1').append(newroom);
+    $('#' + room.id).children(".title").text(room.title);
+    $('#' + room.id + 'count').text((4 - room.colors.length));
+    $('#' + room.id).children(".description").text(room.description);
+    $('#' + room.id).children(".owner").text(room.owner);
     $("li").off('click').on("click", function() {
       $(this)
         .toggleClass("open")

@@ -19,6 +19,7 @@ function sublobby(socket, color) {
   }
 
   function drawplayer(data) {
-    $('#players').append('<tr><td class=subname>' + data.name + '</td><td class="color' + data.color + '"></td></tr>');
+    $('#players').append('<tr><td class=subname id="' + data.color + '"></td><td class="color' + data.color + '"></td></tr>');
+    $('#' + data.color).text(data.name);
   }
 }
