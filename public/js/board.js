@@ -88,7 +88,7 @@ Board.prototype.pushByPosition = function(x, y){
 	for(var i = 0; i < possibleMoves.length; i++){
 		var posX = possibleMoves[i].x;
 		var posY = possibleMoves[i].y;
-		var json = {posX: posX, posY: posY, figure: this.get(x, y)};
+		var json = {x: posX, y: posY, figure: this.get(x, y)};
 		this.checkedTiles.push(json);
 		//if(typeof _.findWhere(this.checkedTiles, json) == "undefined"){
 		//

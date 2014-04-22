@@ -96,9 +96,7 @@ var FigureType = {
         possibleMoves: function(myBoard) {
             var positions = [];
 
-            this.addB0ssMoves();
-            this.addPossibleDiagonalMoves(positions, 2, myBoard);
-            this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+            this.addB0ssMoves(positions, myBoard);
 
             return positions;
         },

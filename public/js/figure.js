@@ -173,9 +173,18 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
     return true;
 };
 
-Figure.prototype.addB0ssMoves = function(){
+Figure.prototype.addB0ssMoves = function(positions, myBoard){
     this.addPossibleDiagonalMoves(positions, 2, myBoard);
     this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+
+    for(var i = 0; i < myBoard.checkedTiles.length; i++){
+        for(var j = 0; j < positions.length; j++){
+            if(positions[j].x === myBoard.checkedTiles[i].x &&
+               positions[j].y === myBoard.checkedTiles[i].y){
+                positions.splice(j, 1);
+            }
+        }
+    }
 };
 
 Figure.prototype.addPossibleYandXaxisMoves = function(positions, length, myBoard) {
