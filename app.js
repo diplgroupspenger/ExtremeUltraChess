@@ -34,10 +34,6 @@ var boards = {};
 io.sockets.on('connection', function(socket) {
   socket.json.emit('syncRooms', generateAllRoomJson());
 
-  socket.on('updateCheckedTiles', function() {
-    updateCheckedTiles(socket);
-  });
-
   socket.on('disconnect', function() {
     clientDisconnect(socket);
   });
@@ -122,10 +118,6 @@ io.sockets.on('connection', function(socket) {
 
 
 });
-
-function updateCheckedTiles(socket) {
-
-}
 
 function getName(id, socket) {
   userdbPool.getConnection(function(err, connection) {
