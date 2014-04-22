@@ -40,8 +40,9 @@ function startgame(socket, color) {
   $(window).resize(lazyLayout);
 }
 
-function updateCheckedTiles(){
-
+function updateCheckedTiles(checkedTiles){
+  myBoard.checkedTiles = checkedTiles;
+  drawCheckedTiles();
 }
 
 function setPosition(newPos, figureID, moved) {
@@ -51,7 +52,7 @@ function setPosition(newPos, figureID, moved) {
   };
 
   //remove figure if captured
-  if (myBoard.isFigure(newPos.x, newPos.y) && moved) {
+  if (myBoard.isFigure(newPos.x, newPos.y)) {
     if (oldPos.x !== newPos.x || oldPos.y !== newPos.y) {
       //check if a king was taken and remove player from turn system
       if (myBoard.board[newPos.y][newPos.x].type === FigureType.KING) {
@@ -123,6 +124,7 @@ function tryDrawBoard() {
 function setNextTurn() {
   turn.nextTurn();
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
+  drawCheckedTiles();
 }
 
 function removeFigure(pos) {
@@ -188,6 +190,7 @@ function resizeCanvas() {
   drawBoard();
   rotateBoardOffset();
   drawPossibleMoves();
+  drawCheckedTiles();
   redrawConvertion();
 }
 
@@ -234,16 +237,21 @@ function initCanvas() {
   //board tiles
   boardLayer = new Kinetic.Layer(); //background layer for the chessboard
   moveLayer = new Kinetic.Layer(); //where the figures can go to
+  //debugging layer
+  checkedTilesLayer = new Kinetic.Layer();
   figureLayer = new Kinetic.Layer(); //layer for figures
   foreGroundLayer = new Kinetic.Layer(); //layer on the top, pawn convertion and ui
 
   stage.add(boardLayer);
   stage.add(moveLayer);
+  //debugging layer
+  stage.add(checkedTilesLayer);
   stage.add(figureLayer);
   stage.add(foreGroundLayer);
 
   drawBoard();
   rotateBoard();
+
 }
 
 //draw Board on load
@@ -252,7 +260,7 @@ function drawBoard() {
     for (var x = 0; x < myBoard.board[0].length; x++) {
       var tilex = x * TILE_SIZE;
       var tiley = y * TILE_SIZE;
-      if (myBoard.board[y][x] != -2) {
+      if (myBoard.board[y][x] !== -2) {
         var rect = new Kinetic.Rect({
           x: tilex,
           y: tiley,
@@ -329,8 +337,10 @@ function drawFigure(x, y, playerColor) {
     };
     var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
-    if ((player === turn.curPlayer.color && figureColor === player) && lockFigures === false || !turnOn &&
-      (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible)) {
+    //if (((player === turn.curPlayer.color && figureColor === player) && !lockFigures) || !turnOn && (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible)) {
+    if((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
+      myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures){
+      console.log(ignPossible);
       setPosition(newPos, figureID, false);
       socket.emit('sendPosition', oldPos, newPos, figureID, player);
     } else {
@@ -344,12 +354,12 @@ function drawFigure(x, y, playerColor) {
 
 function drawPossibleMoves() {
   moveLayer.removeChildren();
-  for (i = 0; i < curPossibleMoves.length; i++) {
+  for (var i = 0; i < curPossibleMoves.length; i++) {
     var x = curPossibleMoves[i].x;
     var y = curPossibleMoves[i].y;
 
     var rect = new Kinetic.Rect({
-        x: curPossibleMoves[i].x * TILE_SIZE,
+      x: curPossibleMoves[i].x * TILE_SIZE,
       y: curPossibleMoves[i].y * TILE_SIZE,
       width: TILE_SIZE,
       height: TILE_SIZE,
@@ -363,6 +373,27 @@ function drawPossibleMoves() {
   }
 
   moveLayer.draw();
+}
+
+//debugging function
+function drawCheckedTiles(){
+  checkedTilesLayer.removeChildren();
+  console.log("drawCheckedTILES BITCH");
+  console.log("checkedTILES-length: " + curPossibleMoves.length);
+  for(var i = 0; i < myBoard.checkedTiles.length; i++){
+    var posX = myBoard.checkedTiles[i].posX;
+    var posY = myBoard.checkedTiles[i].posY;
+    var color = myBoard.checkedTiles[i].figure.color;
+
+    var dot = new Kinetic.Circle({
+      x: posX * TILE_SIZE + TILE_SIZE / 2,
+      y: posY * TILE_SIZE + TILE_SIZE / 2,
+      radius: 10,
+      fill: colorToString(color)
+    });
+    checkedTilesLayer.add(dot);
+  }
+  checkedTilesLayer.draw();
 }
 
 //Initial Rotation

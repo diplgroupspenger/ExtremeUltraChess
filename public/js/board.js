@@ -50,17 +50,49 @@ var Board = function(importedBoard){
 	}
 
 	this.checkedTiles = [];
-	initCheckedTiles();
 
 };
 
+//calculates the checked tiles of all figures on the board
 Board.prototype.initCheckedTiles = function(){
+	//var start = new Date().getTime();
+	this.checkedTiles = [];
 	for(var y = 0; y < this.board.length; y++){
 		for (var x = 0; x < this.board.length; x++) {
-			if(get(x, y) typeof "object"){
-				possibleMoves = get(x, y).possibleMoves;
+			if(typeof this.get(x, y) == "object"){
+				this.pushByPosition(x, y);
 			}
 		}
+	}
+	//var end = new Date().getTime();
+	//var time = end - start;
+	//console.log("EXECUTION TIME: " + time + "ms");
+};
+
+//updates the checked tiles when a figure is moved - abandoned for later
+//Board.prototype.updateCheckedTiles = function(x, y, onlyRemove){
+//	for(var i = 0; i < this.checkedTiles.length; i++){
+//		if(this.checkedTiles[i].figure == this.get(x, y)){
+//			console.log("UPDATESPLICE");
+//			this.checkedTiles.splice(i, 1);
+//		}
+//	}
+//	if(!onlyRemove)
+//		this.pushByPosition(x, y);
+//};
+
+Board.prototype.pushByPosition = function(x, y){
+	var possibleMoves = this.get(x, y).possibleMoves(this);
+	//console.log("posX: " + x + " posY: " + y);
+	//console.log("length: " + possibleMoves.length);
+	for(var i = 0; i < possibleMoves.length; i++){
+		var posX = possibleMoves[i].x;
+		var posY = possibleMoves[i].y;
+		var json = {posX: posX, posY: posY, figure: this.get(x, y)};
+		this.checkedTiles.push(json);
+		//if(typeof _.findWhere(this.checkedTiles, json) == "undefined"){
+		//
+		//}
 	}
 };
 
@@ -74,7 +106,7 @@ Board.prototype.exportBoard = function (){
 		for(var x = 0; x < this.board[0].length; x++){
 			if(this.isFigure(x, y)){
 				newBoard[y][x] = this.board[y][x].exportFigure();
-			} else {
+		} else {
 				newBoard[y][x] = this.board[y][x];
 			}
 		}
@@ -133,14 +165,14 @@ Board.prototype.isFigure = function(x, y){
 //moves a figure from one position to another, returns false if the old or new position isn't legal
 Board.prototype.moveFigureTo = function(oldX, oldY, newX, newY){
 	if(!this.isLegalTile(oldX, oldY) || !this.isLegalTile(newX, newY)) return false;
-	var temp = this.board[oldY][oldX];
-	this.board[oldY][oldX] = this.board[newY][newX];
+	var temp = this.get(oldX, oldY);
+	this.board[oldY][oldX] = this.get(newX, newY);
 	this.board[newY][newX] = temp;
-	
+
 	if(this.getFigureAtPos(oldX, oldY) !== null)
-		this.board[oldY][oldX].setPosition(oldX,oldY, this);
+		this.get(oldX, oldY).setPosition(oldX, oldY, this);
 	if(this.getFigureAtPos(newX, newY) !== null)
-		this.board[newY][newX].setPosition(newX,newY, this);
+		this.get(newX, newY).setPosition(newX, newY, this);
 	return true;
 };
 

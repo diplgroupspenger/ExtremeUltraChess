@@ -170,10 +170,10 @@ function setPosition(oldPos, newPos, figureIndex, color, socket) {
             var figureColor = boards[room].board[newPos.y][newPos.x].color;
             boards[room].turn.remove(figureColor);
           }
-
           boards[room].board[newPos.y][newPos.x] = -1;
         }
         boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
+
 
         if (boards[room].isEnPassant()) {
           boards[room].board[newPos.y][newPos.x] = -1;
@@ -184,6 +184,8 @@ function setPosition(oldPos, newPos, figureIndex, color, socket) {
         }
         var roomName = room.substring(1, room.length);
         io.sockets. in (roomName).emit('setPosition', newPos, figureIndex, true);
+        boards[room].initCheckedTiles();
+        io.sockets. in (roomName).emit('updateCheckedTiles', boards[room].checkedTiles);
         return;
       }
     }
@@ -347,6 +349,7 @@ function newPerson(name, socket) {
 
 function addBoard(roomid) {
   var newBoard = new Board();
+  newBoard.initCheckedTiles();
   for (var y = 0; y < newBoard.board.length; y++) {
     for (var x = 0; x < newBoard.board[0].length; x++) {
       if (newBoard.board[y][x] !== -1 && newBoard.board[y][x] !== -2) {

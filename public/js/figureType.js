@@ -5,8 +5,8 @@ var FigureType = {
             var posY = this.y;
             var positions = [];
 
-            var inFront = {"x": posX + this.inFront().x, "y": posY + this.inFront().y};
-            var inFront2 = {"x": inFront.x + this.inFront().x, "y": inFront.y + this.inFront().y};
+            var inFront = {x: posX + this.inFront().x, y: posY + this.inFront().y};
+            var inFront2 = {x: inFront.x + this.inFront().x, y: inFront.y + this.inFront().y};
 
             //nothing infront
             if(myBoard.isLegalTile(inFront.x, inFront.y)) {
@@ -20,8 +20,8 @@ var FigureType = {
                     }
                 }
             }
-            var leftFront =  {"x": inFront.x + this.left().x, "y": inFront.y + this.left().y};
-            var rightFront = {"x": inFront.x + this.right().x, "y": inFront.y + this.right().y};
+            var leftFront =  {x: inFront.x + this.left().x, y: inFront.y + this.left().y};
+            var rightFront = {x: inFront.x + this.right().x, y: inFront.y + this.right().y};
 
             //check for enemies in attack range
             if(myBoard.isEnemy(leftFront.x, leftFront.y, this.color)){
@@ -31,8 +31,8 @@ var FigureType = {
                 positions.push(rightFront);
             }
 
-            var left = {"x": posX + this.left().x, "y": posY + this.left().y};
-            var right = {"x": posX + this.right().x, "y": posY + this.right().y};
+            var left = {x: posX + this.left().x, y: posY + this.left().y};
+            var right = {x: posX + this.right().x, y: posY + this.right().y};
 
             //check for en passant
             if(myBoard.isEnemy(left.x, left.y, this.color)){
