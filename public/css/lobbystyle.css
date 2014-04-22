@@ -9,6 +9,14 @@
   margin-bottom: 2px;
   line-height: 2.5;
   margin-right: 10px;
+
+  /* Disable Text Selection */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 #list1 li:hover {
   background: #ccc;
@@ -41,10 +49,6 @@
   font-weight: bold;
 }
 
-#leave{
-  float: right;
-}
-
 #name, #logout{
   float: right;
   margin-right: 10px;
@@ -65,7 +69,7 @@
 
 #openroom{
   position: absolute;
-  bottom: 0;
+  top: 0;
 }
 
 #lobby{

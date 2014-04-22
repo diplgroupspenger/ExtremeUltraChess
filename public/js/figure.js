@@ -173,8 +173,9 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
     return true;
 };
 
-Figure.prototype.removeCheckedTilesAroundKing = function(posisions, length, myBoard){
-
+Figure.prototype.addB0ssMoves = function(){
+    this.addPossibleDiagonalMoves(positions, 2, myBoard);
+    this.addPossibleYandXaxisMoves(positions, 2, myBoard);
 };
 
 Figure.prototype.addPossibleYandXaxisMoves = function(positions, length, myBoard) {

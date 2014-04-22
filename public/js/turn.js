@@ -20,12 +20,13 @@ var Turn = function(cdCallback, turnCallback, importTurn) {
         };
 
         this.curPlayer = this.player.WHITE;
-        this.turnLimit = 60;
+        this.turnLimit = 5;
         this.extraSeconds = false;
     } else {
         this.importTurn(importTurn);
     }
 
+    this.extraSecondsLimit = 6;
     this.cdCallback = cdCallback;
     this.turnCallback = turnCallback;
     this.startCountdown();
@@ -46,7 +47,7 @@ Turn.prototype.exportTurn = function() {
         'turnLimit': this.turnLimit,
         'curSeconds': this.curSeconds,
         'extraSeconds': this.extraSeconds
-    }
+    };
 };
 
 Turn.prototype.nextTurn = function() {
@@ -66,6 +67,7 @@ Turn.prototype.nextTurn = function() {
         this.nextTurn();
 
     this.curSeconds = this.turnLimit;
+    this.extraSeconds = false;
     if (this.turnCallback !== undefined) {
         this.turnCallback();
     }
@@ -75,7 +77,6 @@ Turn.prototype.remove = function(player) {
     for (var key in this.player) {
         if (this.player[key].color == player) {
             this.player[key].dead = true;
-            console.log('remove: '+this.player[key].color);
         }
     }
 };
@@ -86,31 +87,32 @@ Turn.prototype.startCountdown = function() {
 };
 
 Turn.prototype.countdown = function() {
-    if(this.getDeadPlayer() >= 3)
+    if(this.getDeadPlayer() >= 3){
         clearInterval(this.counter);
-
-    this.curSeconds = this.curSeconds - 1;
-    if (this.curSeconds < 0) {
-        if(this.extraSeconds === false) {
-            this.curSeconds = 5;
-            this.extraSeconds = true;
+    } else {
+        this.curSeconds = this.curSeconds - 1;
+        if (this.curSeconds < 0) {
+            if(this.extraSeconds === false) {
+                this.curSeconds = this.extraSecondsLimit;
+                this.extraSeconds = true;
+            }
+            else {
+                this.remove(this.curPlayer.color);
+                //extra seconds are over
+                this.extraSeconds = false;
+                this.nextTurn();
+            }
         }
-        else {
-            this.remove(this.curPlayer.color);
-            //extra seconds are over
-            this.extraSeconds = false;
-            this.nextTurn();
+        if (this.cdCallback !== undefined) {
+            this.cdCallback();
         }
-    }
-    if (this.cdCallback !== undefined) {
-        this.cdCallback();
     }
 };
 
 Turn.prototype.getDeadPlayer = function() {
     var deadPlayer = 0;
 
-    if(this.player.WHITE.dead) 
+    if(this.player.WHITE.dead)
         deadPlayer++;
     if(this.player.RED.dead)
         deadPlayer++;
@@ -120,6 +122,17 @@ Turn.prototype.getDeadPlayer = function() {
         deadPlayer++;
 
     return deadPlayer;
+};
+
+Turn.prototype.getWinner = function() {
+    if(!this.player.WHITE.dead)
+        return Color.WHITE;
+    else if(!this.player.RED.dead)
+        return Color.RED;
+    else if(!this.player.BLACK.dead)
+        return Color.BLACK;
+    else if(!this.player.GREEN.dead)
+        return Color.GREEN;
 };
 
 Turn.prototype.terminate = function() {

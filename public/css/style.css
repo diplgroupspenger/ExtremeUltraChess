@@ -1,6 +1,6 @@
 #outerCanvas {
     width: calc(100% - 250px);
-    
+
 }
 #canvas {
     margin: auto; 
@@ -15,11 +15,6 @@
     image-rendering: -webkit-optimize-contrast;
     image-rendering: optimize-contrast;
     -ms-interpolation-mode: nearest-neighbor;
-}
-
-#leave {
-    right: 0;
-    position: fixed;
 }
 
 #toolbar {
@@ -55,6 +50,10 @@ div#sidebar {
     position: fixed;
     z-index: 1;
     -webkit-transition: -webkit-transform 500ms, right 500ms;
+}
+
+input {
+    outline: none;
 }
 
 html, body {
