@@ -1,8 +1,9 @@
+#outerCanvas {
+    width: calc(100% - 250px);
+
+}
 #canvas {
-    padding-left: 0;
-    padding-right: 0;
-    margin: auto;
-    margin-left: 
+    margin: auto; 
     margin-left: auto; 
     margin-right: auto; 
     display: block;
@@ -14,11 +15,6 @@
     image-rendering: -webkit-optimize-contrast;
     image-rendering: optimize-contrast;
     -ms-interpolation-mode: nearest-neighbor;
-}
-
-#leave {
-    right: 0;
-    position: fixed;
 }
 
 #toolbar {
@@ -36,6 +32,7 @@
   animation: blink 0.5s steps(5, start) infinite;
   -webkit-animation: blink 0.5s steps(5, start) infinite;
 }
+
 @keyframes blink {
   to { visibility: hidden; }
 }
@@ -44,29 +41,24 @@
 }
  
 div#sidebar {
-    background-color: grey;
-    color: white;
-    display: block;
+    background-color: #D3D3D3;
     width:250px;
     height: 100%;
     right: 0;
+    border-left: solid 1px #BEBEBE;
 
     position: fixed;
+    z-index: 1;
     -webkit-transition: -webkit-transform 500ms, right 500ms;
 }
 
-@media screen and (max-width: 1500px) {
-    div#sidebar {
-        right: -230px;
-    }
-
-    div#sidebar:hover {
-        -webkit-transform: translateX(-230px);
-    }
+input {
+    outline: none;
 }
 
 html, body {
     min-height: 100%;
     margin: 0;
     padding: 0;
+    overflow: none;
 }

@@ -26,6 +26,7 @@ var Turn = function(cdCallback, turnCallback, importTurn) {
         this.importTurn(importTurn);
     }
 
+    this.extraSecondsLimit = 6;
     this.cdCallback = cdCallback;
     this.turnCallback = turnCallback;
     this.startCountdown();
@@ -46,7 +47,11 @@ Turn.prototype.exportTurn = function() {
         'turnLimit': this.turnLimit,
         'curSeconds': this.curSeconds,
         'extraSeconds': this.extraSeconds
+<<<<<<< HEAD
     };
+=======
+    }
+>>>>>>> bdb1ba2eba2001cf82e9c599a69b703154584a66
 };
 
 Turn.prototype.nextTurn = function() {
@@ -66,6 +71,7 @@ Turn.prototype.nextTurn = function() {
         this.nextTurn();
 
     this.curSeconds = this.turnLimit;
+    this.extraSeconds = false;
     if (this.turnCallback !== undefined) {
         this.turnCallback();
     }
@@ -75,7 +81,6 @@ Turn.prototype.remove = function(player) {
     for (var key in this.player) {
         if (this.player[key].color == player) {
             this.player[key].dead = true;
-            console.log("remove"+ player);
         }
     }
 };
@@ -86,28 +91,25 @@ Turn.prototype.startCountdown = function() {
 };
 
 Turn.prototype.countdown = function() {
-    //console.log("dead: "+this.getDeadPlayer());
     if(this.getDeadPlayer() >= 3){
-
         clearInterval(this.counter);
-    }
-
-    this.curSeconds = this.curSeconds - 1;
-    if (this.curSeconds < 0) {
-        if(this.extraSeconds === false) {
-            this.curSeconds = 20;
-            this.extraSeconds = true;
+    } else {
+        this.curSeconds = this.curSeconds - 1;
+        if (this.curSeconds < 0) {
+            if(this.extraSeconds === false) {
+                this.curSeconds = this.extraSecondsLimit;
+                this.extraSeconds = true;
+            }
+            else {
+                this.remove(this.curPlayer.color);
+                //extra seconds are over
+                this.extraSeconds = false;
+                this.nextTurn();
+            }
         }
-        else {
-            console.log("extra ocer"+ "curPlayer: "+this.curPlayer.color);
-            this.remove(this.curPlayer.color);
-            //extra seconds are over
-            this.extraSeconds = false;
-            this.nextTurn();
+        if (this.cdCallback !== undefined) {
+            this.cdCallback();
         }
-    }
-    if (this.cdCallback !== undefined) {
-        this.cdCallback();
     }
 };
 
@@ -124,8 +126,18 @@ Turn.prototype.getDeadPlayer = function() {
         deadPlayer++;
 
     return deadPlayer;
-
 };
+
+Turn.prototype.getWinner = function() {
+    if(!this.player.WHITE.dead)
+        return Color.WHITE;
+    else if(!this.player.RED.dead)
+        return Color.RED;
+    else if(!this.player.BLACK.dead)
+        return Color.BLACK;
+    else if(!this.player.GREEN.dead)
+        return Color.GREEN;
+}
 
 Turn.prototype.terminate = function() {
     clearInterval(this.counter);

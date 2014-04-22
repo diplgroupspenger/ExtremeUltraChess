@@ -140,7 +140,7 @@ function removeFigure(pos) {
 
 function checkForGameEnd() {
   if(turn.getDeadPlayer() >= 3)
-    terminateGame();
+    showEndDialog(turn.getWinner());
 }
 
 function pawnConvertion(id, pos) {
@@ -161,7 +161,7 @@ function pawnConvertion(id, pos) {
 function resizeCanvas() {
   oldHeight = stage.getHeight();
   oldWidth = stage.getWidth();
-  newWidth = window.innerWidth;
+  newWidth = window.innerWidth - 250; //250px sidebar
   newHeight = window.innerHeight;
 
   if (newHeight < newWidth) {
@@ -195,7 +195,7 @@ function resizeCanvas() {
 }
 
 function initCanvas() {
-  newWidth = window.innerWidth;
+  newWidth = window.innerWidth - 250; //250px sidebar
   newHeight = window.innerHeight;
 
   canvasHeight = 0;
@@ -359,8 +359,8 @@ function drawPossibleMoves() {
     var y = curPossibleMoves[i].y;
 
     var rect = new Kinetic.Rect({
-      x: curPossibleMoves[i].x * TILE_SIZE,
-      y: curPossibleMoves[i].y * TILE_SIZE,
+      x: x * TILE_SIZE,
+      y: y * TILE_SIZE,
       width: TILE_SIZE,
       height: TILE_SIZE,
       fill: getBoardColor(x, y),
@@ -532,6 +532,13 @@ function colorToString(color) {
 
 function getBoardColor(x, y) {
   return (x + y) % 2 === 0 ? '#FF6600' : '#336699';
+}
+
+function showEndDialog(winner) {
+  console.log(winner);
+  bootbox.alert("Winner: "+colorToString(winner), function() {
+    terminateGame();
+  });
 }
 
 function terminateGame() {

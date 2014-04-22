@@ -32,9 +32,9 @@ var ignPossible = false;
 var boards = {};
 
 io.sockets.on('connection', function(socket) {
-  socket.json.emit('syncRooms', io.rooms);
+  socket.json.emit('syncRooms', generateAllRoomJson());
 
-  socket.on('updateCheckedTiles', function(){
+  socket.on('updateCheckedTiles', function() {
     updateCheckedTiles(socket);
   });
 
@@ -54,14 +54,14 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
-  socket.on('createroom', function(title, description) {
+  socket.on('createroom', function(title, description, password) {
     if (isValid(title) && isValid(description))
-      createRoom(title, description, socket);
+      createRoom(title, description, password, socket);
   });
 
-  socket.on('joinroom', function(id) {
+  socket.on('joinroom', function(id, pw) {
     if (isValid(id)) {
-      joinRoom(id, socket);
+      joinRoom(id, socket, pw);
     }
   });
 
@@ -85,6 +85,7 @@ io.sockets.on('connection', function(socket) {
     socket.emit('message', io.sockets.manager.roomClients[socket.id]);
   });
   socket.on('getBoard', function() {
+    console.log('GETBOARD');
     room = getRoomFromSocket(socket);
     //console.log("room: " + room);
     //console.log("board: " + boards[room]);
@@ -122,7 +123,7 @@ io.sockets.on('connection', function(socket) {
 
 });
 
-function updateCheckedTiles(socket){
+function updateCheckedTiles(socket) {
 
 }
 
@@ -216,56 +217,58 @@ function convertPawn(figure, posX, posY, socket) {
   }
 }
 
-function joinRoom(id, socket) {
-  var availableColors = io.rooms[('/' + id)][1].details.colors.length;
-  if (availableColors > 0) {
-    socket.leave('lobby');
-    socket.join(id);
+function joinRoom(id, socket, pw) {
+  if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
+    var availableColors = io.rooms[('/' + id)][1].details.colors.length;
+    if (availableColors > 0) {
+      socket.leave('lobby');
+      socket.join(id);
 
-    colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
-    if (io.rooms[('/' + id)].length - 1 === 1) {
-      colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
-    }
-    userdbPool.getConnection(function(err, connection) {
-      connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
-        if (result[0]) {
-          socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
-          io.sockets. in ('lobby').emit('popul inc', id);
-          io.sockets. in (id).emit('more people', {
-            'name': socket.username,
-            'color': io.rooms[('/' + id)][1].details.colors[colornum]
-          });
-          socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
-          var players = [];
-          for (i = 0; i < io.sockets.clients(id).length; i++) {
-            if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color) {
-              players.push({
-                'name': io.sockets.clients(id)[i].username,
-                'color': io.sockets.clients(id)[i].color
-              });
+      colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
+      if (io.rooms[('/' + id)].length - 1 === 1) {
+        colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
+      }
+      userdbPool.getConnection(function(err, connection) {
+        connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
+          if (result[0]) {
+            socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
+            io.sockets. in ('lobby').emit('popul inc', id);
+            io.sockets. in (id).emit('more people', {
+              'name': socket.username,
+              'color': io.rooms[('/' + id)][1].details.colors[colornum]
+            });
+            socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
+            var players = [];
+            for (i = 0; i < io.sockets.clients(id).length; i++) {
+              if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color) {
+                players.push({
+                  'name': io.sockets.clients(id)[i].username,
+                  'color': io.sockets.clients(id)[i].color
+                });
+              }
             }
+            socket.emit('subinit', players);
+            connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
+              io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
+              if (io.rooms[('/' + id)][1].details.colors.length == 0) {
+                addBoard(id);
+                io.sockets. in (id).emit('startgame');
+              }
+              connection.release();
+            });
           }
-          socket.emit('subinit', players);
-          connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
-            io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
-            if (io.rooms[('/' + id)][1].details.colors.length === 0) {
-              addBoard(id);
-              io.sockets. in (id).emit('startgame');
-            }
-            connection.release();
-          });
-        }
+        });
       });
-    });
-  } else {
-    socket.emit("error", {
-      type: id + 'error',
-      msg: 'This room is already full'
-    });
+    } else {
+      socket.emit("error", {
+        type: id + 'error',
+        msg: 'This room is already full'
+      });
+    }
   }
 }
 
-function createRoom(title, description, socket) {
+function createRoom(title, description, password, socket) {
   var roomid = 0;
   if (title) {
     userdbPool.getConnection(function(err, connection) {
@@ -282,15 +285,15 @@ function createRoom(title, description, socket) {
                   "id": roomid,
                   "title": title,
                   "description": description,
-                  "owner": socket.id
+                  "owner": socket.id,
+                  "password": password
                 }
               });
               io.rooms[('/' + roomid)][1].details.colors = [100, 200, 300, 400];
 
               io.rooms[('/' + roomid)][1].details.owner = result[0].name;
-              joinRoom(roomid, socket);
-
-              io.sockets. in ('lobby').emit('roomcreated', io.rooms[('/' + roomid)][1].details);
+              joinRoom(roomid, socket, password);
+              io.sockets. in ('lobby').emit('roomcreated', generateOneRoomJson(roomid));
               roomid++;
               connection.release();
             }
@@ -378,7 +381,7 @@ function leaveRoom(socket) {
         socket.emit('message', result[0].room);
         socket.leave(result[0].room);
         socket.join('lobby');
-        socket.json.emit('syncRooms', io.rooms);
+        socket.json.emit('syncRooms', generateAllRoomJson());
       }
       connection.release();
     });
@@ -392,4 +395,25 @@ function isBlank(str) {
 
 function isValid(par) {
   return typeof par !== "undefined" && par !== null;
+}
+
+function generateOneRoomJson(roomid) {
+  var retjson = JSON.parse(JSON.stringify(io.rooms[('/' + roomid)][1].details));
+  delete retjson['password'];
+  return retjson;
+}
+
+function generateAllRoomJson() {
+  var rooms = JSON.parse(JSON.stringify(io.rooms));
+  for (var key in rooms) {
+    if (rooms[key][1]) {
+      if (rooms[key][1].details) {
+        if (rooms[key][1].details.password) {
+          rooms[key][1].details.needpw = true;
+        }
+        delete rooms[key][1].details['password'];
+      }
+    }
+  }
+  return rooms;
 }

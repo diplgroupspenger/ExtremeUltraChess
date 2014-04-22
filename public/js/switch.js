@@ -30,6 +30,12 @@ function execjs() {
     .click(function() {
       $("#open-dialog").dialog("open");
     });
+  $("#logout")
+    .button()
+    .click(function() {
+      localStorage.id = '';
+      window.location.reload();
+    });
   $("#open-dialog").dialog({
     autoOpen: false,
     height: 400,
@@ -45,7 +51,7 @@ function execjs() {
         text: "accept",
         id: "acceptopen",
         click: function() {
-          socket.emit('createroom', $('#title').val(), $('#description').val(), true);
+          socket.emit('createroom', $('#title').val(), $('#description').val(), $('#password').val(), true);
         }
       }
     }
@@ -62,6 +68,12 @@ function execjs() {
       $("#acceptopen").click();
     }
   });
+  $("#password").keyup(function(event) {
+    if (event.keyCode == 13) {
+      $("#acceptopen").focus();
+      $("#acceptopen").click();
+    }
+  });
   lobby(socket);
   $('#debutton').on('click', function() {
     socket.emit('startgame');
@@ -73,7 +85,7 @@ function toGame(socket, color) {
   $('#sublobby').hide();
   $('#game').show();
   $('#list1').val('');
-  $('#chat').hide();
+  //$('#chat').hide();
   $('#chatlog').empty();
   startgame(socket, color);
 }

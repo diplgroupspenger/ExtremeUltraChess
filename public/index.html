@@ -7,13 +7,16 @@
 <link rel="stylesheet" type="text/css" href="/css/sublobbystyle.css"/>
 <link rel="stylesheet" type="text/css" href="css/style.css"/>
 <link rel="stylesheet" type="text/css" href="css/chat.css"/>
-<link rel="stylesheet" type="text/css" href='/css/ui-lightness/jquery-ui-1.10.3.custom.css'/>
-<script src='/js/jquery-1.10.2.min.js'></script>
-<script src='/js/jquery-ui-1.10.3.custom.js'></script>
-<script src='js/kinetic-v4.4.3.min.js'></script>
+<link rel="stylesheet" type="text/css" href='/css/lib/ui-lightness/jquery-ui-1.10.3.custom.css'/>
+<link rel="stylesheet" type="text/css" href='/css/lib/bootstrap.min.css'/>
+<script src='js/lib/jquery-1.10.2.min.js'></script>
+<script src='js/lib/jquery-ui-1.10.3.custom.js'></script>
+<script src='js/lib/bootstrap.min.js'></script>
+<script src='js/lib/bootbox.min.js'></script>
+<script src='js/lib/kinetic-v4.4.3.min.js'></script>
 <script src='socket.io/socket.io.js'></script>
+<script src='js/lib/underscore_min.js'></script>
 <script src='js/sublobby.js'></script>
-<script src='js/underscore_min.js'></script>
 <script src='js/lobby.js'></script>
 <script src='js/switch.js'></script>
 <script src='js/turn.js'></script>
@@ -31,15 +34,29 @@
 </head>
 
 <body>
+<div id="sidebar">
+	<div id='chat'>
+		<div id='chatlog'></div>
+		<div id='chatTools'>
+			<input type='text' id='msgInput'></input>
+			<button type='button' id='postmsg'>post</button>
+		</div>
+	</div>
+</div>
 <div id='lobby'>
 	<p id='name'></p>
 	<br/>
 	<br/>
+	<div style='display:none;'>
+		<button id='logout'>logout</button>
+		<br/>
+		<br/>
+	</div>
 	<div id='games'>
 	<ul id='list1'>
 	</ul>
 	</div>
-	<button id='openroom'>
+	<button type='button' id='openroom' class='btn btn-success'>
 	open room
 	</button>
 
@@ -48,6 +65,10 @@
 		<label>Title:</label>
 		<br/>
 		<input id='title' class='openinput' placeholder='Title'/>
+		<br/>
+		<label>Password:</label>
+		<br/>
+		<input id='password' class='openinput' placeholder='Password' type='password'/>
 		<br/>
 		<label>Description:</label>
 		<br/>
@@ -66,9 +87,7 @@
 </div>
 
 <div id='game' style='display:none;'> 
-	<button id='leave'>
-		Leave room
-	</button>
+	
 	<div id='toolbar'>
 		<p id='timeCounter'> </p>
 		<p id='timeOutMessage'> Please move, or you'll get kicked </p>
@@ -78,23 +97,22 @@
 		<input type="text" id="cmdField"/>
 		<p id="cmdText">Current Command</p>
 		<!--ENDDEBUG-->
+		<button type='button' class='btn btn-danger' id='leave'>
+			Leave room
+		</button>
 	</div>
-	<div id='canvas'> </div>
+	<div id='outerCanvas'>
+		<div id='canvas'> </div>
+	</div>
 </div>
 
 <div id='sublobby' style='display:none;'>
-	<p>Please wait until enough people are connected.</p>
+	Please wait until enough people are connected.
 	<table id='players'>
 	</table>
-	<button id='debutton'>
+	<button type='button' id='debutton' class='btn btn-primary'>
 		start game
 	</button>
-</div>
-
-<div id='chat'>
-	<div id='chatlog'></div>
-	<input type='text' id='msgInput'></input>
-	<button id='postmsg'>post</button>
 </div>
 
 </body>
