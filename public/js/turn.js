@@ -75,7 +75,6 @@ Turn.prototype.remove = function(player) {
     for (var key in this.player) {
         if (this.player[key].color == player) {
             this.player[key].dead = true;
-            console.log('remove: '+this.player[key].color);
         }
     }
 };
@@ -87,7 +86,6 @@ Turn.prototype.startCountdown = function() {
 
 Turn.prototype.countdown = function() {
     if(this.getDeadPlayer() >= 3){
-        console.log("clearedinterval");
         clearInterval(this.counter);
     } else {
         this.curSeconds = this.curSeconds - 1;

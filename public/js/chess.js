@@ -160,7 +160,7 @@ function pawnConvertion(id, pos) {
 function resizeCanvas() {
   oldHeight = stage.getHeight();
   oldWidth = stage.getWidth();
-  newWidth = window.innerWidth - 250;
+  newWidth = window.innerWidth - 250; //250px sidebar
   newHeight = window.innerHeight;
 
   if (newHeight < newWidth) {
@@ -193,7 +193,7 @@ function resizeCanvas() {
 }
 
 function initCanvas() {
-  newWidth = window.innerWidth;
+  newWidth = window.innerWidth - 250; //250px sidebar
   newHeight = window.innerHeight;
 
   canvasHeight = 0;

@@ -63,7 +63,7 @@ function lobby(socket) {
         room.id + "count'>" + (4 - room.colors.length) +
         "</span>/4</span><br/><span class='description'>" +
         room.description + "</span><span class='owner'>" +
-        room.owner + "</span><div class='details'><button class='join' id=" +
+        room.owner + "</span><div class='details'><button type='button' class='join btn btn-success btn-xs' id=" +
         room.id + ">join</button><input placeholder='Password' class='joinpw' type='password' id='pw" +
         room.id + "'/><label class='errormsg' id='" +
         room.id + "error'></label></div></li>";
@@ -73,7 +73,7 @@ function lobby(socket) {
         room.id + "count'>" + (4 - room.colors.length) +
         "</span>/4</span><br/><span class='description'>" +
         room.description + "</span><span class='owner'>" +
-        room.owner + "</span><div class='details'><button class='join' id=" +
+        room.owner + "</span><div class='details'><button type='button' class='join btn btn-success btn-xs' id=" +
         room.id + ">join</button><label class='errormsg' id='" +
         room.id + "error'></label></div></li>";
     }
