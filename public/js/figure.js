@@ -179,7 +179,7 @@ Figure.prototype.addB0ssMoves = function(positions, myBoard){
 
     for(var i = 0; i < myBoard.checkedTiles.length; i++){
         for(var j = 0; j < positions.length; j++){
-            if(positions[j].x === myBoard.checkedTiles[i].x &&
+            if(myBoard.checkedTiles[i].figure.color !== this.color && positions[j].x === myBoard.checkedTiles[i].x &&
                positions[j].y === myBoard.checkedTiles[i].y){
                 positions.splice(j, 1);
             }

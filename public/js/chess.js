@@ -237,16 +237,16 @@ function initCanvas() {
   //board tiles
   boardLayer = new Kinetic.Layer(); //background layer for the chessboard
   moveLayer = new Kinetic.Layer(); //where the figures can go to
+  figureLayer = new Kinetic.Layer(); //layer for figures
   //debugging layer
   checkedTilesLayer = new Kinetic.Layer();
-  figureLayer = new Kinetic.Layer(); //layer for figures
   foreGroundLayer = new Kinetic.Layer(); //layer on the top, pawn convertion and ui
 
   stage.add(boardLayer);
   stage.add(moveLayer);
+  stage.add(figureLayer);
   //debugging layer
   stage.add(checkedTilesLayer);
-  stage.add(figureLayer);
   stage.add(foreGroundLayer);
 
   drawBoard();
@@ -381,8 +381,8 @@ function drawCheckedTiles(){
   console.log("drawCheckedTILES BITCH");
   console.log("checkedTILES-length: " + curPossibleMoves.length);
   for(var i = 0; i < myBoard.checkedTiles.length; i++){
-    var posX = myBoard.checkedTiles[i].posX;
-    var posY = myBoard.checkedTiles[i].posY;
+    var posX = myBoard.checkedTiles[i].x;
+    var posY = myBoard.checkedTiles[i].y;
     var color = myBoard.checkedTiles[i].figure.color;
 
     var dot = new Kinetic.Circle({

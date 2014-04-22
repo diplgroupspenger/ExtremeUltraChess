@@ -26,7 +26,7 @@ var Turn = function(cdCallback, turnCallback, importTurn) {
         this.importTurn(importTurn);
     }
 
-    this.extraSecondsLimit = 6;
+    this.extraSecondsLimit = 300;
     this.cdCallback = cdCallback;
     this.turnCallback = turnCallback;
     this.startCountdown();
