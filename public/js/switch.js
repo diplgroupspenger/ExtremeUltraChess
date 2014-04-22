@@ -30,6 +30,12 @@ function execjs() {
     .click(function() {
       $("#open-dialog").dialog("open");
     });
+  $("#logout")
+    .button()
+    .click(function() {
+      localStorage.id = '';
+      window.location.reload();
+    });
   $("#open-dialog").dialog({
     autoOpen: false,
     height: 400,
@@ -45,7 +51,7 @@ function execjs() {
         text: "accept",
         id: "acceptopen",
         click: function() {
-          socket.emit('createroom', $('#title').val(), $('#description').val(), true);
+          socket.emit('createroom', $('#title').val(), $('#description').val(), $('#password').val(), true);
         }
       }
     }
@@ -57,6 +63,12 @@ function execjs() {
     }
   });
   $("#title").keyup(function(event) {
+    if (event.keyCode == 13) {
+      $("#acceptopen").focus();
+      $("#acceptopen").click();
+    }
+  });
+  $("#password").keyup(function(event) {
     if (event.keyCode == 13) {
       $("#acceptopen").focus();
       $("#acceptopen").click();

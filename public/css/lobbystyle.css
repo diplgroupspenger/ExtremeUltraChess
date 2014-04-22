@@ -45,7 +45,7 @@
   float: right;
 }
 
-#name{
+#name, #logout{
   float: right;
   margin-right: 10px;
   margin-bottom: 0px;
@@ -71,12 +71,11 @@
 #lobby{
   position: relative;
   height: 80%;
+  width: calc(100% - 250px);
 }
 
 #games{
   overflow-x: auto;
-  width: inherit;
-  height: inherit;
 }
 
 html, body{
