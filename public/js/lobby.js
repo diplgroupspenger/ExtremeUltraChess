@@ -57,7 +57,7 @@ function lobby(socket) {
   });
 
   function drawroom(room) {
-    $('#list1').append("<li id='" + room.id + "'><span class='title'>" + room.title + "</span><span class='usercount'><span id='" + room.id + "count'>" + (4 - room.colors.length) + "</span>/4</span><br/><span class='description'>" + room.description + "</span><span class='owner'>" + room.owner + "</span><div class='details'><button class='join'  id=" + room.id + ">Join</button><label class='errormsg' id='" + room.id + "error'></label></div></li>");
+    $('#list1').append("<li id='" + room.id + "'><span class='title'>" + room.title + "</span><span class='usercount'><span id='" + room.id + "count'>" + (4 - room.colors.length) + "</span>/4</span><br/><span class='description'>" + room.description + "</span><span class='owner'>" + room.owner + "</span><div class='details'><button type='button' class='join btn btn-success btn-xs' id=" + room.id + ">Join</button><label class='errormsg' id='" + room.id + "error'></label></div></li>");
     $("li").off('click').on("click", function() {
       $(this)
         .toggleClass("open")

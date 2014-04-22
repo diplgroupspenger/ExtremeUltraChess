@@ -5,7 +5,14 @@
    	overflow: hidden;
 }
 
-#chatlog{
+#chatTools {
+	border-top: solid 1px #BEBEBE;
+	bottom: 0;
+	position: absolute;
+	width: 100%;
+}
+
+#chatlog {
 	max-height: calc(100% - 30px);
  	color: #76879b;
     font-size: 10px;
@@ -15,16 +22,11 @@
     font-size: 11px;
 }
 
-#msgInput{
-	bottom: 0;
-	left: 5px;
-	position: absolute;
+#msgInput {
 	width: calc(100% - 95px);
 }
 
-#postmsg{
-	bottom: 0;
+#postmsg {
 	right: 10px;
-	position: absolute;
 	width: 70px;
 }
