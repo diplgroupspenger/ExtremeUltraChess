@@ -57,27 +57,39 @@ Figure.prototype.setPositionRelentless = function(x, y) {
     this.y = y;
 };
 
+Figure.prototype.isNormalPawnMove = function(posX, posY){
+    if(this.type !== FigureType.PAWN) return false;
+
+    var inFront = {x: this.x + this.inFront().x, y: this.y + this.inFront().y};
+    var inFront2 = {x: inFront.x + this.inFront().x, y: inFront.y + this.inFront().y};
+    if((inFront.x === posX && inFront.y === posY) ||
+       (inFront2.x === posX && inFront2.y === posY)){
+        return true;
+    }
+    else return false;
+};
+
 Figure.prototype.inFront = function() {
     switch (this.color) {
         case Color.WHITE:
             return {
-                "x": 0,
-                "y": -1
+                x: 0,
+                y: -1
             };
         case Color.BLACK:
             return {
-                "x": 0,
-                "y": 1
+                x: 0,
+                y: 1
             };
         case Color.RED:
             return {
-                "x": 1,
-                "y": 0
+                x: 1,
+                y: 0
             };
         case Color.GREEN:
             return {
-                "x": -1,
-                "y": 0
+                x: -1,
+                y: 0
             };
     }
 };
