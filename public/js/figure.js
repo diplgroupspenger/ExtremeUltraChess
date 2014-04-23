@@ -191,10 +191,11 @@ Figure.prototype.addB0ssMoves = function(positions, myBoard){
     this.addPossibleDiagonalMoves(positions, 2, myBoard);
     this.addPossibleYandXaxisMoves(positions, 2, myBoard);
 
-    var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, myBoard);
+    var forbiddenMoves = this.forbiddenMoves(myBoard, positions);
 
-    for(var i = 0; i < forbiddenIndexes.length; i++){
-        positions.splice(forbiddenIndexes[i], 1);
+    for(var i = 0; i < forbiddenMoves.length; i++){
+        index = positions.indexOf(forbiddenMoves[i]);
+        positions.splice(index, 1);
     }
 };
 
@@ -212,10 +213,12 @@ Figure.prototype.getForbiddenB0ssIndexes = function(positions, myBoard){
     return forbiddenIndexes;
 };
 
-Figure.prototype.forbiddenMoves = function(myBoard){
-    positions = [];
-    this.addPossibleDiagonalMoves(positions, 2, myBoard);
-    this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+Figure.prototype.forbiddenMoves = function(myBoard, positions){
+    if(positions === undefined){
+        positions = [];
+        this.addPossibleDiagonalMoves(positions, 2, myBoard);
+        this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+    }
 
     var forbiddenMoves = [];
     var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, myBoard);

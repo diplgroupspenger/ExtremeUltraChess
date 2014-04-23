@@ -104,9 +104,9 @@ Board.prototype.pushByPosition = function(x, y){
 		var json1 = {x: leftFront.x, y: leftFront.y, figure: figure};
 		var json2 = {x: rightFront.x, y: rightFront.y, figure: figure};
 
-		if(this.isLegalTile(json1.x, json1.y))
+		if(this.isLegalTile(json1.x, json1.y) && this.get(json1.x, json1.y) !== -2)
 			this.checkedTiles.push(json1);
-		if(this.isLegalTile(json2.x, json2.y))
+		if(this.isLegalTile(json2.x, json2.y) && this.get(json2.x, json2.y) !== -2)
 			this.checkedTiles.push(json2);
 	}
 };

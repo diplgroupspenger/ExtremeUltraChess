@@ -505,6 +505,7 @@ function boardClicked(e) {
   var nodePos = e.targetNode.getPosition();
   var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
+/*
   var moveLayerChildren = moveLayer.getChildren();
   var i = 0;
   for (i = 0; i < moveLayerChildren.length; i++) {
@@ -528,6 +529,8 @@ function boardClicked(e) {
       return;
     }
   }
+  */
+
 
   if (myBoard.isFigure(tilePos.x, tilePos.y)) {
     if ((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) || !turnOn) {
