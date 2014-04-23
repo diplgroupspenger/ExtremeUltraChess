@@ -1,7 +1,7 @@
 function checkCmd(text) {
 	var cmd = text.substr(0,text.indexOf(' '));
 
-	if(cmd == ""){
+	if(cmd === ""){
 		if(text == "turnoff"){
 			turnoff();
 		}
