@@ -384,26 +384,26 @@ function drawPossibleMoves(isKing) {
       x = curForbiddenMoves[i].x;
       y = curForbiddenMoves[i].y;
 
-      var topLeftX = x * TILE_SIZE + TILE_SIZE * 0.1;
-      var topLeftY = y * TILE_SIZE + TILE_SIZE * 0.1;
+      var topLeftX = x * TILE_SIZE + TILE_SIZE * 0.2;
+      var topLeftY = y * TILE_SIZE + TILE_SIZE * 0.2;
 
-      var topRightX = x * TILE_SIZE + TILE_SIZE * 0.9;
-      var topRightY = y * TILE_SIZE + TILE_SIZE * 0.1;
+      var topRightX = x * TILE_SIZE + TILE_SIZE * 0.8;
+      var topRightY = y * TILE_SIZE + TILE_SIZE * 0.2;
 
-      var bottomLeftX = x * TILE_SIZE + TILE_SIZE * 0.1;
-      var bottomLeftY = y * TILE_SIZE + TILE_SIZE * 0.9;
+      var bottomLeftX = x * TILE_SIZE + TILE_SIZE * 0.2;
+      var bottomLeftY = y * TILE_SIZE + TILE_SIZE * 0.8;
 
-      var bottomRightX = x * TILE_SIZE + TILE_SIZE * 0.9;
-      var bottomRightY = y * TILE_SIZE + TILE_SIZE * 0.9;
+      var bottomRightX = x * TILE_SIZE + TILE_SIZE * 0.8;
+      var bottomRightY = y * TILE_SIZE + TILE_SIZE * 0.8;
 
-/*
       var crossLine1 = new Kinetic.Line({
         points: [topLeftX, topLeftY, bottomRightX, bottomRightY],
         stroke: 'red',
         strokeWidth: TILE_SIZE * 0.1,
         lineCap: 'round',
         lineJoin: 'round',
-        shadowBlur: 20
+        shadowColor: 'red',
+        shadowBlur: 10
       });
 
       var crossLine2 = new Kinetic.Line({
@@ -412,34 +412,12 @@ function drawPossibleMoves(isKing) {
         strokeWidth: TILE_SIZE * 0.1,
         lineCap: 'round',
         lineJoin: 'round',
-        shadowBlur: 20
+        shadowColor: 'red',
+        shadowBlur: 10
       });
 
-      var debugLine = new Kinetic.Line({
-        points: [200, 100, 400, 200],
-        stroke: 'red',
-        strokeWidth: 8,
-        lineJoin: 'round'
-      });
-
-      */
-
-      var rect2 = new Kinetic.Rect({
-        x: 300,
-        y: 200,
-        width: 200,
-        height: 300,
-        fill: 'red',
-        stroke: 'black',
-        strokeWidth: 3
-      });
-
-      console.dir(rect2);
-
-      //moveLayer.add(crossLine1);
-      //moveLayer.add(crossLine2);
-      //moveLayer.add(debugLine);
-      moveLayer.add(rect2);
+      moveLayer.add(crossLine1);
+      moveLayer.add(crossLine2);
     }
   }
 
@@ -559,7 +537,9 @@ function boardClicked(e) {
         curForbiddenMoves = figure.forbiddenMoves(myBoard);
         drawPossibleMoves(true);
       }
-      drawPossibleMoves();
+      else{
+        drawPossibleMoves();
+      }
       moveLayer.currentFigure = e.targetNode;
     }
   }
