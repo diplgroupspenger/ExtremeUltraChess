@@ -17,14 +17,17 @@
 }
 
 #chatlog {
-	max-height: calc(100% - 40px - 40px);
+	max-height: calc(100% - 80px);
+	width: calc(100% - 10px);
+	bottom: 26px;
  	color: #76879b;
     font-size: 10px;
     overflow-y: scroll;
     overflow-x: hidden;
-    margin: 5px;
+    margin: 0 5px 5px 5px;
     font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
     font-size: 11px;
+    position: absolute;
 }
 
 #msgInput {

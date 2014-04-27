@@ -37,7 +37,7 @@ function setText(text, user) {
   $('#chatlog').append($msg);
   var heightoffset = $('#generalInfo').height();
   console.log($('#chatlog')[0].scrollHeight - heightoffset);
-  $('#chatlog').scrollTop($('#chatlog')[0].scrollHeight - heightoffset);
+  $('#chatlog').scrollTop($('#chatlog')[0].scrollHeight);
 }
 
 function validText(str) {
