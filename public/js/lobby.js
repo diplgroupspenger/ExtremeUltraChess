@@ -22,7 +22,6 @@ function lobby(socket) {
         myname = name;
         socket.username = name;
         localStorage.id = id;
-        console.log(localStorage.id);
         $('#name').text(myname);
         $('#name-dialog').dialog('close');
         $('#nameerror').text('');

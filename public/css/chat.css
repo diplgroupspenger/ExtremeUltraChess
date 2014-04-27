@@ -11,8 +11,13 @@
 	width: 100%;
 }
 
+#generalInfo {
+	height: 40px;
+	margin: 5px;
+}
+
 #chatlog {
-	max-height: calc(100% - 40px);
+	max-height: calc(100% - 40px - 40px);
  	color: #76879b;
     font-size: 10px;
     overflow-y: scroll;

@@ -8,7 +8,7 @@ var express = require('express'),
   io = require('socket.io').listen(server);
 
 io.set('transports', ['htmlfile', 'xhr-polling', 'jsonp-polling']);
-
+io.disable('heartbeats');
 // listen for new web clients:
 server.listen(63924);
 
@@ -32,6 +32,10 @@ var ignPossible = false;
 var boards = {};
 
 io.sockets.on('connection', function(socket) {
+
+  activeClients++;
+  console.log("ACTRIELEIJAODNEIAD: "+activeClients);
+  
   socket.json.emit('syncRooms', generateAllRoomJson());
 
   socket.on('disconnect', function() {
@@ -67,9 +71,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendMessage', function(text) {
-    console.log("notsent");
     if (!isBlank(text)) {
-      console.log("send");
       var name = socket.username;
       var room = getRoomFromSocket(socket);
       var roomName = room.substring(1);
@@ -90,6 +92,8 @@ io.sockets.on('connection', function(socket) {
   });
   socket.on('newplayer', function(name) {
     newPerson(name, socket);
+    console.log('newPlayer');
+    updateTotalPlayerCount();
   });
   socket.on('leave', function() {
     leaveRoom(socket);
@@ -138,6 +142,8 @@ function getName(id, socket) {
         });
         socket.username = result[0].name;
         socket.emit('name', result[0].name, id);
+        io.sockets.emit('updateCurPlayerCount', activeClients);
+        updateTotalPlayerCount();
       } else {
         socket.emit("error", {
           type: 'nameerror',
@@ -345,6 +351,8 @@ function newPerson(name, socket) {
               if (err) throw err;
               socket.username = name;
               socket.emit('name', name, id);
+              io.sockets.emit('updateCurPlayerCount', activeClients);
+              io.sockets.emit('updateTotalPlayerCount', activeClients);
               connection.release();
             });
           }
@@ -370,7 +378,8 @@ function addBoard(roomid) {
 }
 
 function clientDisconnect(socket) {
-  activeClients -= 1;
+  activeClients--;
+  io.sockets.emit('updateCurPlayerCount', activeClients);
   io.sockets.emit('message', {
     clients: activeClients
   });
@@ -389,6 +398,18 @@ function leaveRoom(socket) {
         socket.json.emit('syncRooms', generateAllRoomJson());
       }
       connection.release();
+    });
+  });
+}
+
+function updateTotalPlayerCount() {
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select COUNT(*) AS playerCount FROM users', function(err, result) {
+      if (err) throw err;
+      if(result[0]) {
+        console.log("updatetotalplayercount");
+        io.sockets.emit('updateTotalPlayerCount', result[0].playerCount);
+      }
     });
   });
 }

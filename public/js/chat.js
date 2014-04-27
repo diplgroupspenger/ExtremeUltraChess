@@ -17,16 +17,27 @@ function initChat(socket) {
   socket.on('setMessage', function(text, user) {
     setText(text, user);
   });
+
+  socket.on('updateTotalPlayerCount', function(count) {
+    $('#totalPlayerCount').text('Total players: ' + count);
+  });
+
+  socket.on('updateCurPlayerCount', function(count) {
+    console.log('updatecurplayercont '+count);
+    $('#curPlayerCount').text('Current online: ' + count);
+  });
 }
 
 function setText(text, user) {
   console.log("Name: " + user);
   var $msg = $('<div>');
   $msg.append($('<span>').text(getTime()+" "));
-  $msg.append($('<span>').text(user+":"));
-  $msg.append($('<span>').text(text+" "));
+  $msg.append($('<span>').text(user+": "));
+  $msg.append($('<span>').text(text+""));
   $('#chatlog').append($msg);
-  $('#chatlog').scrollTop($('#chatlog')[0].scrollHeight);
+  var heightoffset = $('#generalInfo').height();
+  console.log($('#chatlog')[0].scrollHeight - heightoffset);
+  $('#chatlog').scrollTop($('#chatlog')[0].scrollHeight - heightoffset);
 }
 
 function validText(str) {
