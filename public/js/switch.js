@@ -85,23 +85,21 @@ function toGame(socket, color) {
   $('#sublobby').hide();
   $('#game').show();
   $('#list1').val('');
-  //$('#chat').hide();
-  $('#chatlog').empty();
   startgame(socket, color);
 }
 
-function toSublobby(socket, color) {
+function toSublobby(socket, color, host, time) {
   $('#lobby').hide();
   $('#game').hide();
-  $('#chat').show();
   $('#sublobby').show();
-  sublobby(socket, color);
+  $('#chatlog').empty();
+  sublobby(socket, color, host, time);
 }
 
 function toLobby() {
   $('#game').hide();
   $('#sublobby').hide();
-  $('#chat').show();
   $('#lobby').show();
+  $('#chatlog').empty();
   lobby(socket);
 }

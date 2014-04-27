@@ -1,4 +1,4 @@
-var Turn = function(cdCallback, turnCallback, importTurn) {
+var Turn = function(turnTime, cdCallback, turnCallback, importTurn) {
     if (importTurn === undefined) {
         this.player = {
             WHITE: {
@@ -20,13 +20,13 @@ var Turn = function(cdCallback, turnCallback, importTurn) {
         };
 
         this.curPlayer = this.player.WHITE;
-        this.turnLimit = 5;
+        this.turnLimit = turnTime;
         this.extraSeconds = false;
     } else {
         this.importTurn(importTurn);
     }
 
-    this.extraSecondsLimit = 300;
+    this.extraSecondsLimit = 5;
     this.cdCallback = cdCallback;
     this.turnCallback = turnCallback;
     this.startCountdown();

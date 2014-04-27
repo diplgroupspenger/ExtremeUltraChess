@@ -51,7 +51,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('createroom', function(title, description, password) {
-    if (isValid(title) && isValid(description))
+    if (isValid(title) && isValid(description) && isValid(password))
       createRoom(title, description, password, socket);
   });
 
@@ -83,8 +83,6 @@ io.sockets.on('connection', function(socket) {
   socket.on('getBoard', function() {
     console.log('GETBOARD');
     room = getRoomFromSocket(socket);
-    //console.log("room: " + room);
-    //console.log("board: " + boards[room]);
     socket.emit('sendStatus', boards[room].exportBoard(), boards[room].turn.exportTurn());
   });
   socket.on('getname', function(id) {
@@ -109,6 +107,16 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
+  socket.on('turnTimeChanged', function(time) {
+    var id = getRoomFromSocket(socket).substring(1);
+    var host = io.rooms[('/' + id)][1].details.owner;
+    console.log("host:"+host+" you:"+socket.username);
+    //TODO: check for host
+    if(isValidInt(time) && time >= 10 && time <= 300 && host == socket.username) {
+      io.rooms[('/' + id)][1].details.turnTime = time;
+      io.sockets. in(id).emit('sendTurnTime', time);
+    }
+  });
 
   socket.on('startgame', function() {
     var id = getRoomFromSocket(socket).substring(1);
@@ -223,7 +231,10 @@ function joinRoom(id, socket, pw) {
       userdbPool.getConnection(function(err, connection) {
         connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
           if (result[0]) {
-            socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
+            var color = io.rooms[('/' + id)][1].details.colors[colornum];
+            var host = io.rooms[('/' + id)][1].details.owner;
+            var time = io.rooms[('/' + id)][1].details.turnTime;
+            socket.emit('roomjoined', color, host, time);
             io.sockets. in ('lobby').emit('popul inc', id);
             io.sockets. in (id).emit('more people', {
               'name': socket.username,
@@ -278,6 +289,7 @@ function createRoom(title, description, password, socket) {
                   "title": title,
                   "description": description,
                   "owner": socket.id,
+                  "turnTime": 60,
                   "password": password
                 }
               });
@@ -353,7 +365,8 @@ function addBoard(roomid) {
     }
   }
   boards[('/' + roomid)] = newBoard;
-  boards[('/' + roomid)].turn = new Turn();
+  var turnTime = io.rooms[('/' + roomid)][1].details.turnTime;
+  boards[('/' + roomid)].turn = new Turn(turnTime);
 }
 
 function clientDisconnect(socket) {
@@ -387,6 +400,10 @@ function isBlank(str) {
 
 function isValid(par) {
   return typeof par !== "undefined" && par !== null;
+}
+
+function isValidInt(par) {
+  return isValid(par) && (par % 1 === 0);
 }
 
 function generateOneRoomJson(roomid) {

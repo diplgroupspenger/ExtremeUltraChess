@@ -13,6 +13,7 @@
 <script src='js/lib/jquery-ui-1.10.3.custom.js'></script>
 <script src='js/lib/bootstrap.min.js'></script>
 <script src='js/lib/bootbox.min.js'></script>
+<script src='js/lib/bootstrap.touchspin.js'></script>
 <script src='js/lib/kinetic-v4.4.3.min.js'></script>
 <script src='socket.io/socket.io.js'></script>
 <script src='js/lib/underscore_min.js'></script>
@@ -39,7 +40,7 @@
 		<div id='chatlog'></div>
 		<div id='chatTools'>
 			<input type='text' id='msgInput'></input>
-			<button type='button' id='postmsg'>post</button>
+			<button type='button' id='postmsg' class='btn btn-primary btn-xs'>post</button>
 		</div>
 	</div>
 </div>
@@ -110,6 +111,8 @@
 	Please wait until enough people are connected.
 	<table id='players'>
 	</table>
+	<p>Turn Limit:</p>
+	<input id="turnTimeSpinner" type="text" name="turnTimeSpinner" readonly>
 	<button type='button' id='debutton' class='btn btn-primary'>
 		start game
 	</button>

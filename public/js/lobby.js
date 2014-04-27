@@ -45,9 +45,9 @@ function lobby(socket) {
       socket.on('popul inc', function(id) {
         $('#' + id + 'count').text(parseInt($('#' + id + 'count').text()) + 1);
       });
-      socket.on('roomjoined', function(color) {
+      socket.on('roomjoined', function(color, host, time) {
         $("#open-dialog").dialog("close");
-        toSublobby(socket, color);
+        toSublobby(socket, color, host, time);
       });
       socket.on('roomclosed', function(id) {
         $('#' + id).remove();

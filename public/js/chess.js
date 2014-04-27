@@ -10,7 +10,7 @@ var curForbiddenMoves = [];
 var turnOn = true;
 var ignPossible = false;
 
-function startgame(socket, color) {
+function startgame(socket, color, time) {
   //DEBUG
   $('#cmdField').on("keypress", function(e) {
     if (e.keyCode == 13) {
@@ -90,7 +90,7 @@ function setPosition(newPos, figureID, moved) {
 
 function setStatus(serverBoard, exportedTurn) {
   myBoard = new Board(serverBoard);
-  turn = new Turn(cdCallback, turnCallback, exportedTurn);
+  turn = new Turn(null, cdCallback, turnCallback, exportedTurn);
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
   tryDrawBoard();
 }
