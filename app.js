@@ -8,7 +8,7 @@ var express = require('express'),
   io = require('socket.io').listen(server);
 
 io.set('transports', ['htmlfile', 'xhr-polling', 'jsonp-polling']);
-io.disable('heartbeats');
+
 // listen for new web clients:
 server.listen(63924);
 

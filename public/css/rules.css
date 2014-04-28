@@ -5,7 +5,7 @@ body {
 
 #rules {
 	max-height: calc(100% - 26px);
-	overflow-y: scroll;
+	overflow-y: auto;
     overflow-x: hidden;
     position: absolute;
 }

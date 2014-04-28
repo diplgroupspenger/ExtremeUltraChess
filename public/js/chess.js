@@ -2,6 +2,9 @@ TILE_SIZE = 50;
 TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
 
+//check if window has focus
+var focus = true;
+
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
 var curPossibleMoves = [];
@@ -23,6 +26,14 @@ function startgame(socket, color, time) {
     .click(function() {
       terminateGame();
     });
+
+  $(window).focus(function() {
+    focus = true;
+  });
+
+  $(window).blur(function() {
+    focus = false;
+  });
 
   socket.on('setPosition', setPosition);
   socket.on('sendStatus', setStatus);
@@ -113,6 +124,20 @@ function cdCallback() {
 function turnCallback() {
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
   $('#timeCounter').text(turn.curSeconds + '');
+  if(player == turn.curPlayer.color && !focus) {
+    blinkInterval = setInterval(blinkTitle, 250);
+  }
+}
+
+function blinkTitle() {
+  if(focus) {
+    document.title = "chess";
+    clearInterval(blinkInterval);
+  } else {
+    console.log("blinkyblink");
+    var curTitle = document.title;
+    document.title = (curTitle == "chess (!)" ? "chess ( )" : "chess (!)");
+  }
 }
 
 function tryDrawBoard() {

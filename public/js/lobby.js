@@ -60,7 +60,7 @@ function lobby(socket) {
     var newroom = "<li id='" + room.id +
       "' class='room'><span class='title'></span><span class='usercount'><span id='" +
       room.id + "count'></span>/4</span><br/><span class='description'></span><span class='owner'>" +
-      room.owner + "</span><div class='details'><button class='join' id=" +
+      room.owner + "</span><div class='details'><button class='join btn btn-success btn-xs' id=" +
       room.id + ">join</button>";
     if (room.needpw) {
       newroom = newroom + "<input placeholder='Password' class='joinpw' type='password' id='pw" +

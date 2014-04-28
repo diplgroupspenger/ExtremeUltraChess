@@ -36,7 +36,7 @@
 	width: calc(100% - 10px);
 	bottom: 26px;
  	color: #76879b;
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
     margin: 0 5px 5px 5px;
     font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
