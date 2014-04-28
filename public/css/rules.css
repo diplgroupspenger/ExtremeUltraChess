@@ -1,0 +1,22 @@
+body {
+	height: 100%;
+	width: 100%;
+}
+
+#rules {
+	max-height: calc(100% - 26px);
+	overflow-y: scroll;
+    overflow-x: hidden;
+    position: absolute;
+}
+
+.header {
+	font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
+	font-size: 13px;
+}
+
+.rule {
+	color: #76879b;
+	font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
+	font-size: 12px;
+}

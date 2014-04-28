@@ -26,6 +26,7 @@ function lobby(socket) {
         $('#name-dialog').dialog('close');
         $('#nameerror').text('');
         initChat(socket);
+        initRules();
       });
       socket.on('message', function(data) {
         console.log(data);

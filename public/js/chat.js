@@ -40,14 +40,12 @@ function initChat(socket) {
 }
 
 function setText(text, user) {
-  console.log("Name: " + user);
   var $msg = $('<div>');
   $msg.append($('<span>').text(getTime()+" "));
   $msg.append($('<span>').text(user+": "));
   $msg.append($('<span style="max-width: 100%; word-wrap: break-word;">').text(text+""));
   $('#chatlog').append($msg);
-  var heightoffset = $('#generalInfo').height();
-  console.log($('#chatlog')[0].scrollHeight - heightoffset);
+  var heightoffset = $('#generalInfo').height() + $('.tab').height();
   $('#chatlog').scrollTop($('#chatlog')[0].scrollHeight);
 }
 
