@@ -32,9 +32,7 @@ var ignPossible = false;
 var boards = {};
 
 io.sockets.on('connection', function(socket) {
-
   activeClients++;
-  console.log("ACTRIELEIJAODNEIAD: "+activeClients);
   
   socket.json.emit('syncRooms', generateAllRoomJson());
 
@@ -77,6 +75,10 @@ io.sockets.on('connection', function(socket) {
       var roomName = room.substring(1);
       socket.broadcast.to(roomName).emit('setMessage', text, name);
     }
+  });
+
+  socket.on('getPlayerList', function() {
+    getTotalPlayerList(socket);
   });
 
   socket.on('getGame', function() {
@@ -409,6 +411,18 @@ function updateTotalPlayerCount() {
       if(result[0]) {
         console.log("updatetotalplayercount");
         io.sockets.emit('updateTotalPlayerCount', result[0].playerCount);
+      }
+    });
+  });
+}
+
+function getTotalPlayerList(socket) {
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select name FROM users', function(err, result) {
+      if (err) throw err;
+      if(result[0]) {
+        console.log("playerlismethod: "+result);
+        socket.emit('sendTotalPlayerList', result);
       }
     });
   });
