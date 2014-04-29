@@ -5,14 +5,16 @@
 <title>chess</title>
 <link rel="stylesheet" type="text/css" href="/css/lobbystyle.css"/>
 <link rel="stylesheet" type="text/css" href="/css/sublobbystyle.css"/>
-<link rel="stylesheet" type="text/css" href="css/style.css"/>
-<link rel="stylesheet" type="text/css" href="css/chat.css"/>
+<link rel="stylesheet" type="text/css" href="/css/style.css"/>
+<link rel="stylesheet" type="text/css" href="/css/chat.css"/>
+<link rel="stylesheet" type="text/css" href="/css/rules.css"/>
 <link rel="stylesheet" type="text/css" href='/css/lib/ui-lightness/jquery-ui-1.10.3.custom.css'/>
 <link rel="stylesheet" type="text/css" href='/css/lib/bootstrap.min.css'/>
 <script src='js/lib/jquery-1.10.2.min.js'></script>
 <script src='js/lib/jquery-ui-1.10.3.custom.js'></script>
 <script src='js/lib/bootstrap.min.js'></script>
 <script src='js/lib/bootbox.min.js'></script>
+<script src='js/lib/bootstrap.touchspin.js'></script>
 <script src='js/lib/kinetic-v4.4.3.min.js'></script>
 <script src='socket.io/socket.io.js'></script>
 <script src='js/lib/underscore_min.js'></script>
@@ -27,6 +29,7 @@
 <script src='js/chess.js'></script>
 <script src='js/convertPawn.js'></script>
 <script src='js/chat.js'></script>
+<script src='js/rules.js'></script>
 <script src='js/commands.js'></script>
 <script>
 	$(document).ready(execjs);
@@ -34,14 +37,29 @@
 </head>
 
 <body>
-<div id="sidebar">
-	<div id='chat'>
-		<div id='chatlog'></div>
-		<div id='chatTools'>
-			<input type='text' id='msgInput'></input>
-			<button type='button' id='postmsg'>post</button>
-		</div>
-	</div>
+<div id="sidebar" class="tabbable">
+	<ul class="nav nav-tabs">
+    	<li class="active tab"><a href="#chatTab" data-toggle="tab">Chat</a></li>
+    	<li class="tab"><a href="#rulesTab" data-toggle="tab">Rules</a></li>
+  	</ul>
+	<div class="tab-content">
+	    <div class="tab-pane active" id="chatTab">
+      		<div id='chat'>
+				<div id='generalInfo'>
+					<div id='totalPlayerCount'></div>
+					<div id='curPlayerCount'></div>
+				</div>
+				<div id='chatlog'></div>
+				<div id='chatTools'>
+					<input type='text' id='msgInput'></input>
+					<button type='button' id='postmsg' class='btn btn-primary btn-xs'>post</button>
+				</div>
+			</div>
+	    </div>
+	    <div class="tab-pane" id="rulesTab">
+	    </div>
+  </div>
+	
 </div>
 <div id='lobby'>
 	<p id='name'></p>
@@ -110,6 +128,8 @@
 	Please wait until enough people are connected.
 	<table id='players'>
 	</table>
+	<p>Turn Limit:</p>
+	<input id="turnTimeSpinner" type="text" name="turnTimeSpinner" readonly>
 	<button type='button' id='debutton' class='btn btn-primary'>
 		start game
 	</button>

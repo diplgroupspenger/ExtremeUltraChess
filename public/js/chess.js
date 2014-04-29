@@ -2,6 +2,9 @@ TILE_SIZE = 50;
 TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
 
+//check if window has focus
+var focus = true;
+
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
 var curPossibleMoves = [];
@@ -10,7 +13,7 @@ var curForbiddenMoves = [];
 var turnOn = true;
 var ignPossible = false;
 
-function startgame(socket, color) {
+function startgame(socket, color, time) {
   //DEBUG
   $('#cmdField').on("keypress", function(e) {
     if (e.keyCode == 13) {
@@ -23,6 +26,14 @@ function startgame(socket, color) {
     .click(function() {
       terminateGame();
     });
+
+  $(window).focus(function() {
+    focus = true;
+  });
+
+  $(window).blur(function() {
+    focus = false;
+  });
 
   socket.on('setPosition', setPosition);
   socket.on('sendStatus', setStatus);
@@ -41,7 +52,7 @@ function startgame(socket, color) {
   $(window).resize(lazyLayout);
 }
 
-function updateCheckedTiles(checkedTiles){
+function updateCheckedTiles(checkedTiles) {
   myBoard.checkedTiles = checkedTiles;
   drawCheckedTiles();
 }
@@ -71,7 +82,7 @@ function setPosition(newPos, figureID, moved) {
   if (oldPos.x !== newPos.x || oldPos.y !== newPos.y)
     myBoard.moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
 
-    figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
+  figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
 
   if (moved) {
 
@@ -90,7 +101,7 @@ function setPosition(newPos, figureID, moved) {
 
 function setStatus(serverBoard, exportedTurn) {
   myBoard = new Board(serverBoard);
-  turn = new Turn(cdCallback, turnCallback, exportedTurn);
+  turn = new Turn(null, cdCallback, turnCallback, exportedTurn);
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
   tryDrawBoard();
 }
@@ -99,12 +110,11 @@ function setStatus(serverBoard, exportedTurn) {
 function cdCallback() {
   checkForGameEnd();
   $('#timeCounter').text(turn.curSeconds + '');
-  if(turn.extraSeconds) {
+  if (turn.extraSeconds) {
     $('#timeCounter').addClass('blink');
-    if(player == turn.curPlayer.color)
+    if (player == turn.curPlayer.color)
       $('#timeOutMessage').show();
-  }
-  else {
+  } else {
     $('#timeCounter').removeClass('blink');
     $('#timeOutMessage').hide();
   }
@@ -113,6 +123,20 @@ function cdCallback() {
 function turnCallback() {
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
   $('#timeCounter').text(turn.curSeconds + '');
+  if (player == turn.curPlayer.color && !focus) {
+    blinkInterval = setInterval(blinkTitle, 250);
+  }
+}
+
+function blinkTitle() {
+  if (focus) {
+    document.title = "chess";
+    clearInterval(blinkInterval);
+  } else {
+    console.log("blinkyblink");
+    var curTitle = document.title;
+    document.title = (curTitle == "chess (!)" ? "chess ( )" : "chess (!)");
+  }
 }
 
 function tryDrawBoard() {
@@ -141,7 +165,7 @@ function removeFigure(pos) {
 }
 
 function checkForGameEnd() {
-  if(turn.getDeadPlayer() >= 3)
+  if (turn.getDeadPlayer() >= 3)
     showEndDialog(turn.getWinner());
 }
 
@@ -341,8 +365,8 @@ function drawFigure(x, y, playerColor) {
     var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
     //if (((player === turn.curPlayer.color && figureColor === player) && !lockFigures) || !turnOn && (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible)) {
-    if((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
-      myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures){
+    if ((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
+      myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures) {
       setPosition(newPos, figureID, false);
       socket.emit('sendPosition', oldPos, newPos, figureID, player);
     } else {
@@ -378,9 +402,9 @@ function drawPossibleMoves(isKing) {
 
   }
 
-  if(isKing){
+  if (isKing) {
     console.log("forbiddenLENGTH: " + curForbiddenMoves.length);
-    for(i = 0; i < curForbiddenMoves.length; i++){
+    for (i = 0; i < curForbiddenMoves.length; i++) {
       x = curForbiddenMoves[i].x;
       y = curForbiddenMoves[i].y;
 
@@ -428,9 +452,9 @@ function drawPossibleMoves(isKing) {
 
 
 //debugging function
-function drawCheckedTiles(){
+function drawCheckedTiles() {
   checkedTilesLayer.removeChildren();
-  for(var i = 0; i < myBoard.checkedTiles.length; i++){
+  for (var i = 0; i < myBoard.checkedTiles.length; i++) {
     var posX = myBoard.checkedTiles[i].x;
     var posY = myBoard.checkedTiles[i].y;
     var color = myBoard.checkedTiles[i].figure.color;
@@ -505,7 +529,7 @@ function boardClicked(e) {
   var nodePos = e.targetNode.getPosition();
   var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
-/*
+  /*
   var moveLayerChildren = moveLayer.getChildren();
   var i = 0;
   for (i = 0; i < moveLayerChildren.length; i++) {
@@ -536,13 +560,11 @@ function boardClicked(e) {
     if ((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) || !turnOn) {
       var figure = myBoard.get(tilePos.x, tilePos.y);
 
-      if(figure.type === FigureType.KING){
+      curPossibleMoves = figure.possibleMoves(myBoard);
+      if (figure.type === FigureType.KING) {
         curForbiddenMoves = figure.forbiddenMoves(myBoard);
-        curPossibleMoves = figure.possibleMoves(myBoard);
         drawPossibleMoves(true);
-      }
-      else{
-        curPossibleMoves = figure.possibleMoves(myBoard);
+      } else {
         drawPossibleMoves();
       }
       moveLayer.currentFigure = e.targetNode;
@@ -598,7 +620,7 @@ function getBoardColor(x, y) {
 
 function showEndDialog(winner) {
   console.log(winner);
-  bootbox.alert("Winner: "+colorToString(winner), function() {
+  bootbox.alert("Winner: " + colorToString(winner), function() {
     terminateGame();
   });
 }
@@ -614,7 +636,7 @@ function terminateGame() {
   stage = null;
   turn.terminate();
   $("#canvas").empty();
-  toLobby();
+  toLobby(socket);
   socket.emit('leave');
   socket.emit('getGame');
 }

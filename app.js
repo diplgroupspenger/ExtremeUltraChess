@@ -32,6 +32,8 @@ var ignPossible = false;
 var boards = {};
 
 io.sockets.on('connection', function(socket) {
+  activeClients++;
+  
   socket.json.emit('syncRooms', generateAllRoomJson());
 
   socket.on('disconnect', function() {
@@ -51,7 +53,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('createroom', function(title, description, password) {
-    if (isValid(title) && isValid(description))
+    if (isValid(title) && isValid(description) && isValid(password))
       createRoom(title, description, password, socket);
   });
 
@@ -67,14 +69,16 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendMessage', function(text) {
-    console.log("notsent");
     if (!isBlank(text)) {
-      console.log("send");
       var name = socket.username;
       var room = getRoomFromSocket(socket);
       var roomName = room.substring(1);
       socket.broadcast.to(roomName).emit('setMessage', text, name);
     }
+  });
+
+  socket.on('getPlayerList', function() {
+    getTotalPlayerList(socket);
   });
 
   socket.on('getGame', function() {
@@ -83,15 +87,16 @@ io.sockets.on('connection', function(socket) {
   socket.on('getBoard', function() {
     console.log('GETBOARD');
     room = getRoomFromSocket(socket);
-    //console.log("room: " + room);
-    //console.log("board: " + boards[room]);
     socket.emit('sendStatus', boards[room].exportBoard(), boards[room].turn.exportTurn());
   });
   socket.on('getname', function(id) {
     getName(id, socket);
+    socket.emit('message', socket.id);
   });
   socket.on('newplayer', function(name) {
     newPerson(name, socket);
+    console.log('newPlayer');
+    updateTotalPlayerCount();
   });
   socket.on('leave', function() {
     leaveRoom(socket);
@@ -109,6 +114,16 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
+  socket.on('turnTimeChanged', function(time) {
+    var id = getRoomFromSocket(socket).substring(1);
+    var host = io.rooms[('/' + id)][1].details.owner;
+    console.log("host:"+host+" you:"+socket.username);
+    //TODO: check for host
+    if(isValidInt(time) && time >= 10 && time <= 300 && host == socket.username) {
+      io.rooms[('/' + id)][1].details.turnTime = time;
+      io.sockets. in(id).emit('sendTurnTime', time);
+    }
+  });
 
   socket.on('startgame', function() {
     var id = getRoomFromSocket(socket).substring(1);
@@ -116,6 +131,17 @@ io.sockets.on('connection', function(socket) {
     io.sockets. in (id).emit('startgame');
   });
 
+  socket.on('readychange', function(checked) {
+    var room = getRoomFromSocket(socket).substring(1);
+    for (var i = 0; i < io.sockets.clients(room).length; i++) {
+      if (io.sockets.clients(room)[i].id == socket.id) {
+        socket.broadcast.to(room).emit('readychange', {
+          'playercolor': io.sockets.clients(room)[i].color,
+          'checked': checked
+        });
+      }
+    }
+  });
 
 });
 
@@ -130,6 +156,8 @@ function getName(id, socket) {
         });
         socket.username = result[0].name;
         socket.emit('name', result[0].name, id);
+        io.sockets.emit('updateCurPlayerCount', activeClients);
+        updateTotalPlayerCount();
       } else {
         socket.emit("error", {
           type: 'nameerror',
@@ -213,6 +241,15 @@ function joinRoom(id, socket, pw) {
   if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
     var availableColors = io.rooms[('/' + id)][1].details.colors.length;
     if (availableColors > 0) {
+      var players = [];
+      for (i = 0; i < io.sockets.clients(id).length; i++) {
+        if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color && io.sockets.clients(id)[i].id !== socket.id) {
+          players.push({
+            'name': io.sockets.clients(id)[i].username,
+            'color': io.sockets.clients(id)[i].color
+          });
+        }
+      }
       socket.leave('lobby');
       socket.join(id);
 
@@ -223,23 +260,22 @@ function joinRoom(id, socket, pw) {
       userdbPool.getConnection(function(err, connection) {
         connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
           if (result[0]) {
-            socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
+            var color = io.rooms[('/' + id)][1].details.colors[colornum];
+            var host = io.rooms[('/' + id)][1].details.owner;
+            var time = io.rooms[('/' + id)][1].details.turnTime;
+            socket.emit('roomjoined', color, host, time);
             io.sockets. in ('lobby').emit('popul inc', id);
-            io.sockets. in (id).emit('more people', {
+            socket.emit('subinit', players);
+            socket.emit('own user', {
+              'name': socket.username,
+              'color': io.rooms[('/' + id)][1].details.colors[colornum],
+              'own': true
+            });
+            socket.broadcast.to(id).emit('more people', {
               'name': socket.username,
               'color': io.rooms[('/' + id)][1].details.colors[colornum]
             });
             socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
-            var players = [];
-            for (i = 0; i < io.sockets.clients(id).length; i++) {
-              if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color) {
-                players.push({
-                  'name': io.sockets.clients(id)[i].username,
-                  'color': io.sockets.clients(id)[i].color
-                });
-              }
-            }
-            socket.emit('subinit', players);
             connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
               io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
               if (io.rooms[('/' + id)][1].details.colors.length == 0) {
@@ -271,13 +307,13 @@ function createRoom(title, description, password, socket) {
             if (idresult[0][0].id) {
               roomid = idresult[0][0].id;
               socket.join(roomid);
-
               io.rooms[('/' + roomid)].push({
                 "details": {
                   "id": roomid,
                   "title": title,
                   "description": description,
                   "owner": socket.id,
+                  "turnTime": 60,
                   "password": password
                 }
               });
@@ -285,6 +321,7 @@ function createRoom(title, description, password, socket) {
 
               io.rooms[('/' + roomid)][1].details.owner = result[0].name;
               joinRoom(roomid, socket, password);
+              //socket.leave(roomid);
               io.sockets. in ('lobby').emit('roomcreated', generateOneRoomJson(roomid));
               roomid++;
               connection.release();
@@ -333,6 +370,8 @@ function newPerson(name, socket) {
               if (err) throw err;
               socket.username = name;
               socket.emit('name', name, id);
+              io.sockets.emit('updateCurPlayerCount', activeClients);
+              io.sockets.emit('updateTotalPlayerCount', activeClients);
               connection.release();
             });
           }
@@ -353,18 +392,20 @@ function addBoard(roomid) {
     }
   }
   boards[('/' + roomid)] = newBoard;
-  boards[('/' + roomid)].turn = new Turn();
+  var turnTime = io.rooms[('/' + roomid)][1].details.turnTime;
+  boards[('/' + roomid)].turn = new Turn(turnTime);
 }
 
 function clientDisconnect(socket) {
-  activeClients -= 1;
+  activeClients--;
+  io.sockets.emit('updateCurPlayerCount', activeClients);
   io.sockets.emit('message', {
     clients: activeClients
   });
 }
 
 function leaveRoom(socket) {
-  userdbPool.getConnection(function(err, connection) {
+  /*userdbPool.getConnection(function(err, connection) {
     connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result) {
       if (result[0]) {
         if (io.rooms[('/' + result[0].room)].length == 2) {
@@ -377,6 +418,40 @@ function leaveRoom(socket) {
       }
       connection.release();
     });
+  });*/
+  var room = getRoomFromSocket(socket).substring(1);
+  if (room) {
+    if (io.rooms[('/' + room)].length == 2) {
+      io.sockets. in ('lobby').emit('roomclosed', room);
+    }
+    socket.emit('message', room);
+    socket.leave('' + room);
+    socket.join('lobby');
+    socket.json.emit('syncRooms', generateAllRoomJson());
+  }
+}
+
+function updateTotalPlayerCount() {
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select COUNT(*) AS playerCount FROM users', function(err, result) {
+      if (err) throw err;
+      if(result[0]) {
+        console.log("updatetotalplayercount");
+        io.sockets.emit('updateTotalPlayerCount', result[0].playerCount);
+      }
+    });
+  });
+}
+
+function getTotalPlayerList(socket) {
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select name FROM users', function(err, result) {
+      if (err) throw err;
+      if(result[0]) {
+        console.log("playerlismethod: "+result);
+        socket.emit('sendTotalPlayerList', result);
+      }
+    });
   });
 }
 
@@ -387,6 +462,10 @@ function isBlank(str) {
 
 function isValid(par) {
   return typeof par !== "undefined" && par !== null;
+}
+
+function isValidInt(par) {
+  return isValid(par) && (par % 1 === 0);
 }
 
 function generateOneRoomJson(roomid) {
