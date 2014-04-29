@@ -630,7 +630,7 @@ function showEndDialog(winner) {
 function terminateGame() {
   $('#cmdField').off("keypress");
   $("#leave").off("click");
-  if(blinkInterval !== undefined){
+  if(typeof blinkInterval !== 'undefined'){
     clearInterval(blinkInterval);
   }
   socket.removeListener('setPosition', setPosition);
