@@ -1,6 +1,6 @@
 #outerCanvas {
-    width: calc(100% - 250px);
-
+    width: calc(100% - 250px - 120px);
+    margin-left: 120px;
 }
 #canvas {
     margin: auto; 
