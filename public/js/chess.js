@@ -627,9 +627,9 @@ function showEndDialog(winner) {
 }
 
 function terminateGame() {
-  console.log('terminate');
   $('#cmdField').off("keypress");
   $("#leave").off("click");
+  clearInterval(blinkInterval);
   socket.removeListener('setPosition', setPosition);
   socket.removeListener('sendStatus', setStatus);
   stage.removeChildren();
