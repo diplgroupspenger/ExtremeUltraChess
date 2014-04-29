@@ -393,6 +393,7 @@ function addBoard(roomid) {
   }
   boards[('/' + roomid)] = newBoard;
   var turnTime = io.rooms[('/' + roomid)][1].details.turnTime;
+  console.log("TURNTIME: "+turnTime);
   boards[('/' + roomid)].turn = new Turn(turnTime);
 }
 
