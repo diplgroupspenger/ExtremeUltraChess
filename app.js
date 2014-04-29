@@ -33,7 +33,7 @@ var boards = {};
 
 io.sockets.on('connection', function(socket) {
   activeClients++;
-  
+
   socket.json.emit('syncRooms', generateAllRoomJson());
 
   socket.on('disconnect', function() {
@@ -278,7 +278,7 @@ function joinRoom(id, socket, pw) {
             socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
             connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
               io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
-              if (io.rooms[('/' + id)][1].details.colors.length == 0) {
+              if (io.rooms[('/' + id)][1].details.colors.length === 0) {
                 addBoard(id);
                 io.sockets. in (id).emit('startgame');
               }

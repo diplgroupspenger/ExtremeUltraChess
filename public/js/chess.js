@@ -54,7 +54,7 @@ function startgame(socket, color, time) {
 
 function updateCheckedTiles(checkedTiles) {
   myBoard.checkedTiles = checkedTiles;
-  drawCheckedTiles();
+  //drawCheckedTiles();
 }
 
 function setPosition(newPos, figureID, moved) {
@@ -151,7 +151,7 @@ function tryDrawBoard() {
 function setNextTurn() {
   turn.nextTurn();
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
-  drawCheckedTiles();
+  //drawCheckedTiles();
 }
 
 function removeFigure(pos) {
@@ -222,7 +222,7 @@ function resizeCanvas() {
   drawBoard();
   rotateBoardOffset();
   drawPossibleMoves();
-  drawCheckedTiles();
+  //drawCheckedTiles();
   redrawConvertion();
 }
 
