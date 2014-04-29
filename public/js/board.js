@@ -59,7 +59,7 @@ Board.prototype.initCheckedTiles = function(){
 	this.checkedTiles = [];
 	for(var y = 0; y < this.board.length; y++){
 		for (var x = 0; x < this.board.length; x++) {
-			if(typeof this.get(x, y) == "object"){
+			if(this.isFigure(x, y)){
 				this.pushByPosition(x, y);
 			}
 		}
@@ -82,17 +82,32 @@ Board.prototype.initCheckedTiles = function(){
 //};
 
 Board.prototype.pushByPosition = function(x, y){
-	var possibleMoves = this.get(x, y).possibleMoves(this);
+	var figure = this.get(x, y);
 	//console.log("posX: " + x + " posY: " + y);
 	//console.log("length: " + possibleMoves.length);
-	for(var i = 0; i < possibleMoves.length; i++){
-		var posX = possibleMoves[i].x;
-		var posY = possibleMoves[i].y;
-		var json = {x: posX, y: posY, figure: this.get(x, y)};
-		this.checkedTiles.push(json);
-		//if(typeof _.findWhere(this.checkedTiles, json) == "undefined"){
-		//
-		//}
+	if(figure.type !== FigureType.PAWN){
+		var possibleMoves = figure.possibleMoves(this);
+		for(var i = 0; i < possibleMoves.length; i++){
+			var posX = possibleMoves[i].x;
+			var posY = possibleMoves[i].y;
+			var json = {x: posX, y: posY, figure: figure};
+			this.checkedTiles.push(json);
+			//if(typeof _.findWhere(this.checkedTiles, json) == "undefined"){
+			//
+			//}
+		}
+	}
+	else{
+		var inFront = {x: figure.x + figure.inFront().x, y: figure.y + figure.inFront().y};
+		var leftFront =  {x: inFront.x + figure.left().x, y: inFront.y + figure.left().y};
+		var rightFront = {x: inFront.x + figure.right().x, y: inFront.y + figure.right().y};
+		var json1 = {x: leftFront.x, y: leftFront.y, figure: figure};
+		var json2 = {x: rightFront.x, y: rightFront.y, figure: figure};
+
+		if(this.isLegalTile(json1.x, json1.y) && this.get(json1.x, json1.y) !== -2)
+			this.checkedTiles.push(json1);
+		if(this.isLegalTile(json2.x, json2.y) && this.get(json2.x, json2.y) !== -2)
+			this.checkedTiles.push(json2);
 	}
 };
 
@@ -156,7 +171,7 @@ Board.prototype.getFigureAtPos = function(x,y){
 
 //true if there is a figure on the tile
 Board.prototype.isFigure = function(x, y){
-	if(this.board[y] !== undefined && this.board[y][x] !== undefined && this.board[y][x] !== -1 && this.board[y][x] !== -2)
+	if(this.board[y] !== undefined && typeof this.get(x, y) == "object")
 		return true;
 	else
 		return false;
@@ -194,7 +209,7 @@ Board.prototype.isEnPassant = function(){
         for(var x = 0; x < this.board.length; x++){
             if(this.isFigure(x, y)){
                 if(this.board[y][x].enPassant){
-                    var behind = {"x": x + this.board[y][x].behind().x, "y": y + this.board[y][x].behind().y};
+                    var behind = {x: x + this.board[y][x].behind().x, y: y + this.board[y][x].behind().y};
                     if(this.isEnemy(behind.x, behind.y)){
                         return true;
                     }

@@ -1,15 +1,45 @@
-function sublobby(socket, color) {
-  window.location = '#sublobby';
+function sublobby(socket, color, host, time) {
   socket.removeAllListeners('startgame');
   socket.removeAllListeners('more people');
   socket.removeAllListeners('subinit');
   socket.removeAllListeners('own user');
   socket.removeAllListeners('readychange');
+  socket.removeAllListeners('sendTurnTime');
+  socket.on('sendTurnTime', syncTime);
   socket.on('startgame', game);
   socket.on('more people', drawplayer);
   socket.on('subinit', subInit);
   socket.on('own user', drawplayer);
   socket.on('readychange', readychange);
+
+  var timeSpinner = $("input[name='turnTimeSpinner']");
+  var changeTime = _.debounce(onTimeChanged, 500);
+  if (socket.username === host) {
+    $(timeSpinner).attr('readonly', false);
+    $(timeSpinner).TouchSpin({
+      min: 10,
+      max: 300,
+      boostat: 5
+    });
+  } else {
+    $(timeSpinner).TouchSpin({
+      min: 10,
+      max: 300,
+      boostat: 5,
+      buttonup_class: "hidden",
+      buttondown_class: "hidden"
+    });
+  }
+  $(timeSpinner).val(time);
+  $("input[name='turnTimeSpinner']").on('change', changeTime);
+
+  function onTimeChanged() {
+    socket.emit('turnTimeChanged', $(timeSpinner).val());
+  }
+
+  function syncTime(time) {
+    $(timeSpinner).val(time);
+  }
 
   function subInit(data) {
     $('#players').html('');

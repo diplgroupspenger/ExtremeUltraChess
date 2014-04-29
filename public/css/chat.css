@@ -1,8 +1,22 @@
+.tab {
+	width: 50%;
+	text-align: center;
+}
+
+.nav>li>a{
+	padding: 2px 15px !important;
+}
+
+.nav-tabs > li.active > a,
+.nav-tabs > li.active > a:hover,
+.nav-tabs > li.active > a:focus {
+	background-color: #D3D3D3 !important;
+}
+
 #chat {
     bottom: 0; 
    	width: 250px;
    	height: 100%;
-   	overflow: hidden;
 }
 
 #chatTools {
@@ -12,14 +26,22 @@
 	width: 100%;
 }
 
+#generalInfo {
+	height: 40px;
+	margin: 5px;
+}
+
 #chatlog {
-	max-height: calc(100% - 30px);
+	max-height: calc(100% - 40px - 40px - 26px);
+	width: calc(100% - 10px);
+	bottom: 26px;
  	color: #76879b;
-    font-size: 10px;
-    overflow: scroll;
-    margin: 5px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0 5px 5px 5px;
     font-family: "Lucida Grande", Verdana, Helvetica, Arial, sans-serif;
     font-size: 11px;
+    position: absolute;
 }
 
 #msgInput {

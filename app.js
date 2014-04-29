@@ -32,6 +32,8 @@ var ignPossible = false;
 var boards = {};
 
 io.sockets.on('connection', function(socket) {
+  activeClients++;
+  
   socket.json.emit('syncRooms', generateAllRoomJson());
 
   socket.on('disconnect', function() {
@@ -51,7 +53,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('createroom', function(title, description, password) {
-    if (isValid(title) && isValid(description))
+    if (isValid(title) && isValid(description) && isValid(password))
       createRoom(title, description, password, socket);
   });
 
@@ -67,14 +69,16 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendMessage', function(text) {
-    console.log("notsent");
     if (!isBlank(text)) {
-      console.log("send");
       var name = socket.username;
       var room = getRoomFromSocket(socket);
       var roomName = room.substring(1);
       socket.broadcast.to(roomName).emit('setMessage', text, name);
     }
+  });
+
+  socket.on('getPlayerList', function() {
+    getTotalPlayerList(socket);
   });
 
   socket.on('getGame', function() {
@@ -83,8 +87,6 @@ io.sockets.on('connection', function(socket) {
   socket.on('getBoard', function() {
     console.log('GETBOARD');
     room = getRoomFromSocket(socket);
-    //console.log("room: " + room);
-    //console.log("board: " + boards[room]);
     socket.emit('sendStatus', boards[room].exportBoard(), boards[room].turn.exportTurn());
   });
   socket.on('getname', function(id) {
@@ -93,6 +95,8 @@ io.sockets.on('connection', function(socket) {
   });
   socket.on('newplayer', function(name) {
     newPerson(name, socket);
+    console.log('newPlayer');
+    updateTotalPlayerCount();
   });
   socket.on('leave', function() {
     leaveRoom(socket);
@@ -110,6 +114,16 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
+  socket.on('turnTimeChanged', function(time) {
+    var id = getRoomFromSocket(socket).substring(1);
+    var host = io.rooms[('/' + id)][1].details.owner;
+    console.log("host:"+host+" you:"+socket.username);
+    //TODO: check for host
+    if(isValidInt(time) && time >= 10 && time <= 300 && host == socket.username) {
+      io.rooms[('/' + id)][1].details.turnTime = time;
+      io.sockets. in(id).emit('sendTurnTime', time);
+    }
+  });
 
   socket.on('startgame', function() {
     var id = getRoomFromSocket(socket).substring(1);
@@ -142,6 +156,8 @@ function getName(id, socket) {
         });
         socket.username = result[0].name;
         socket.emit('name', result[0].name, id);
+        io.sockets.emit('updateCurPlayerCount', activeClients);
+        updateTotalPlayerCount();
       } else {
         socket.emit("error", {
           type: 'nameerror',
@@ -244,7 +260,10 @@ function joinRoom(id, socket, pw) {
       userdbPool.getConnection(function(err, connection) {
         connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
           if (result[0]) {
-            socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
+            var color = io.rooms[('/' + id)][1].details.colors[colornum];
+            var host = io.rooms[('/' + id)][1].details.owner;
+            var time = io.rooms[('/' + id)][1].details.turnTime;
+            socket.emit('roomjoined', color, host, time);
             io.sockets. in ('lobby').emit('popul inc', id);
             socket.emit('subinit', players);
             socket.emit('own user', {
@@ -294,6 +313,7 @@ function createRoom(title, description, password, socket) {
                   "title": title,
                   "description": description,
                   "owner": socket.id,
+                  "turnTime": 60,
                   "password": password
                 }
               });
@@ -350,6 +370,8 @@ function newPerson(name, socket) {
               if (err) throw err;
               socket.username = name;
               socket.emit('name', name, id);
+              io.sockets.emit('updateCurPlayerCount', activeClients);
+              io.sockets.emit('updateTotalPlayerCount', activeClients);
               connection.release();
             });
           }
@@ -370,11 +392,13 @@ function addBoard(roomid) {
     }
   }
   boards[('/' + roomid)] = newBoard;
-  boards[('/' + roomid)].turn = new Turn();
+  var turnTime = io.rooms[('/' + roomid)][1].details.turnTime;
+  boards[('/' + roomid)].turn = new Turn(turnTime);
 }
 
 function clientDisconnect(socket) {
-  activeClients -= 1;
+  activeClients--;
+  io.sockets.emit('updateCurPlayerCount', activeClients);
   io.sockets.emit('message', {
     clients: activeClients
   });
@@ -407,6 +431,30 @@ function leaveRoom(socket) {
   }
 }
 
+function updateTotalPlayerCount() {
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select COUNT(*) AS playerCount FROM users', function(err, result) {
+      if (err) throw err;
+      if(result[0]) {
+        console.log("updatetotalplayercount");
+        io.sockets.emit('updateTotalPlayerCount', result[0].playerCount);
+      }
+    });
+  });
+}
+
+function getTotalPlayerList(socket) {
+  userdbPool.getConnection(function(err, connection) {
+    connection.query('select name FROM users', function(err, result) {
+      if (err) throw err;
+      if(result[0]) {
+        console.log("playerlismethod: "+result);
+        socket.emit('sendTotalPlayerList', result);
+      }
+    });
+  });
+}
+
 //For checking if a string is blank, null or undefined
 function isBlank(str) {
   return (!str || /^\s*$/.test(str) || typeof str !== "string");
@@ -414,6 +462,10 @@ function isBlank(str) {
 
 function isValid(par) {
   return typeof par !== "undefined" && par !== null;
+}
+
+function isValidInt(par) {
+  return isValid(par) && (par % 1 === 0);
 }
 
 function generateOneRoomJson(roomid) {

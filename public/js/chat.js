@@ -3,7 +3,9 @@ function initChat(socket) {
     var text = $('#msgInput').val();
     if (validText(text)) {
       setText(text, socket.username);
-      socket.emit('sendMessage', text);
+      if(!isCommand(text)) {
+        socket.emit('sendMessage', text);
+      }
     }
     $('#msgInput').val('');
   });
@@ -17,17 +19,33 @@ function initChat(socket) {
   socket.on('setMessage', function(text, user) {
     setText(text, user);
   });
+
+  socket.on('updateTotalPlayerCount', function(count) {
+    $('#totalPlayerCount').text('Total players: ' + count);
+  });
+
+  socket.on('updateCurPlayerCount', function(count) {
+    console.log('updatecurplayercont '+count);
+    $('#curPlayerCount').text('Current online: ' + count);
+  });
+
+  socket.on('sendTotalPlayerList', function(list) {
+    console.log(list);
+    var string = [];
+    $.each(list, function(key, val) {
+      string.push(val.name);
+    });
+    setText(string.join(','),'Server');
+  });
 }
 
 function setText(text, user) {
-  console.log("Name: " + user);
- //$('#chatlog').append(getTime() + " " + user + ": " + text + "<br/>");
-  //$('#chatlog').append("<div><span>"+getTime() + "</span>" + $('<span>').text("user") + ":" + $('<span>').text(text) + "<br/></div>");
   var $msg = $('<div>');
   $msg.append($('<span>').text(getTime()+" "));
-  $msg.append($('<span>').text(user+":"));
-  $msg.append($('<span>').text(text+" "));
+  $msg.append($('<span>').text(user+": "));
+  $msg.append($('<span style="max-width: 100%; word-wrap: break-word;">').text(text+""));
   $('#chatlog').append($msg);
+  var heightoffset = $('#generalInfo').height() + $('.tab').height();
   $('#chatlog').scrollTop($('#chatlog')[0].scrollHeight);
 }
 
@@ -40,6 +58,15 @@ function validText(str) {
 
 function isBlank(str) {
   return (!str || /^\s*$/.test(str));
+}
+
+function isCommand(str) {
+  if(str === "/userlist"){
+    socket.emit('getPlayerList');
+    return true;
+  } 
+
+  return false;
 }
 
 function getTime() {

@@ -30,17 +30,22 @@ function lobby(socket) {
     socket.on('message', function(data) {
       console.log(data);
     });
-    socket.on('roomcreated', function(newRoom) {
-      console.log(newRoom);
-      opengames.push(newRoom);
-      drawroom(newRoom);
+    socket.on('name', function(name, id) {
+      myname = name;
+      socket.username = name;
+      localStorage.id = id;
+      $('#name').text(myname);
+      $('#name-dialog').dialog('close');
+      $('#nameerror').text('');
+      initChat(socket);
+      initRules();
     });
     socket.on('popul inc', function(id) {
       $('#' + id + 'count').text(parseInt($('#' + id + 'count').text()) + 1);
     });
-    socket.on('roomjoined', function(color) {
+    socket.on('roomjoined', function(color, host, time) {
       $("#open-dialog").dialog("close");
-      toSublobby(socket, color);
+      toSublobby(socket, color, host, time);
     });
     socket.on('roomclosed', function(id) {
       $('#' + id).remove();
@@ -57,7 +62,7 @@ function lobby(socket) {
     var newroom = "<li id='li" + room.id +
       "' class='room'><span class='title'></span><span class='usercount'><span id='" +
       room.id + "count'></span>/4</span><br/><span class='description'></span><span class='owner'>" +
-      room.owner + "</span><div class='details'><button class='join' id=" +
+      room.owner + "</span><div class='details'><button class='join btn btn-success btn-xs' id=" +
       room.id + ">join</button>";
     if (room.needpw) {
       newroom = newroom + "<input placeholder='Password' class='joinpw' type='password' id='pw" +

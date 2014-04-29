@@ -2,14 +2,18 @@ TILE_SIZE = 50;
 TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
 
+//check if window has focus
+var focus = true;
+
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
 var curPossibleMoves = [];
+var curForbiddenMoves = [];
 //DEBUG
 var turnOn = true;
 var ignPossible = false;
 
-function startgame(socket, color) {
+function startgame(socket, color, time) {
   //DEBUG
   $('#cmdField').on("keypress", function(e) {
     if (e.keyCode == 13) {
@@ -22,6 +26,14 @@ function startgame(socket, color) {
     .click(function() {
       terminateGame();
     });
+
+  $(window).focus(function() {
+    focus = true;
+  });
+
+  $(window).blur(function() {
+    focus = false;
+  });
 
   socket.on('setPosition', setPosition);
   socket.on('sendStatus', setStatus);
@@ -66,6 +78,7 @@ function setPosition(newPos, figureID, moved) {
   //figureList[figureID].setPosition(newPos.x * TILE_SIZE , newPos.y * TILE_SIZE);
   figureList[figureID].setX(newPos.x * TILE_SIZE);
   figureList[figureID].setY(newPos.y * TILE_SIZE);
+
   if (oldPos.x !== newPos.x || oldPos.y !== newPos.y)
     myBoard.moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
 
@@ -88,7 +101,7 @@ function setPosition(newPos, figureID, moved) {
 
 function setStatus(serverBoard, exportedTurn) {
   myBoard = new Board(serverBoard);
-  turn = new Turn(cdCallback, turnCallback, exportedTurn);
+  turn = new Turn(null, cdCallback, turnCallback, exportedTurn);
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
   tryDrawBoard();
 }
@@ -110,6 +123,20 @@ function cdCallback() {
 function turnCallback() {
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
   $('#timeCounter').text(turn.curSeconds + '');
+  if (player == turn.curPlayer.color && !focus) {
+    blinkInterval = setInterval(blinkTitle, 250);
+  }
+}
+
+function blinkTitle() {
+  if (focus) {
+    document.title = "chess";
+    clearInterval(blinkInterval);
+  } else {
+    console.log("blinkyblink");
+    var curTitle = document.title;
+    document.title = (curTitle == "chess (!)" ? "chess ( )" : "chess (!)");
+  }
 }
 
 function tryDrawBoard() {
@@ -186,6 +213,7 @@ function resizeCanvas() {
   figureLayer.removeChildren();
   moveLayer.removeChildren();
   curPossibleMoves = [];
+  curForbiddenMoves = [];
   drawBoard();
   rotateBoardOffset();
   drawPossibleMoves();
@@ -236,16 +264,16 @@ function initCanvas() {
   //board tiles
   boardLayer = new Kinetic.Layer(); //background layer for the chessboard
   moveLayer = new Kinetic.Layer(); //where the figures can go to
+  figureLayer = new Kinetic.Layer(); //layer for figures
   //debugging layer
   checkedTilesLayer = new Kinetic.Layer();
-  figureLayer = new Kinetic.Layer(); //layer for figures
   foreGroundLayer = new Kinetic.Layer(); //layer on the top, pawn convertion and ui
 
   stage.add(boardLayer);
   stage.add(moveLayer);
+  stage.add(figureLayer);
   //debugging layer
   stage.add(checkedTilesLayer);
-  stage.add(figureLayer);
   stage.add(foreGroundLayer);
 
   drawBoard();
@@ -339,7 +367,6 @@ function drawFigure(x, y, playerColor) {
     //if (((player === turn.curPlayer.color && figureColor === player) && !lockFigures) || !turnOn && (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible)) {
     if ((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
       myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures) {
-      console.log(ignPossible);
       setPosition(newPos, figureID, false);
       socket.emit('sendPosition', oldPos, newPos, figureID, player);
     } else {
@@ -351,11 +378,13 @@ function drawFigure(x, y, playerColor) {
   });
 }
 
-function drawPossibleMoves() {
+function drawPossibleMoves(isKing) {
   moveLayer.removeChildren();
+  var x, y;
+
   for (var i = 0; i < curPossibleMoves.length; i++) {
-    var x = curPossibleMoves[i].x;
-    var y = curPossibleMoves[i].y;
+    x = curPossibleMoves[i].x;
+    y = curPossibleMoves[i].y;
 
     var rect = new Kinetic.Rect({
       x: x * TILE_SIZE,
@@ -368,20 +397,66 @@ function drawPossibleMoves() {
       shadowColor: colorToString(player),
       shadowBlur: 20
     });
+
     moveLayer.add(rect);
+
   }
+
+  if (isKing) {
+    console.log("forbiddenLENGTH: " + curForbiddenMoves.length);
+    for (i = 0; i < curForbiddenMoves.length; i++) {
+      x = curForbiddenMoves[i].x;
+      y = curForbiddenMoves[i].y;
+
+      var topLeftX = x * TILE_SIZE + TILE_SIZE * 0.2;
+      var topLeftY = y * TILE_SIZE + TILE_SIZE * 0.2;
+
+      var topRightX = x * TILE_SIZE + TILE_SIZE * 0.8;
+      var topRightY = y * TILE_SIZE + TILE_SIZE * 0.2;
+
+      var bottomLeftX = x * TILE_SIZE + TILE_SIZE * 0.2;
+      var bottomLeftY = y * TILE_SIZE + TILE_SIZE * 0.8;
+
+      var bottomRightX = x * TILE_SIZE + TILE_SIZE * 0.8;
+      var bottomRightY = y * TILE_SIZE + TILE_SIZE * 0.8;
+
+      var crossLine1 = new Kinetic.Line({
+        points: [topLeftX, topLeftY, bottomRightX, bottomRightY],
+        stroke: 'red',
+        strokeWidth: TILE_SIZE * 0.1,
+        lineCap: 'round',
+        lineJoin: 'round',
+        shadowColor: 'red',
+        shadowBlur: 10
+      });
+
+      var crossLine2 = new Kinetic.Line({
+        points: [bottomLeftX, bottomLeftY, topRightX, topRightY],
+        stroke: 'red',
+        strokeWidth: TILE_SIZE * 0.1,
+        lineCap: 'round',
+        lineJoin: 'round',
+        shadowColor: 'red',
+        shadowBlur: 10
+      });
+
+      moveLayer.add(crossLine1);
+      moveLayer.add(crossLine2);
+    }
+  }
+
+
 
   moveLayer.draw();
 }
 
+
 //debugging function
 function drawCheckedTiles() {
   checkedTilesLayer.removeChildren();
-  console.log("drawCheckedTILES BITCH");
-  console.log("checkedTILES-length: " + curPossibleMoves.length);
   for (var i = 0; i < myBoard.checkedTiles.length; i++) {
-    var posX = myBoard.checkedTiles[i].posX;
-    var posY = myBoard.checkedTiles[i].posY;
+    var posX = myBoard.checkedTiles[i].x;
+    var posY = myBoard.checkedTiles[i].y;
     var color = myBoard.checkedTiles[i].figure.color;
 
     var dot = new Kinetic.Circle({
@@ -454,6 +529,7 @@ function boardClicked(e) {
   var nodePos = e.targetNode.getPosition();
   var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
+  /*
   var moveLayerChildren = moveLayer.getChildren();
   var i = 0;
   for (i = 0; i < moveLayerChildren.length; i++) {
@@ -477,11 +553,19 @@ function boardClicked(e) {
       return;
     }
   }
+  */
+
 
   if (myBoard.isFigure(tilePos.x, tilePos.y)) {
     if ((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) || !turnOn) {
-      curPossibleMoves = myBoard.board[tilePos.y][tilePos.x].possibleMoves(myBoard);
-      drawPossibleMoves();
+      var figure = myBoard.get(tilePos.x, tilePos.y);
+      curPossibleMoves = figure.possibleMoves(myBoard);
+      if (figure.type === FigureType.KING) {
+        curForbiddenMoves = figure.forbiddenMoves(myBoard);
+        drawPossibleMoves(true);
+      } else {
+        drawPossibleMoves();
+      }
       moveLayer.currentFigure = e.targetNode;
     }
   }
