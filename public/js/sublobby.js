@@ -23,9 +23,6 @@ function sublobby(socket, color, host, time) {
     });
   } else {
     $(timeSpinner).TouchSpin({
-      min: 10,
-      max: 300,
-      boostat: 5,
       buttonup_class: "hidden",
       buttondown_class: "hidden"
     });

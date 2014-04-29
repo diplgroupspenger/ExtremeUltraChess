@@ -100,6 +100,7 @@ function setPosition(newPos, figureID, moved) {
 }
 
 function setStatus(serverBoard, exportedTurn) {
+  console.log("TurnTIME:" +exportedTurn.turnTime);
   myBoard = new Board(serverBoard);
   turn = new Turn(null, cdCallback, turnCallback, exportedTurn);
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
@@ -619,7 +620,6 @@ function getBoardColor(x, y) {
 }
 
 function showEndDialog(winner) {
-  console.log(winner);
   bootbox.alert("Winner: " + colorToString(winner), function() {
     terminateGame();
   });
@@ -628,7 +628,9 @@ function showEndDialog(winner) {
 function terminateGame() {
   $('#cmdField').off("keypress");
   $("#leave").off("click");
-  clearInterval(blinkInterval);
+  if(blinkInterval !== undefined){
+    clearInterval(blinkInterval);
+  }
   socket.removeListener('setPosition', setPosition);
   socket.removeListener('sendStatus', setStatus);
   stage.removeChildren();
