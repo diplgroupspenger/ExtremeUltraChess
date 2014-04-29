@@ -1,6 +1,7 @@
 var Board = function(importedBoard){
 	var x = 0;
 	var y = 0;
+	this.isVirtual = false;
 	//-2 > No tile drawn // -1 > No figure on tile
 	//stadart constructor if no board is imported
 	if(typeof importedBoard === "undefined") {
@@ -51,6 +52,13 @@ var Board = function(importedBoard){
 
 	this.checkedTiles = [];
 
+};
+
+Board.prototype.createVirtualBoard = function(kingX, kingY){
+	var virtualBoard = new Board(this.exportBoard());
+	virtualBoard.set(kingX, kingY, -1);
+	virtualBoard.isVirtual = true;
+	return virtualBoard;
 };
 
 //calculates the checked tiles of all figures on the board
@@ -113,7 +121,7 @@ Board.prototype.pushByPosition = function(x, y){
 
 Board.prototype.exportBoard = function (){
 	var newBoard = [];
-	for(var i=0; i < this.board.length;i++){
+	for(var i = 0; i < this.board.length;i++){
 		newBoard.push([]);
 	}
 
@@ -132,6 +140,10 @@ Board.prototype.exportBoard = function (){
 
 Board.prototype.get = function(x, y){
 	return this.board[y][x];
+};
+
+Board.prototype.set = function(x, y, value){
+	this.board[y][x] = value;
 };
 
 //true if the tile is in bounds of the board

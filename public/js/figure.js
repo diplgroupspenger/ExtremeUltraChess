@@ -188,7 +188,7 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
 };
 
 Figure.prototype.addB0ssMoves = function(positions, myBoard){
-    tmpPositions = [];
+    var tmpPositions = [];
     this.addPossibleDiagonalMoves(tmpPositions, 2, myBoard);
     this.addPossibleYandXaxisMoves(tmpPositions, 2, myBoard);
 
@@ -210,13 +210,15 @@ Figure.prototype.addB0ssMoves = function(positions, myBoard){
 
 };
 
-Figure.prototype.getForbiddenB0ssIndexes = function(positions, myBoard){
+Figure.prototype.getForbiddenB0ssIndexes = function(positions, virtualBoard){
     var forbiddenIndexes = [];
 
-    for(var i = 0; i < myBoard.checkedTiles.length; i++){
+    for(var i = 0; i < virtualBoard.checkedTiles.length; i++){
         for(var j = 0; j < positions.length; j++){
-            if(myBoard.checkedTiles[i].figure.color !== this.color && positions[j].x === myBoard.checkedTiles[i].x &&
-               positions[j].y === myBoard.checkedTiles[i].y){
+            if(virtualBoard.checkedTiles[i].figure.color !== this.color &&
+               positions[j].x === virtualBoard.checkedTiles[i].x &&
+               positions[j].y === virtualBoard.checkedTiles[i].y){
+
                 forbiddenIndexes.push(j);
             }
         }
@@ -225,12 +227,24 @@ Figure.prototype.getForbiddenB0ssIndexes = function(positions, myBoard){
 };
 
 Figure.prototype.forbiddenMoves = function(myBoard){
+    var virtualBoard = myBoard;
+
+    if(myBoard.isVirtual){
+        virtualBoard = myBoard;
+    }
+    else{
+        virtualBoard = myBoard.createVirtualBoard(this.x, this.y);
+        virtualBoard.initCheckedTiles();
+        console.log(myBoard);
+        console.log(virtualBoard);
+    }
+
     var positions = [];
     this.addPossibleDiagonalMoves(positions, 2, myBoard);
     this.addPossibleYandXaxisMoves(positions, 2, myBoard);
 
     var forbiddenMoves = [];
-    var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, myBoard);
+    var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, virtualBoard);
     for(var i = 0; i < forbiddenIndexes.length; i++){
         forbiddenMoves.push(positions[forbiddenIndexes[i]]);
     }

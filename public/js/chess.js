@@ -2,8 +2,8 @@ TILE_SIZE = 50;
 TOTAL_HEIGHT = 0;
 TOTAL_WIDTH = 0;
 
-//check if window has focus
-var focus = true;
+//check if window has focussed
+var focussed = true;
 
 //lockFigures while waiting to convertPawn
 var lockFigures = false;
@@ -28,11 +28,11 @@ function startgame(socket, color, time) {
     });
 
   $(window).focus(function() {
-    focus = true;
+    focussed = true;
   });
 
   $(window).blur(function() {
-    focus = false;
+    focussed = false;
   });
 
   socket.on('setPosition', setPosition);
@@ -123,13 +123,13 @@ function cdCallback() {
 function turnCallback() {
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
   $('#timeCounter').text(turn.curSeconds + '');
-  if (player == turn.curPlayer.color && !focus) {
+  if (player == turn.curPlayer.color && !focussed) {
     blinkInterval = setInterval(blinkTitle, 250);
   }
 }
 
 function blinkTitle() {
-  if (focus) {
+  if (focussed) {
     document.title = "chess";
     clearInterval(blinkInterval);
   } else {
@@ -575,8 +575,8 @@ function boardClicked(e) {
 //get tile coordinates from total coordinates
 function getTileFromPosRound(x, y) {
   var position = {
-    'x': Math.round(x / TILE_SIZE),
-    'y': Math.round(y / TILE_SIZE)
+    x: Math.round(x / TILE_SIZE),
+    y: Math.round(y / TILE_SIZE)
   };
   return position;
 }
@@ -596,8 +596,8 @@ function getFigureFromSpritesheet(figure) {
     y = 3;
 
   var position = {
-    'x': x * 50,
-    'y': y * 50
+    x: x * 50,
+    y: y * 50
   };
   return position;
 }
