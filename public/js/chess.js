@@ -59,8 +59,8 @@ function updateCheckedTiles(checkedTiles) {
 
 function setPosition(newPos, figureID, moved) {
   var oldPos = {
-    "x": figureList[figureID].figure.x,
-    "y": figureList[figureID].figure.y
+    x: figureList[figureID].figure.x,
+    y: figureList[figureID].figure.y
   };
 
   //remove figure if captured
@@ -154,6 +154,10 @@ function setNextTurn() {
 }
 
 function removeFigure(pos) {
+  if(myBoard.isFigure(pos.x, pos.y) &&
+     myBoard.get(pos.x, pos.y).type === FigureType.KING){
+
+  }
   myBoard.board[pos.y][pos.x] = -1;
   for (var i = 0; i < figureList.length; i++) {
     if (figureList[i].figure.x === pos.x && figureList[i].figure.y === pos.y) {
@@ -529,7 +533,7 @@ function boardClicked(e) {
   var nodePos = e.targetNode.getPosition();
   var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
-  /*
+
   var moveLayerChildren = moveLayer.getChildren();
   var i = 0;
   for (i = 0; i < moveLayerChildren.length; i++) {
@@ -538,23 +542,21 @@ function boardClicked(e) {
       var clickedFigure = moveLayer.currentFigure;
       var figureID = figureList.indexOf(clickedFigure);
       var oldPos = {
-        'x': clickedFigure.figure.x,
-        'y': clickedFigure.figure.y
+        x: clickedFigure.figure.x,
+        y: clickedFigure.figure.y
       };
       console.log("oldPos: " + oldPos.x + " oldPosy: " + oldPos.y + " newX: " + tilePos.x + " newY:" + tilePos.y);
       socket.emit('sendPosition', {
-        "x": oldPos.x,
-        "y": oldPos.y
+        x: oldPos.x,
+        y: oldPos.y
       }, {
-        "x": tilePos.x,
-        "y": tilePos.y
+        x: tilePos.x,
+        y: tilePos.y
       }, figureID, player);
       moveLayer.draw();
       return;
     }
   }
-  */
-
 
   if (myBoard.isFigure(tilePos.x, tilePos.y)) {
     if ((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) || !turnOn) {
