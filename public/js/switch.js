@@ -84,13 +84,13 @@ function toGame(socket, color) {
   $('#lobby').hide();
   $('#sublobby').hide();
   $('#game').show();
-  $('#list1').val('');
-  //$('#chat').hide();
+  $('#list1').text('');
   $('#chatlog').empty();
   startgame(socket, color);
 }
 
 function toSublobby(socket, color) {
+  $('#players').val('');
   $('#lobby').hide();
   $('#game').hide();
   $('#chat').show();
@@ -98,7 +98,7 @@ function toSublobby(socket, color) {
   sublobby(socket, color);
 }
 
-function toLobby() {
+function toLobby(socket) {
   $('#game').hide();
   $('#sublobby').hide();
   $('#chat').show();

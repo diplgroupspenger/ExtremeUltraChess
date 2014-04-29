@@ -89,6 +89,7 @@ io.sockets.on('connection', function(socket) {
   });
   socket.on('getname', function(id) {
     getName(id, socket);
+    socket.emit('message', socket.id);
   });
   socket.on('newplayer', function(name) {
     newPerson(name, socket);
@@ -116,6 +117,17 @@ io.sockets.on('connection', function(socket) {
     io.sockets. in (id).emit('startgame');
   });
 
+  socket.on('readychange', function(checked) {
+    var room = getRoomFromSocket(socket).substring(1);
+    for (var i = 0; i < io.sockets.clients(room).length; i++) {
+      if (io.sockets.clients(room)[i].id == socket.id) {
+        socket.broadcast.to(room).emit('readychange', {
+          'playercolor': io.sockets.clients(room)[i].color,
+          'checked': checked
+        });
+      }
+    }
+  });
 
 });
 
@@ -213,6 +225,15 @@ function joinRoom(id, socket, pw) {
   if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
     var availableColors = io.rooms[('/' + id)][1].details.colors.length;
     if (availableColors > 0) {
+      var players = [];
+      for (i = 0; i < io.sockets.clients(id).length; i++) {
+        if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color && io.sockets.clients(id)[i].id !== socket.id) {
+          players.push({
+            'name': io.sockets.clients(id)[i].username,
+            'color': io.sockets.clients(id)[i].color
+          });
+        }
+      }
       socket.leave('lobby');
       socket.join(id);
 
@@ -225,21 +246,17 @@ function joinRoom(id, socket, pw) {
           if (result[0]) {
             socket.emit('roomjoined', io.rooms[('/' + id)][1].details.colors[colornum]);
             io.sockets. in ('lobby').emit('popul inc', id);
-            io.sockets. in (id).emit('more people', {
+            socket.emit('subinit', players);
+            socket.emit('own user', {
+              'name': socket.username,
+              'color': io.rooms[('/' + id)][1].details.colors[colornum],
+              'own': true
+            });
+            socket.broadcast.to(id).emit('more people', {
               'name': socket.username,
               'color': io.rooms[('/' + id)][1].details.colors[colornum]
             });
             socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
-            var players = [];
-            for (i = 0; i < io.sockets.clients(id).length; i++) {
-              if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color) {
-                players.push({
-                  'name': io.sockets.clients(id)[i].username,
-                  'color': io.sockets.clients(id)[i].color
-                });
-              }
-            }
-            socket.emit('subinit', players);
             connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
               io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
               if (io.rooms[('/' + id)][1].details.colors.length == 0) {
@@ -271,7 +288,6 @@ function createRoom(title, description, password, socket) {
             if (idresult[0][0].id) {
               roomid = idresult[0][0].id;
               socket.join(roomid);
-
               io.rooms[('/' + roomid)].push({
                 "details": {
                   "id": roomid,
@@ -285,6 +301,7 @@ function createRoom(title, description, password, socket) {
 
               io.rooms[('/' + roomid)][1].details.owner = result[0].name;
               joinRoom(roomid, socket, password);
+              //socket.leave(roomid);
               io.sockets. in ('lobby').emit('roomcreated', generateOneRoomJson(roomid));
               roomid++;
               connection.release();
@@ -364,7 +381,7 @@ function clientDisconnect(socket) {
 }
 
 function leaveRoom(socket) {
-  userdbPool.getConnection(function(err, connection) {
+  /*userdbPool.getConnection(function(err, connection) {
     connection.query('select * from roomusers where user=(select id from users where socket=?)', [socket.id], function(err, result) {
       if (result[0]) {
         if (io.rooms[('/' + result[0].room)].length == 2) {
@@ -377,7 +394,17 @@ function leaveRoom(socket) {
       }
       connection.release();
     });
-  });
+  });*/
+  var room = getRoomFromSocket(socket).substring(1);
+  if (room) {
+    if (io.rooms[('/' + room)].length == 2) {
+      io.sockets. in ('lobby').emit('roomclosed', room);
+    }
+    socket.emit('message', room);
+    socket.leave('' + room);
+    socket.join('lobby');
+    socket.json.emit('syncRooms', generateAllRoomJson());
+  }
 }
 
 //For checking if a string is blank, null or undefined

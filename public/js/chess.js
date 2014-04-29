@@ -40,7 +40,7 @@ function startgame(socket, color) {
   $(window).resize(lazyLayout);
 }
 
-function updateCheckedTiles(checkedTiles){
+function updateCheckedTiles(checkedTiles) {
   myBoard.checkedTiles = checkedTiles;
   drawCheckedTiles();
 }
@@ -97,12 +97,11 @@ function setStatus(serverBoard, exportedTurn) {
 function cdCallback() {
   checkForGameEnd();
   $('#timeCounter').text(turn.curSeconds + '');
-  if(turn.extraSeconds) {
+  if (turn.extraSeconds) {
     $('#timeCounter').addClass('blink');
-    if(player == turn.curPlayer.color)
+    if (player == turn.curPlayer.color)
       $('#timeOutMessage').show();
-  }
-  else {
+  } else {
     $('#timeCounter').removeClass('blink');
     $('#timeOutMessage').hide();
   }
@@ -139,7 +138,7 @@ function removeFigure(pos) {
 }
 
 function checkForGameEnd() {
-  if(turn.getDeadPlayer() >= 3)
+  if (turn.getDeadPlayer() >= 3)
     showEndDialog(turn.getWinner());
 }
 
@@ -338,8 +337,8 @@ function drawFigure(x, y, playerColor) {
     var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
     //if (((player === turn.curPlayer.color && figureColor === player) && !lockFigures) || !turnOn && (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible)) {
-    if((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
-      myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures){
+    if ((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
+      myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures) {
       console.log(ignPossible);
       setPosition(newPos, figureID, false);
       socket.emit('sendPosition', oldPos, newPos, figureID, player);
@@ -376,11 +375,11 @@ function drawPossibleMoves() {
 }
 
 //debugging function
-function drawCheckedTiles(){
+function drawCheckedTiles() {
   checkedTilesLayer.removeChildren();
   console.log("drawCheckedTILES BITCH");
   console.log("checkedTILES-length: " + curPossibleMoves.length);
-  for(var i = 0; i < myBoard.checkedTiles.length; i++){
+  for (var i = 0; i < myBoard.checkedTiles.length; i++) {
     var posX = myBoard.checkedTiles[i].posX;
     var posY = myBoard.checkedTiles[i].posY;
     var color = myBoard.checkedTiles[i].figure.color;
@@ -536,7 +535,7 @@ function getBoardColor(x, y) {
 
 function showEndDialog(winner) {
   console.log(winner);
-  bootbox.alert("Winner: "+colorToString(winner), function() {
+  bootbox.alert("Winner: " + colorToString(winner), function() {
     terminateGame();
   });
 }
@@ -552,7 +551,7 @@ function terminateGame() {
   stage = null;
   turn.terminate();
   $("#canvas").empty();
-  toLobby();
+  toLobby(socket);
   socket.emit('leave');
   socket.emit('getGame');
 }
