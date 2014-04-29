@@ -535,12 +535,14 @@ function boardClicked(e) {
   if (myBoard.isFigure(tilePos.x, tilePos.y)) {
     if ((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) || !turnOn) {
       var figure = myBoard.get(tilePos.x, tilePos.y);
-      curPossibleMoves = figure.possibleMoves(myBoard);
+
       if(figure.type === FigureType.KING){
         curForbiddenMoves = figure.forbiddenMoves(myBoard);
+        curPossibleMoves = figure.possibleMoves(myBoard);
         drawPossibleMoves(true);
       }
       else{
+        curPossibleMoves = figure.possibleMoves(myBoard);
         drawPossibleMoves();
       }
       moveLayer.currentFigure = e.targetNode;

@@ -177,8 +177,8 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
             return false;
         }
         positions.push({
-            "x": xtmp,
-            "y": ytmp
+            x: xtmp,
+            y: ytmp
         });
         if (myBoard.isEnemy(xtmp, ytmp, this.color)) {
             return false;
@@ -188,15 +188,26 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
 };
 
 Figure.prototype.addB0ssMoves = function(positions, myBoard){
-    this.addPossibleDiagonalMoves(positions, 2, myBoard);
-    this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+    tmpPositions = [];
+    this.addPossibleDiagonalMoves(tmpPositions, 2, myBoard);
+    this.addPossibleYandXaxisMoves(tmpPositions, 2, myBoard);
 
-    var forbiddenMoves = this.forbiddenMoves(myBoard, positions);
+    var forbiddenMoves = this.forbiddenMoves(myBoard);
 
-    for(var i = 0; i < forbiddenMoves.length; i++){
-        index = positions.indexOf(forbiddenMoves[i]);
-        positions.splice(index, 1);
+    var isPossible = true;
+    for(var i = 0; i < tmpPositions.length; i++){
+        for(var j = 0; j < forbiddenMoves.length; j++){
+            if(tmpPositions[i].x === forbiddenMoves[j].x &&
+               tmpPositions[i].y === forbiddenMoves[j].y){
+                isPossible = false;
+            }
+        }
+        if(isPossible){
+            positions.push(tmpPositions[i]);
+        }
+        isPossible = true;
     }
+
 };
 
 Figure.prototype.getForbiddenB0ssIndexes = function(positions, myBoard){
@@ -213,12 +224,10 @@ Figure.prototype.getForbiddenB0ssIndexes = function(positions, myBoard){
     return forbiddenIndexes;
 };
 
-Figure.prototype.forbiddenMoves = function(myBoard, positions){
-    if(positions === undefined){
-        positions = [];
-        this.addPossibleDiagonalMoves(positions, 2, myBoard);
-        this.addPossibleYandXaxisMoves(positions, 2, myBoard);
-    }
+Figure.prototype.forbiddenMoves = function(myBoard){
+    var positions = [];
+    this.addPossibleDiagonalMoves(positions, 2, myBoard);
+    this.addPossibleYandXaxisMoves(positions, 2, myBoard);
 
     var forbiddenMoves = [];
     var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, myBoard);
