@@ -177,8 +177,8 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
             return false;
         }
         positions.push({
-            "x": xtmp,
-            "y": ytmp
+            x: xtmp,
+            y: ytmp
         });
         if (myBoard.isEnemy(xtmp, ytmp, this.color)) {
             return false;
@@ -188,24 +188,37 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
 };
 
 Figure.prototype.addB0ssMoves = function(positions, myBoard){
-    this.addPossibleDiagonalMoves(positions, 2, myBoard);
-    this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+    var tmpPositions = [];
+    this.addPossibleDiagonalMoves(tmpPositions, 2, myBoard);
+    this.addPossibleYandXaxisMoves(tmpPositions, 2, myBoard);
 
-    var forbiddenMoves = this.forbiddenMoves(myBoard, positions);
+    var forbiddenMoves = this.forbiddenMoves(myBoard);
 
-    for(var i = 0; i < forbiddenMoves.length; i++){
-        index = positions.indexOf(forbiddenMoves[i]);
-        positions.splice(index, 1);
+    var isPossible = true;
+    for(var i = 0; i < tmpPositions.length; i++){
+        for(var j = 0; j < forbiddenMoves.length; j++){
+            if(tmpPositions[i].x === forbiddenMoves[j].x &&
+               tmpPositions[i].y === forbiddenMoves[j].y){
+                isPossible = false;
+            }
+        }
+        if(isPossible){
+            positions.push(tmpPositions[i]);
+        }
+        isPossible = true;
     }
+
 };
 
-Figure.prototype.getForbiddenB0ssIndexes = function(positions, myBoard){
+Figure.prototype.getForbiddenB0ssIndexes = function(positions, virtualBoard){
     var forbiddenIndexes = [];
 
-    for(var i = 0; i < myBoard.checkedTiles.length; i++){
+    for(var i = 0; i < virtualBoard.checkedTiles.length; i++){
         for(var j = 0; j < positions.length; j++){
-            if(myBoard.checkedTiles[i].figure.color !== this.color && positions[j].x === myBoard.checkedTiles[i].x &&
-               positions[j].y === myBoard.checkedTiles[i].y){
+            if(virtualBoard.checkedTiles[i].figure.color !== this.color &&
+               positions[j].x === virtualBoard.checkedTiles[i].x &&
+               positions[j].y === virtualBoard.checkedTiles[i].y){
+
                 forbiddenIndexes.push(j);
             }
         }
@@ -213,15 +226,25 @@ Figure.prototype.getForbiddenB0ssIndexes = function(positions, myBoard){
     return forbiddenIndexes;
 };
 
-Figure.prototype.forbiddenMoves = function(myBoard, positions){
-    if(positions === undefined){
-        positions = [];
-        this.addPossibleDiagonalMoves(positions, 2, myBoard);
-        this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+Figure.prototype.forbiddenMoves = function(myBoard){
+    var virtualBoard = myBoard;
+
+    if(myBoard.isVirtual){
+        virtualBoard = myBoard;
+    }
+    else{
+        virtualBoard = myBoard.createVirtualBoard(this.x, this.y);
+        virtualBoard.initCheckedTiles();
+        console.log(myBoard);
+        console.log(virtualBoard);
     }
 
+    var positions = [];
+    this.addPossibleDiagonalMoves(positions, 2, myBoard);
+    this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+
     var forbiddenMoves = [];
-    var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, myBoard);
+    var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, virtualBoard);
     for(var i = 0; i < forbiddenIndexes.length; i++){
         forbiddenMoves.push(positions[forbiddenIndexes[i]]);
     }
