@@ -17,15 +17,10 @@ function lobby(socket) {
     }
   });
   socket.on('connect ack', function() {
-    socket.on('name', function(name, id) {
-      myname = name;
-      socket.username = name;
-      localStorage.id = id;
-      console.log(localStorage.id);
-      $('#name').text(myname);
-      $('#name-dialog').dialog('close');
-      $('#nameerror').text('');
-      initChat(socket);
+    socket.on('roomcreated', function(newRoom) {
+      console.log(newRoom);
+      opengames.push(newRoom);
+      drawroom(newRoom);
     });
     socket.on('message', function(data) {
       console.log(data);

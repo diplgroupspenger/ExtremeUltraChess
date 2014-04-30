@@ -63,6 +63,8 @@ Turn.prototype.nextTurn = function() {
         this.curPlayer = this.player.WHITE;
     }
 
+    console.log("TURN PLAYER:"+this.curPlayer.color);
+
     if (this.curPlayer.dead)
         this.nextTurn();
 
