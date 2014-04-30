@@ -6,6 +6,14 @@ body {
   background-size: cover;
 }
 
+p {
+    color: white;
+}
+
+td {
+    color: white;
+}
+
 #outerCanvas {
     width: calc(100% - 250px - 120px);
     margin-left: 120px;
