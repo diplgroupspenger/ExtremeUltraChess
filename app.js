@@ -40,9 +40,9 @@ io.sockets.on('connection', function(socket) {
     clientDisconnect(socket);
   });
 
-  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color) {
+  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color, rookFigureIndex) {
     if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color)) {
-      setPosition(oldPos, newPos, figureIndex, color, socket);
+      setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex);
     }
   });
 
@@ -188,12 +188,12 @@ function getRoomFromSocket(socket) {
   }
 }
 
-function setPosition(oldPos, newPos, figureIndex, color, socket) {
-  console.log("oldX: " + oldPos.x + " oldY: " + oldPos.y);
+function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex) {
   var room = getRoomFromSocket(socket);
   if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
     if (!turnOn || color == boards[room].turn.curPlayer.color) {
       if (boards[room].isPossibleToMove(oldPos, newPos) || ignPossible) {
+
         //look if another figure is already on the tile
         if (boards[room].isFigure(newPos.x, newPos.y)) {
 
@@ -213,7 +213,26 @@ function setPosition(oldPos, newPos, figureIndex, color, socket) {
         if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
           boards[room].turn.nextTurn();
         }
+
         var roomName = room.substring(1, room.length);
+
+
+        //check for rochade
+        for(var i = 0; i < boards[room].rochadeMoves.length; i++){
+          var rochadeMove = boards[room].rochadeMoves[i];
+          if(rochadeMove.x === newPos.x && rochadeMove.y === newPos.y){
+            var king = boards[room].get(newPos.x, newPos.y);
+            var newRookPos;
+            if(rochadeMove.direction === 'right'){
+              newRookPos = {x: oldPos.x + king.right().x, y: oldPos.y + king.right().y};
+            }
+            else{
+              newRookPos = {x: oldPos.x + king.left().x, y: oldPos.y + king.left().y};
+            }
+            io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, true, figureIndex);
+          }
+        }
+
         io.sockets. in (roomName).emit('setPosition', newPos, figureIndex, true);
         boards[room].initCheckedTiles();
         io.sockets. in (roomName).emit('updateCheckedTiles', boards[room].checkedTiles);

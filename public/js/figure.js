@@ -187,10 +187,18 @@ Figure.prototype.pushIfPossible = function(xtmp, ytmp, positions, myBoard) {
     return true;
 };
 
+Figure.prototype.addRochadeMoves = function(positions, myBoard){
+    var rochadeMoves = myBoard.updateAndGetRochadeMoves(this.color, this);
+    for(var i = 0; i < rochadeMoves.length; i++){
+        positions.push(rochadeMoves[i]);
+    }
+};
+
 Figure.prototype.addB0ssMoves = function(positions, myBoard){
     var tmpPositions = [];
     this.addPossibleDiagonalMoves(tmpPositions, 2, myBoard);
     this.addPossibleYandXaxisMoves(tmpPositions, 2, myBoard);
+    this.addRochadeMoves(tmpPositions, myBoard);
 
     var forbiddenMoves = this.forbiddenMoves(myBoard);
 
@@ -207,7 +215,6 @@ Figure.prototype.addB0ssMoves = function(positions, myBoard){
         }
         isPossible = true;
     }
-
 };
 
 Figure.prototype.getForbiddenB0ssIndexes = function(positions, virtualBoard){
@@ -227,7 +234,7 @@ Figure.prototype.getForbiddenB0ssIndexes = function(positions, virtualBoard){
 };
 
 Figure.prototype.forbiddenMoves = function(myBoard){
-    var virtualBoard = myBoard;
+    var virtualBoard;
 
     if(myBoard.isVirtual){
         virtualBoard = myBoard;
@@ -235,8 +242,6 @@ Figure.prototype.forbiddenMoves = function(myBoard){
     else{
         virtualBoard = myBoard.createVirtualBoard(this.x, this.y);
         virtualBoard.initCheckedTiles();
-        console.log(myBoard);
-        console.log(virtualBoard);
     }
 
     var positions = [];
