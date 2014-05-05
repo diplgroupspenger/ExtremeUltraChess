@@ -218,16 +218,21 @@ function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex
 
 
         //check for rochade
-        for(var i = 0; i < boards[room].rochadeMoves.length; i++){
+        for (var i = 0; i < boards[room].rochadeMoves.length; i++) {
           var rochadeMove = boards[room].rochadeMoves[i];
-          if(rochadeMove.x === newPos.x && rochadeMove.y === newPos.y){
+          if (rochadeMove.x === newPos.x && rochadeMove.y === newPos.y) {
             var king = boards[room].get(newPos.x, newPos.y);
             var newRookPos;
-            if(rochadeMove.direction === 'right'){
-              newRookPos = {x: oldPos.x + king.right().x, y: oldPos.y + king.right().y};
-            }
-            else{
-              newRookPos = {x: oldPos.x + king.left().x, y: oldPos.y + king.left().y};
+            if (rochadeMove.direction === 'right') {
+              newRookPos = {
+                x: oldPos.x + king.right().x,
+                y: oldPos.y + king.right().y
+              };
+            } else {
+              newRookPos = {
+                x: oldPos.x + king.left().x,
+                y: oldPos.y + king.left().y
+              };
             }
             io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, true, figureIndex);
           }
@@ -356,8 +361,8 @@ function createRoom(title, description, password, socket) {
               //socket.leave(roomid);
               io.sockets. in ('lobby').emit('roomcreated', generateOneRoomJson(roomid));
               roomid++;
-              connection.release();
             }
+            connection.release();
           });
         } else {
           connection.release();

@@ -57,7 +57,8 @@ function sublobby(socket, color, host, time) {
   }
 
   function drawplayer(data) {
-    var player = '<tr><td class=subname id="' + data.color + '"></td><td class="color' + data.color + '"></td><td><input id="' + data.color + 'ready" type="checkbox" ';
+    var player = '<tr><td class=subname id="' + data.color + '"></td><td><input id="' + data.color + 'ready" type="checkbox" ';
+    //<td class="color' + data.color + '"></td>
     if (!(data.own)) {
       player = player + 'disabled="disabled"';
     }
