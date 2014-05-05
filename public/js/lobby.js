@@ -26,6 +26,7 @@ function lobby(socket) {
       console.log(data);
     });
     socket.on('name', function(name, id) {
+      console.log(name);
       myname = name;
       socket.username = name;
       localStorage.id = id;
