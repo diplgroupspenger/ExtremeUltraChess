@@ -2,6 +2,7 @@ var Board = function(importedBoard){
 	var x = 0;
 	var y = 0;
 	this.isVirtual = false;
+	this.rochadeMoves = [];
 	//-2 > No tile drawn // -1 > No figure on tile
 	//stadart constructor if no board is imported
 	if(typeof importedBoard === "undefined") {
@@ -52,6 +53,78 @@ var Board = function(importedBoard){
 
 	this.checkedTiles = [];
 
+};
+
+Board.prototype.pushRochadeMovesIfPossible = function(rooks, king){
+	for(var j = 0; j < rooks.length; j++){
+		var rook = rooks[j];
+		var rookPos = {x: rook.x, y: rook.y};
+		var leftFromKing = {x: king.x + king.left().x, y: king.y + king.left().y};
+		var rightFromKing = {x: king.x + king.right().x, y: king.y + king.right().y};
+		if(rook !== undefined && !rook.hasMoved){
+			var rookPossMoves = rook.possibleMoves(this);
+			for(var i = 0; i < rookPossMoves.length; i++){
+				var move = rookPossMoves[i];
+				var moveToPush;
+				if(move.x === leftFromKing.x && move.y === leftFromKing.y){
+					moveToPush = {x: move.x + king.left().x, y: move.y + king.left().y, direction: 'left', rookPos: rookPos};
+					this.rochadeMoves.push(moveToPush);
+					break;
+				}
+				if(move.x === rightFromKing.x && move.y === rightFromKing.y){
+					moveToPush = {x: move.x + king.right().x, y: move.y + king.right().y, direction: 'right', rookPos: rookPos};
+					this.rochadeMoves.push(moveToPush);
+					break;
+				}
+			}
+		}
+	}
+};
+
+Board.prototype.updateAndGetRochadeMoves = function(color, king){
+	if(king === undefined){
+		king = this.getFiguresByType(FigureType.KING, color)[0];
+	}
+	if(king.hasMoved) return [];
+
+	this.rochadeMoves = [];
+	var rooks = this.getFiguresByType(FigureType.ROOK, color);
+
+	this.pushRochadeMovesIfPossible(rooks, king);
+
+	return this.rochadeMoves;
+
+};
+
+Board.prototype.getFiguresByType = function(type, color){
+	var figures = [];
+	var args = [figures, type, color];
+	this.forEach(this._getFiguresByType, args);
+	return figures;
+};
+
+Board.prototype._getFiguresByType = function(args, figure){
+	var figures = args[0];
+	var type = args[1];
+	var color = args[2];
+	if(figure === undefined) return;
+
+	if(figure.type === type && figure.color === color){
+		figures.push(figure);
+	}
+};
+
+Board.prototype.forEach = function(desiredOperation, args){
+	var figure;
+	for(var y = 0; y < this.board.length; y++){
+		for(var x = 0; x < this.board[0].length; x++){
+			figure = undefined;
+			if(this.isFigure(x, y)){
+				figure = this.get(x, y);
+			}
+			desiredOperation(args, figure);
+		}
+	}
 };
 
 Board.prototype.createVirtualBoard = function(kingX, kingY){

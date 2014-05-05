@@ -57,8 +57,18 @@ function updateCheckedTiles(checkedTiles) {
   //drawCheckedTiles();
 }
 
+function getFigureIDFromPos(pos){
+  for(var i = 0; i < figureList.length; i++){
+    var figure = figureList[i].figure;
+    if(figure.x === pos.x && figure.y === pos.y){
+      return i;
+    }
+  }
+}
+
 function setPosition(newPos, figureID, moved) {
-  var oldPos = {
+
+  oldPos = {
     x: figureList[figureID].figure.x,
     y: figureList[figureID].figure.y
   };
@@ -288,6 +298,7 @@ function initCanvas() {
 
 //draw Board on load
 function drawBoard() {
+  figureList = [];
   for (var y = 0; y < myBoard.board.length; y++) {
     for (var x = 0; x < myBoard.board[0].length; x++) {
       var tilex = x * TILE_SIZE;
@@ -364,8 +375,8 @@ function drawFigure(x, y, playerColor) {
     var newPos = getTileFromPosRound(pos.x, pos.y);
     var figureID = figureList.indexOf(figureImage);
     var oldPos = {
-      "x": figureList[figureID].figure.x,
-      "y": figureList[figureID].figure.y
+      x: figureList[figureID].figure.x,
+      y: figureList[figureID].figure.y
     };
     var figureColor = myBoard.board[oldPos.y][oldPos.x].color;
 
@@ -373,7 +384,12 @@ function drawFigure(x, y, playerColor) {
     if ((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
       myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures) {
       setPosition(newPos, figureID, false);
-      socket.emit('sendPosition', oldPos, newPos, figureID, player);
+      if(checkForRochade(newPos)){
+        rookID = getFigureIDFromPos(myBoard.rochadeMoves[0].rookPos);
+        socket.emit('sendPosition', oldPos, newPos, figureID, player, rookID);
+      }
+      else
+        socket.emit('sendPosition', oldPos, newPos, figureID, player);
     } else {
       //place figure back to old tile
       setPosition(oldPos, figureID, false);
@@ -381,6 +397,16 @@ function drawFigure(x, y, playerColor) {
 
     stage.draw();
   });
+}
+
+function checkForRochade(newPos){
+  for(var i = 0; i < myBoard.rochadeMoves.length; i++){
+    var rochadeMove = myBoard.rochadeMoves[i];
+    if(rochadeMove.x === newPos.x && rochadeMove.y === newPos.y){
+      return true;
+    }
+  }
+  return false;
 }
 
 function drawPossibleMoves(isKing) {
