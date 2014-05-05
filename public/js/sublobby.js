@@ -11,6 +11,13 @@ function sublobby(socket, color, host, time) {
   socket.on('subinit', subInit);
   socket.on('own user', drawplayer);
   socket.on('readychange', readychange);
+  if (host == $('#name').text()) {
+    $('#debutton').show();
+    $('#debutton').on('click', function() {
+      socket.emit('turnTimeChanged', $("input[name='turnTimeSpinner']").val());
+      socket.emit('startgame');
+    });
+  }
 
   var timeSpinner = $("input[name='turnTimeSpinner']");
   var changeTime = _.debounce(onTimeChanged, 500);
@@ -50,18 +57,21 @@ function sublobby(socket, color, host, time) {
   }
 
   function drawplayer(data) {
-    var player = '<tr><td class=subname id="' + data.color + '"></td><td class="color' + data.color + '"></td><td><input id="' + data.color + 'ready" type="checkbox" ';
+    var player = '<tr><td class=subname id="' + data.color + '"></td><td><input id="' + data.color + 'ready" type="checkbox" ';
+    //<td class="color' + data.color + '"></td>
     if (!(data.own)) {
       player = player + 'disabled="disabled"';
     }
     player = player + '></td></tr>';
     $('#players').append(player);
     if (data.own) {
+      $('#' + data.color).addClass("own");
       $('#' + data.color + 'ready').change(function() {
         socket.emit('readychange', this.checked);
       });
     }
     $('#' + data.color).text(data.name);
+    $('#' + data.color + 'ready').prop('checked', data.ready);
   }
 
   function readychange(data) {

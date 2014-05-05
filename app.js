@@ -117,24 +117,33 @@ io.sockets.on('connection', function(socket) {
   socket.on('turnTimeChanged', function(time) {
     var id = getRoomFromSocket(socket).substring(1);
     var host = io.rooms[('/' + id)][1].details.owner;
-    console.log("host:"+host+" you:"+socket.username);
+    console.log("host:" + host + " you:" + socket.username);
     //TODO: check for host
-    if(isValidInt(time) && time >= 10 && time <= 300 && host == socket.username) {
+    if (isValidInt(time) && time >= 10 && time <= 300 && host == socket.username) {
       io.rooms[('/' + id)][1].details.turnTime = time;
-      io.sockets. in(id).emit('sendTurnTime', time);
+      io.sockets. in (id).emit('sendTurnTime', time);
     }
   });
 
   socket.on('startgame', function() {
     var id = getRoomFromSocket(socket).substring(1);
-    addBoard(id);
-    io.sockets. in (id).emit('startgame');
+    var readycount = 0;
+    for (var i = 0; i < io.sockets.clients(id).length; i++) {
+      if (io.sockets.clients(id)[i].ready == true) {
+        readycount = readycount + 1;
+      }
+    }
+    if (readycount == 4) {
+      addBoard(id);
+      io.sockets. in (id).emit('startgame');
+    }
   });
 
   socket.on('readychange', function(checked) {
     var room = getRoomFromSocket(socket).substring(1);
     for (var i = 0; i < io.sockets.clients(room).length; i++) {
       if (io.sockets.clients(room)[i].id == socket.id) {
+        socket.ready = checked;
         socket.broadcast.to(room).emit('readychange', {
           'playercolor': io.sockets.clients(room)[i].color,
           'checked': checked
@@ -153,6 +162,7 @@ function getName(id, socket) {
       if (result[0]) {
         connection.query("UPDATE users SET socket=? WHERE id=?", [socket.id, id], function(err, result) {
           if (err) throw err;
+          connection.release();
         });
         socket.username = result[0].name;
         socket.emit('name', result[0].name, id);
@@ -163,8 +173,8 @@ function getName(id, socket) {
           type: 'nameerror',
           msg: 'We were not able to retrieve your name, reload the page or enter a new name.'
         });
+        connection.release();
       }
-      connection.release();
     });
   });
 }
@@ -208,16 +218,21 @@ function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex
 
 
         //check for rochade
-        for(var i = 0; i < boards[room].rochadeMoves.length; i++){
+        for (var i = 0; i < boards[room].rochadeMoves.length; i++) {
           var rochadeMove = boards[room].rochadeMoves[i];
-          if(rochadeMove.x === newPos.x && rochadeMove.y === newPos.y){
+          if (rochadeMove.x === newPos.x && rochadeMove.y === newPos.y) {
             var king = boards[room].get(newPos.x, newPos.y);
             var newRookPos;
-            if(rochadeMove.direction === 'right'){
-              newRookPos = {x: oldPos.x + king.right().x, y: oldPos.y + king.right().y};
-            }
-            else{
-              newRookPos = {x: oldPos.x + king.left().x, y: oldPos.y + king.left().y};
+            if (rochadeMove.direction === 'right') {
+              newRookPos = {
+                x: oldPos.x + king.right().x,
+                y: oldPos.y + king.right().y
+              };
+            } else {
+              newRookPos = {
+                x: oldPos.x + king.left().x,
+                y: oldPos.y + king.left().y
+              };
             }
             io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, false, figureIndex);
           }
@@ -265,7 +280,8 @@ function joinRoom(id, socket, pw) {
         if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color && io.sockets.clients(id)[i].id !== socket.id) {
           players.push({
             'name': io.sockets.clients(id)[i].username,
-            'color': io.sockets.clients(id)[i].color
+            'color': io.sockets.clients(id)[i].color,
+            'ready': io.sockets.clients(id)[i].ready
           });
         }
       }
@@ -282,13 +298,15 @@ function joinRoom(id, socket, pw) {
             var color = io.rooms[('/' + id)][1].details.colors[colornum];
             var host = io.rooms[('/' + id)][1].details.owner;
             var time = io.rooms[('/' + id)][1].details.turnTime;
+            console.log(host);
             socket.emit('roomjoined', color, host, time);
             io.sockets. in ('lobby').emit('popul inc', id);
             socket.emit('subinit', players);
             socket.emit('own user', {
               'name': socket.username,
               'color': io.rooms[('/' + id)][1].details.colors[colornum],
-              'own': true
+              'own': true,
+              'ready': false
             });
             socket.broadcast.to(id).emit('more people', {
               'name': socket.username,
@@ -343,8 +361,8 @@ function createRoom(title, description, password, socket) {
               //socket.leave(roomid);
               io.sockets. in ('lobby').emit('roomcreated', generateOneRoomJson(roomid));
               roomid++;
-              connection.release();
             }
+            connection.release();
           });
         } else {
           connection.release();
@@ -412,7 +430,7 @@ function addBoard(roomid) {
   }
   boards[('/' + roomid)] = newBoard;
   var turnTime = io.rooms[('/' + roomid)][1].details.turnTime;
-  console.log("TURNTIME: "+turnTime);
+  console.log("TURNTIME: " + turnTime);
   boards[('/' + roomid)].turn = new Turn(turnTime);
 }
 
@@ -455,10 +473,11 @@ function updateTotalPlayerCount() {
   userdbPool.getConnection(function(err, connection) {
     connection.query('select COUNT(*) AS playerCount FROM users', function(err, result) {
       if (err) throw err;
-      if(result[0]) {
+      if (result[0]) {
         console.log("updatetotalplayercount");
         io.sockets.emit('updateTotalPlayerCount', result[0].playerCount);
       }
+      connection.release();
     });
   });
 }
@@ -467,10 +486,11 @@ function getTotalPlayerList(socket) {
   userdbPool.getConnection(function(err, connection) {
     connection.query('select name FROM users', function(err, result) {
       if (err) throw err;
-      if(result[0]) {
-        console.log("playerlismethod: "+result);
+      if (result[0]) {
+        console.log("playerlismethod: " + result);
         socket.emit('sendTotalPlayerList', result);
       }
+      connection.release();
     });
   });
 }

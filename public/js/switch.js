@@ -75,10 +75,6 @@ function execjs() {
     }
   });
   lobby(socket);
-  $('#debutton').on('click', function() {
-    socket.emit('turnTimeChanged', $("input[name='turnTimeSpinner']").val());
-    socket.emit('startgame');
-  });
 }
 
 function toGame(socket, color) {
