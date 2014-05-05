@@ -219,7 +219,7 @@ function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex
             else{
               newRookPos = {x: oldPos.x + king.left().x, y: oldPos.y + king.left().y};
             }
-            io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, true, figureIndex);
+            io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, false, figureIndex);
           }
         }
 
