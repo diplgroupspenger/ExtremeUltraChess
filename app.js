@@ -69,7 +69,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendMessage', function(text) {
-    if (!isBlank(text)) {
+    if (!isBlank(text) && isValid(text)) {
       var name = socket.username;
       var room = getRoomFromSocket(socket);
       var roomName = room.substring(1);
@@ -190,63 +190,65 @@ function getRoomFromSocket(socket) {
 
 function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex) {
   var room = getRoomFromSocket(socket);
-  if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
-    if (!turnOn || color == boards[room].turn.curPlayer.color) {
-      if (boards[room].isPossibleToMove(oldPos, newPos) || ignPossible) {
+  if(typeof boards[room] !== "undefined") {
+    if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
+      if (!turnOn || color == boards[room].turn.curPlayer.color) {
+        if (boards[room].isPossibleToMove(oldPos, newPos) || ignPossible) {
 
-        //look if another figure is already on the tile
-        if (boards[room].isFigure(newPos.x, newPos.y)) {
+          //look if another figure is already on the tile
+          if (boards[room].isFigure(newPos.x, newPos.y)) {
 
-          if (boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
-            var figureColor = boards[room].board[newPos.y][newPos.x].color;
-            boards[room].turn.remove(figureColor);
-          }
-          boards[room].board[newPos.y][newPos.x] = -1;
-        }
-        boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
-
-
-        if (boards[room].isEnPassant()) {
-          boards[room].board[newPos.y][newPos.x] = -1;
-        }
-
-        if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
-          boards[room].turn.nextTurn();
-        }
-
-        var roomName = room.substring(1, room.length);
-
-
-        //check for rochade
-        for (var i = 0; i < boards[room].rochadeMoves.length; i++) {
-          var rochadeMove = boards[room].rochadeMoves[i];
-          if (rochadeMove.x === newPos.x && rochadeMove.y === newPos.y) {
-            var king = boards[room].get(newPos.x, newPos.y);
-            var newRookPos;
-            if (rochadeMove.direction === 'right') {
-              newRookPos = {
-                x: oldPos.x + king.right().x,
-                y: oldPos.y + king.right().y
-              };
-            } else {
-              newRookPos = {
-                x: oldPos.x + king.left().x,
-                y: oldPos.y + king.left().y
-              };
+            if (boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
+              var figureColor = boards[room].board[newPos.y][newPos.x].color;
+              boards[room].turn.remove(figureColor);
             }
-            io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, false, figureIndex);
+            boards[room].board[newPos.y][newPos.x] = -1;
           }
-        }
+          boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
 
-        io.sockets. in (roomName).emit('setPosition', newPos, figureIndex, true);
-        boards[room].initCheckedTiles();
-        io.sockets. in (roomName).emit('updateCheckedTiles', boards[room].checkedTiles);
-        return;
+
+          if (boards[room].isEnPassant()) {
+            boards[room].board[newPos.y][newPos.x] = -1;
+          }
+
+          if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
+            boards[room].turn.nextTurn();
+          }
+
+          var roomName = room.substring(1, room.length);
+
+
+          //check for rochade
+          for (var i = 0; i < boards[room].rochadeMoves.length; i++) {
+            var rochadeMove = boards[room].rochadeMoves[i];
+            if (rochadeMove.x === newPos.x && rochadeMove.y === newPos.y) {
+              var king = boards[room].get(newPos.x, newPos.y);
+              var newRookPos;
+              if (rochadeMove.direction === 'right') {
+                newRookPos = {
+                  x: oldPos.x + king.right().x,
+                  y: oldPos.y + king.right().y
+                };
+              } else {
+                newRookPos = {
+                  x: oldPos.x + king.left().x,
+                  y: oldPos.y + king.left().y
+                };
+              }
+              io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, false, figureIndex);
+            }
+          }
+
+          io.sockets. in (roomName).emit('setPosition', newPos, figureIndex, true);
+          boards[room].initCheckedTiles();
+          io.sockets. in (roomName).emit('updateCheckedTiles', boards[room].checkedTiles);
+          return;
+        }
       }
     }
+    //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
+    socket.emit('setPosition', oldPos, figureIndex, false);
   }
-  //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
-  socket.emit('setPosition', oldPos, figureIndex, false);
 }
 
 function checkForPawnConvertion(type, pos) {
@@ -272,63 +274,66 @@ function convertPawn(figure, posX, posY, socket) {
 }
 
 function joinRoom(id, socket, pw) {
-  if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
-    var availableColors = io.rooms[('/' + id)][1].details.colors.length;
-    if (availableColors > 0) {
-      var players = [];
-      for (i = 0; i < io.sockets.clients(id).length; i++) {
-        if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color && io.sockets.clients(id)[i].id !== socket.id) {
-          players.push({
-            'name': io.sockets.clients(id)[i].username,
-            'color': io.sockets.clients(id)[i].color,
-            'ready': io.sockets.clients(id)[i].ready
-          });
-        }
-      }
-      socket.leave('lobby');
-      socket.join(id);
-
-      colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
-      if (io.rooms[('/' + id)].length - 1 === 1) {
-        colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
-      }
-      userdbPool.getConnection(function(err, connection) {
-        connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
-          if (result[0]) {
-            var color = io.rooms[('/' + id)][1].details.colors[colornum];
-            var host = io.rooms[('/' + id)][1].details.owner;
-            var time = io.rooms[('/' + id)][1].details.turnTime;
-            console.log(host);
-            socket.emit('roomjoined', color, host, time);
-            io.sockets. in ('lobby').emit('popul inc', id);
-            socket.emit('subinit', players);
-            socket.emit('own user', {
-              'name': socket.username,
-              'color': io.rooms[('/' + id)][1].details.colors[colornum],
-              'own': true,
-              'ready': false
-            });
-            socket.broadcast.to(id).emit('more people', {
-              'name': socket.username,
-              'color': io.rooms[('/' + id)][1].details.colors[colornum]
-            });
-            socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
-            connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
-              io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
-              /*if (io.rooms[('/' + id)][1].details.colors.length === 0) {
-                addBoard(id);
-                io.sockets. in (id).emit('startgame');
-              }*/
-              connection.release();
+  console.log("IZVALID? "+isValid(io.rooms[('/' + id)][1]));
+  if(isValid(io.rooms[('/' + id)][1])) {
+    if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
+      var availableColors = io.rooms[('/' + id)][1].details.colors.length;
+      if (availableColors > 0) {
+        var players = [];
+        for (i = 0; i < io.sockets.clients(id).length; i++) {
+          if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color && io.sockets.clients(id)[i].id !== socket.id) {
+            players.push({
+              'name': io.sockets.clients(id)[i].username,
+              'color': io.sockets.clients(id)[i].color,
+              'ready': io.sockets.clients(id)[i].ready
             });
           }
+        }
+        socket.leave('lobby');
+        socket.join(id);
+
+        colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
+        if (io.rooms[('/' + id)].length - 1 === 1) {
+          colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
+        }
+        userdbPool.getConnection(function(err, connection) {
+          connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
+            if (result[0]) {
+              var color = io.rooms[('/' + id)][1].details.colors[colornum];
+              var host = io.rooms[('/' + id)][1].details.owner;
+              var time = io.rooms[('/' + id)][1].details.turnTime;
+              console.log(host);
+              socket.emit('roomjoined', color, host, time);
+              io.sockets. in ('lobby').emit('popul inc', id);
+              socket.emit('subinit', players);
+              socket.emit('own user', {
+                'name': socket.username,
+                'color': io.rooms[('/' + id)][1].details.colors[colornum],
+                'own': true,
+                'ready': false
+              });
+              socket.broadcast.to(id).emit('more people', {
+                'name': socket.username,
+                'color': io.rooms[('/' + id)][1].details.colors[colornum]
+              });
+              socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
+              connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
+                io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
+                /*if (io.rooms[('/' + id)][1].details.colors.length === 0) {
+                  addBoard(id);
+                  io.sockets. in (id).emit('startgame');
+                }*/
+                connection.release();
+              });
+            }
+          });
         });
-      });
-    } else {
-      socket.emit("error", {
-        type: id + 'error',
-        msg: 'This room is already full'
-      });
+      } else {
+        socket.emit("error", {
+          type: id + 'error',
+          msg: 'This room is already full'
+        });
+      }
     }
   }
 }

@@ -110,7 +110,6 @@ function setPosition(newPos, figureID, moved) {
 }
 
 function setStatus(serverBoard, exportedTurn) {
-  console.log("TurnTIME:" +exportedTurn.turnTime);
   myBoard = new Board(serverBoard);
   turn = new Turn(null, cdCallback, turnCallback, exportedTurn);
   $('#curPlayer').text(colorToString(turn.curPlayer.color));
@@ -144,7 +143,6 @@ function blinkTitle() {
     document.title = "chess";
     clearInterval(blinkInterval);
   } else {
-    console.log("blinkyblink");
     var curTitle = document.title;
     document.title = (curTitle == "chess (!)" ? "chess ( )" : "chess (!)");
   }
@@ -434,7 +432,6 @@ function drawPossibleMoves(isKing) {
   }
 
   if (isKing) {
-    console.log("forbiddenLENGTH: " + curForbiddenMoves.length);
     for (i = 0; i < curForbiddenMoves.length; i++) {
       x = curForbiddenMoves[i].x;
       y = curForbiddenMoves[i].y;
@@ -572,7 +569,6 @@ function boardClicked(e) {
         x: clickedFigure.figure.x,
         y: clickedFigure.figure.y
       };
-      console.log("oldPos: " + oldPos.x + " oldPosy: " + oldPos.y + " newX: " + tilePos.x + " newY:" + tilePos.y);
       socket.emit('sendPosition', {
         x: oldPos.x,
         y: oldPos.y
