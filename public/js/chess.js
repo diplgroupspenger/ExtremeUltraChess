@@ -70,7 +70,6 @@ function setPosition(newPos, oldPos, moved, rochade) {
   var figureID = getFigureIDFromPos(oldPos);
 
   if(!moved){
-    figureID = getFigureIDFromPos(oldPos);
     figureList[figureID].setX(newPos.x * TILE_SIZE);
     figureList[figureID].setY(newPos.y * TILE_SIZE);
   }
