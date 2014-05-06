@@ -190,6 +190,7 @@ function getRoomFromSocket(socket) {
 
 function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex, oldRookPos) {
   var room = getRoomFromSocket(socket);
+  if(typeof boards[room] === undefined) return;
   if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
     if (!turnOn || color == boards[room].turn.curPlayer.color) {
       if (boards[room].isPossibleToMove(oldPos, newPos) || ignPossible) {
@@ -235,7 +236,6 @@ function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex
               };
             }
             boards[room].moveFigureTo(oldRookPos.x, oldRookPos.y, newRookPos.x, newRookPos.y);
-            console.log("HURENSOHN");
             io.sockets. in (roomName).emit('setPosition', newRookPos, oldRookPos, true, true);
           }
         }
