@@ -57,6 +57,7 @@ function replaceFigure(figure, figureId, x, y) {
 	foreGroundLayer.removeChildren();
 	foreGroundLayer.draw();
 	setNextTurn();
+	resizeCanvas();
 }
 
 function redrawConvertion() {

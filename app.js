@@ -41,7 +41,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendPosition', function(oldPos, newPos, figureIndex, color, rookFigureIndex, oldRookPos) {
-    if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color)) {
+    if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color) && isValid(oldRookPos)) {
       setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex, oldRookPos);
     }
   });
@@ -133,10 +133,10 @@ io.sockets.on('connection', function(socket) {
         readycount = readycount + 1;
       }
     }
-    //if (readycount == 4) {
+    if (readycount == 4) {
       addBoard(id);
       io.sockets. in (id).emit('startgame');
-    //}
+    }
   });
 
   socket.on('readychange', function(checked) {
