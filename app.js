@@ -40,9 +40,9 @@ io.sockets.on('connection', function(socket) {
     clientDisconnect(socket);
   });
 
-  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color, rookFigureIndex) {
+  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color, rookFigureIndex, oldRookPos) {
     if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color)) {
-      setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex);
+      setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex, oldRookPos);
     }
   });
 
@@ -129,7 +129,7 @@ io.sockets.on('connection', function(socket) {
     var id = getRoomFromSocket(socket).substring(1);
     var readycount = 0;
     for (var i = 0; i < io.sockets.clients(id).length; i++) {
-      if (io.sockets.clients(id)[i].ready == true) {
+      if (io.sockets.clients(id)[i].ready === true) {
         readycount = readycount + 1;
       }
     }
@@ -188,67 +188,65 @@ function getRoomFromSocket(socket) {
   }
 }
 
-function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex) {
+function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex, oldRookPos) {
   var room = getRoomFromSocket(socket);
-  if(typeof boards[room] !== "undefined") {
-    if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
-      if (!turnOn || color == boards[room].turn.curPlayer.color) {
-        if (boards[room].isPossibleToMove(oldPos, newPos) || ignPossible) {
+  if(typeof boards[room] === undefined) return;
+  if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
+    if (!turnOn || color == boards[room].turn.curPlayer.color) {
+      if (boards[room].isPossibleToMove(oldPos, newPos) || ignPossible) {
 
-          //look if another figure is already on the tile
-          if (boards[room].isFigure(newPos.x, newPos.y)) {
+        //look if another figure is already on the tile
+        if (boards[room].isFigure(newPos.x, newPos.y)) {
 
-            if (boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
-              var figureColor = boards[room].board[newPos.y][newPos.x].color;
-              boards[room].turn.remove(figureColor);
-            }
-            boards[room].board[newPos.y][newPos.x] = -1;
+          if (boards[room].board[newPos.y][newPos.x].type == FigureType.KING) {
+            var figureColor = boards[room].board[newPos.y][newPos.x].color;
+            boards[room].turn.remove(figureColor);
           }
-          boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
-
-
-          if (boards[room].isEnPassant()) {
-            boards[room].board[newPos.y][newPos.x] = -1;
-          }
-
-          if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos, color, boards[room])) {
-            boards[room].turn.nextTurn();
-          }
-
-          var roomName = room.substring(1, room.length);
-
-
-          //check for rochade
-          for (var i = 0; i < boards[room].rochadeMoves.length; i++) {
-            var rochadeMove = boards[room].rochadeMoves[i];
-            if (rochadeMove.x === newPos.x && rochadeMove.y === newPos.y) {
-              var king = boards[room].get(newPos.x, newPos.y);
-              var newRookPos;
-              if (rochadeMove.direction === 'right') {
-                newRookPos = {
-                  x: oldPos.x + king.right().x,
-                  y: oldPos.y + king.right().y
-                };
-              } else {
-                newRookPos = {
-                  x: oldPos.x + king.left().x,
-                  y: oldPos.y + king.left().y
-                };
-              }
-              io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, false, figureIndex);
-            }
-          }
-
-          io.sockets. in (roomName).emit('setPosition', newPos, figureIndex, true);
-          boards[room].initCheckedTiles();
-          io.sockets. in (roomName).emit('updateCheckedTiles', boards[room].checkedTiles);
-          return;
+          boards[room].board[newPos.y][newPos.x] = -1;
         }
+        boards[room].moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
+
+
+        if (boards[room].isEnPassant()) {
+          boards[room].board[newPos.y][newPos.x] = -1;
+        }
+
+        if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos, color, boards[room])) {
+          boards[room].turn.nextTurn();
+        }
+
+        var roomName = room.substring(1, room.length);
+        //check for rochade
+        for (var i = 0; i < boards[room].rochadeMoves.length; i++) {
+          var rochadeMove = boards[room].rochadeMoves[i];
+          if (rochadeMove.x === newPos.x && rochadeMove.y === newPos.y) {
+            var king = boards[room].get(newPos.x, newPos.y);
+            var newRookPos;
+            if (rochadeMove.direction === 'right') {
+              newRookPos = {
+                x: oldPos.x + king.right().x,
+                y: oldPos.y + king.right().y
+              };
+            } else {
+              newRookPos = {
+                x: oldPos.x + king.left().x,
+                y: oldPos.y + king.left().y
+              };
+            }
+            boards[room].moveFigureTo(oldRookPos.x, oldRookPos.y, newRookPos.x, newRookPos.y);
+            io.sockets. in (roomName).emit('setPosition', newRookPos, oldRookPos, true, true);
+          }
+        }
+        if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)
+          io.sockets. in (roomName).emit('setPosition', newPos, oldPos, true);
+        boards[room].initCheckedTiles();
+        io.sockets. in (roomName).emit('updateCheckedTiles', boards[room].checkedTiles);
+        return;
       }
     }
-    //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
-    socket.emit('setPosition', oldPos, figureIndex, false);
   }
+  //if the turn is not valid (because the client manipulated the game) the figure is reset to it's oldPos
+  socket.emit('setPosition', oldPos, figureIndex, false);
 }
 
 function checkForPawnConvertion(type, pos, player, roomBoard) {

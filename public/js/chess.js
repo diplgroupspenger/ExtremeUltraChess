@@ -67,42 +67,39 @@ function getFigureIDFromPos(pos){
   }
 }
 
-function setPosition(newPos, figureID, moved) {
+function setPosition(newPos, oldPos, moved, rochade) {
+  var figureID = getFigureIDFromPos(oldPos);
 
-  oldPos = {
-    x: figureList[figureID].figure.x,
-    y: figureList[figureID].figure.y
-  };
-
-  //remove figure if captured
-  if (myBoard.isFigure(newPos.x, newPos.y)) {
-    if (oldPos.x !== newPos.x || oldPos.y !== newPos.y) {
-      //check if a king was taken and remove player from turn system
-      if (myBoard.board[newPos.y][newPos.x].type === FigureType.KING) {
-        var figureColor = myBoard.board[newPos.y][newPos.x].color;
-        turn.remove(figureColor);
-      }
-      removeFigure(newPos);
-    }
+  if(!moved){
+    figureID = getFigureIDFromPos(oldPos);
+    figureList[figureID].setX(newPos.x * TILE_SIZE);
+    figureList[figureID].setY(newPos.y * TILE_SIZE);
   }
+  else{
 
-  //figureList[figureID].setPosition(newPos.x * TILE_SIZE , newPos.y * TILE_SIZE);
-  figureList[figureID].setX(newPos.x * TILE_SIZE);
-  figureList[figureID].setY(newPos.y * TILE_SIZE);
+    figureList[figureID].setX(newPos.x * TILE_SIZE);
+    figureList[figureID].setY(newPos.y * TILE_SIZE);
+    //remove figure if captured
+    if (myBoard.isFigure(newPos.x, newPos.y)) {
+      if (oldPos.x !== newPos.x || oldPos.y !== newPos.y) {
+        //check if a king was taken and remove player from turn system
+        if (myBoard.board[newPos.y][newPos.x].type === FigureType.KING) {
+          var figureColor = myBoard.board[newPos.y][newPos.x].color;
+          turn.remove(figureColor);
+        }
+        removeFigure(newPos);
+      }
+    }
 
-  if (oldPos.x !== newPos.x || oldPos.y !== newPos.y)
     myBoard.moveFigureTo(oldPos.x, oldPos.y, newPos.x, newPos.y);
-
-  figureList[figureID].figure = myBoard.board[newPos.y][newPos.x];
-
-  if (moved) {
 
     if (myBoard.isEnPassant()) {
       removeFigure(oldPos);
     }
-    if (!pawnConvertion(figureID, newPos)) {
+    if (!pawnConvertion(figureID, newPos) && rochade === undefined) {
       setNextTurn();
     }
+
   }
 
   moveLayer.removeChildren();
@@ -385,16 +382,17 @@ function drawFigure(x, y, playerColor) {
     //if (((player === turn.curPlayer.color && figureColor === player) && !lockFigures) || !turnOn && (myBoard.isPossibleToMove(oldPos, newPos) || ignPossible)) {
     if ((player === turn.curPlayer.color && figureColor === player || !turnOn) &&
       myBoard.isPossibleToMove(oldPos, newPos) && !lockFigures) {
-      setPosition(newPos, figureID, false);
+      setPosition(newPos, oldPos, false);
       if(checkForRochade(newPos)){
-        rookID = getFigureIDFromPos(myBoard.rochadeMoves[0].rookPos);
-        socket.emit('sendPosition', oldPos, newPos, figureID, player, rookID);
+        rookPos = myBoard.rochadeMoves[0].rookPos;
+        rookID = getFigureIDFromPos(rookPos);
+        socket.emit('sendPosition', oldPos, newPos, figureID, player, rookID, rookPos);
       }
       else
         socket.emit('sendPosition', oldPos, newPos, figureID, player);
     } else {
       //place figure back to old tile
-      setPosition(oldPos, figureID, false);
+      setPosition(oldPos, oldPos, false);
     }
 
     stage.draw();
@@ -561,7 +559,7 @@ function boardClicked(e) {
   var nodePos = e.targetNode.getPosition();
   var tilePos = getTileFromPosRound(nodePos.x, nodePos.y);
 
-
+  /*
   var moveLayerChildren = moveLayer.getChildren();
   var i = 0;
   for (i = 0; i < moveLayerChildren.length; i++) {
@@ -584,6 +582,7 @@ function boardClicked(e) {
       return;
     }
   }
+  */
 
   if (myBoard.isFigure(tilePos.x, tilePos.y)) {
     if ((myBoard.board[tilePos.y][tilePos.x].color === player && turn.curPlayer.color === player && lockFigures === false) || !turnOn) {
