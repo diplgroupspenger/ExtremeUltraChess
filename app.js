@@ -41,7 +41,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendPosition', function(oldPos, newPos, figureIndex, color, rookFigureIndex, oldRookPos) {
-    if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color) && isValid(oldRookPos)) {
+    if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color))) {
       setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex, oldRookPos);
     }
   });

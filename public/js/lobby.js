@@ -34,6 +34,7 @@ function lobby(socket) {
       $('#name-dialog').dialog('close');
       $('#nameerror').text('');
       initChat(socket);
+      initRules();
     });
     socket.on('popul inc', function(id) {
       $('#' + id + 'count').text(parseInt($('#' + id + 'count').text()) + 1);
