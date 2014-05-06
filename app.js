@@ -69,7 +69,7 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('sendMessage', function(text) {
-    if (!isBlank(text)) {
+    if (!isBlank(text) && isValid(text)) {
       var name = socket.username;
       var room = getRoomFromSocket(socket);
       var roomName = room.substring(1);
@@ -274,63 +274,66 @@ function convertPawn(figure, posX, posY, socket) {
 }
 
 function joinRoom(id, socket, pw) {
-  if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
-    var availableColors = io.rooms[('/' + id)][1].details.colors.length;
-    if (availableColors > 0) {
-      var players = [];
-      for (i = 0; i < io.sockets.clients(id).length; i++) {
-        if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color && io.sockets.clients(id)[i].id !== socket.id) {
-          players.push({
-            'name': io.sockets.clients(id)[i].username,
-            'color': io.sockets.clients(id)[i].color,
-            'ready': io.sockets.clients(id)[i].ready
-          });
-        }
-      }
-      socket.leave('lobby');
-      socket.join(id);
-
-      colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
-      if (io.rooms[('/' + id)].length - 1 === 1) {
-        colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
-      }
-      userdbPool.getConnection(function(err, connection) {
-        connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
-          if (result[0]) {
-            var color = io.rooms[('/' + id)][1].details.colors[colornum];
-            var host = io.rooms[('/' + id)][1].details.owner;
-            var time = io.rooms[('/' + id)][1].details.turnTime;
-            console.log(host);
-            socket.emit('roomjoined', color, host, time);
-            io.sockets. in ('lobby').emit('popul inc', id);
-            socket.emit('subinit', players);
-            socket.emit('own user', {
-              'name': socket.username,
-              'color': io.rooms[('/' + id)][1].details.colors[colornum],
-              'own': true,
-              'ready': false
-            });
-            socket.broadcast.to(id).emit('more people', {
-              'name': socket.username,
-              'color': io.rooms[('/' + id)][1].details.colors[colornum]
-            });
-            socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
-            connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
-              io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
-              /*if (io.rooms[('/' + id)][1].details.colors.length === 0) {
-                addBoard(id);
-                io.sockets. in (id).emit('startgame');
-              }*/
-              connection.release();
+  console.log("IZVALID? "+isValid(io.rooms[('/' + id)][1]));
+  if(isValid(io.rooms[('/' + id)][1])) {
+    if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
+      var availableColors = io.rooms[('/' + id)][1].details.colors.length;
+      if (availableColors > 0) {
+        var players = [];
+        for (i = 0; i < io.sockets.clients(id).length; i++) {
+          if (io.sockets.clients(id)[i].username && io.sockets.clients(id)[i].color && io.sockets.clients(id)[i].id !== socket.id) {
+            players.push({
+              'name': io.sockets.clients(id)[i].username,
+              'color': io.sockets.clients(id)[i].color,
+              'ready': io.sockets.clients(id)[i].ready
             });
           }
+        }
+        socket.leave('lobby');
+        socket.join(id);
+
+        colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
+        if (io.rooms[('/' + id)].length - 1 === 1) {
+          colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
+        }
+        userdbPool.getConnection(function(err, connection) {
+          connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
+            if (result[0]) {
+              var color = io.rooms[('/' + id)][1].details.colors[colornum];
+              var host = io.rooms[('/' + id)][1].details.owner;
+              var time = io.rooms[('/' + id)][1].details.turnTime;
+              console.log(host);
+              socket.emit('roomjoined', color, host, time);
+              io.sockets. in ('lobby').emit('popul inc', id);
+              socket.emit('subinit', players);
+              socket.emit('own user', {
+                'name': socket.username,
+                'color': io.rooms[('/' + id)][1].details.colors[colornum],
+                'own': true,
+                'ready': false
+              });
+              socket.broadcast.to(id).emit('more people', {
+                'name': socket.username,
+                'color': io.rooms[('/' + id)][1].details.colors[colornum]
+              });
+              socket.color = io.rooms[('/' + id)][1].details.colors[colornum];
+              connection.query('INSERT into roomusers (user, room, color) VALUES(?, ?, ?) ON DUPLICATE KEY UPDATE room=?, color=?', [result[0].id, id, io.rooms[('/' + id)][1].details.colors[colornum], id, io.rooms[('/' + id)][1].details.colors[colornum]], function(err) {
+                io.rooms[('/' + id)][1].details.colors.splice(colornum, 1);
+                /*if (io.rooms[('/' + id)][1].details.colors.length === 0) {
+                  addBoard(id);
+                  io.sockets. in (id).emit('startgame');
+                }*/
+                connection.release();
+              });
+            }
+          });
         });
-      });
-    } else {
-      socket.emit("error", {
-        type: id + 'error',
-        msg: 'This room is already full'
-      });
+      } else {
+        socket.emit("error", {
+          type: id + 'error',
+          msg: 'This room is already full'
+        });
+      }
     }
   }
 }

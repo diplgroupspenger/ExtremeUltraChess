@@ -70,14 +70,17 @@ function redrawConvertion() {
 
 function rotateFigure(img) {
 	if(player == Color.BLACK) {
+		console.log("rotateblack");
 		img.rotateDeg(180);
 		img.setOffset(img.getHeight(), img.getWidth());
 	}
 	else if(player == Color.RED) {
+		console.log("rotatered");
 		img.rotateDeg(90);
 		img.setOffset(0, img.getWidth());
 	}
 	else if(player == Color.GREEN) {
+		console.log("rotategreen");
 		img.rotateDeg(-90);
 		img.setOffset(img.getHeight(), 0);
 	}
