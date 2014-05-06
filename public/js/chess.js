@@ -37,6 +37,7 @@ function startgame(socket, color, time) {
 
   socket.on('setPosition', setPosition);
   socket.on('sendStatus', setStatus);
+  socket.on('syncPawnConvertion', replaceFigure);
   socket.on('updateCheckedTiles', updateCheckedTiles);
   socket.emit('getGame');
   socket.emit('getBoard');
@@ -179,17 +180,20 @@ function checkForGameEnd() {
 }
 
 function pawnConvertion(id, pos) {
+  var figureColor = figureList[id].figure.color;
   if (figureList[id].figure.type === FigureType.PAWN) {
-    if (player === turn.curPlayer.color && figureList[id].figure.color === player) {
-      if ((player == Color.WHITE && pos.y === 0) ||
-        (player == Color.BLACK && pos.y == myBoard.board.length) ||
-        (player == Color.RED && pos.x == myBoard.board[0].length) ||
-        (player == Color.GREEN && pos.x === 0)) {
-        convertPawn(id, pos); //convertPawn.js
+    if ((figureColor == Color.WHITE && pos.y === 0) ||
+        (figureColor == Color.BLACK && pos.y == myBoard.board.length-1) ||
+        (figureColor == Color.RED && pos.x == myBoard.board[0].length-1) ||
+        (figureColor == Color.GREEN && pos.x === 0)) {
+       
+        if (player === turn.curPlayer.color && figureList[id].figure.color === player) {
+          convertPawn(id, pos); //convertPawn.js
+        }
         return true;
-      }
     }
   }
+  console.log("NOPAWNCON "+id+" pos:"+pos);
   return false;
 }
 

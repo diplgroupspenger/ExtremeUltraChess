@@ -11,7 +11,6 @@ function initRules() {
 	$msg.append($('<div class="rule">').text(rule1));
 	$msg.append($('<div class="header">').text(header2));
 	$msg.append($('<div class="rule">').text(rule2));
-	console.log($msg);
 	$('#rulesTab').empty();
 	$('#rulesTab').append($msg);
 }

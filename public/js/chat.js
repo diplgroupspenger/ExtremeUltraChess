@@ -25,12 +25,10 @@ function initChat(socket) {
   });
 
   socket.on('updateCurPlayerCount', function(count) {
-    console.log('updatecurplayercont '+count);
     $('#curPlayerCount').text('Current online: ' + count);
   });
 
   socket.on('sendTotalPlayerList', function(list) {
-    console.log(list);
     var string = [];
     $.each(list, function(key, val) {
       string.push(val.name);
