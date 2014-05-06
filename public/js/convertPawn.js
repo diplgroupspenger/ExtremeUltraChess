@@ -38,22 +38,25 @@ function drawConvertion(figure, posX, posY, figureId) {
 		lockFigures = false;
 		var x = figureList[figureId].figure.x;
 		var y = figureList[figureId].figure.y;
-
-		//remove old figure and replayce with new
-		figureList[figureId].remove();
-
-		myBoard.board[y][x] = figure;
-		myBoard.board[y][x].setPosition(x, y, myBoard);
-		drawFigure(x, y, player);
-		figureLayer.draw();
-    	
-    	foreGroundLayer.removeChildren();
-    	foreGroundLayer.draw();
-    	socket.emit('convertPawn', figure, x, y);
-    	setNextTurn();
+    	socket.emit('convertPawn', figure, figureId, x, y);
 	});
     
     foreGroundLayer.add(figureImage);
+}
+
+function replaceFigure(figure, figureId, x, y) {
+	//remove old figure and replayce with new
+	figureList[figureId].remove();
+
+	myBoard.board[y][x] = new Figure(FigureType[figure.type.name], figure.color);
+	console.dir(myBoard.board[y][x]);
+	myBoard.board[y][x].setPosition(x, y, myBoard);
+	drawFigure(x, y, player);
+	figureLayer.draw();
+	
+	foreGroundLayer.removeChildren();
+	foreGroundLayer.draw();
+	setNextTurn();
 }
 
 function redrawConvertion() {
@@ -70,17 +73,14 @@ function redrawConvertion() {
 
 function rotateFigure(img) {
 	if(player == Color.BLACK) {
-		console.log("rotateblack");
-		img.rotateDeg(180);
+		img.rotateDeg(0);
 		img.setOffset(img.getHeight(), img.getWidth());
 	}
 	else if(player == Color.RED) {
-		console.log("rotatered");
 		img.rotateDeg(90);
 		img.setOffset(0, img.getWidth());
 	}
 	else if(player == Color.GREEN) {
-		console.log("rotategreen");
 		img.rotateDeg(-90);
 		img.setOffset(img.getHeight(), 0);
 	}

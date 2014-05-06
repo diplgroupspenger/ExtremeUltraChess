@@ -46,9 +46,9 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
-  socket.on('convertPawn', function(figure, x, y) {
-    if (isValid(figure) && isValid(x) && isValid(y)) {
-      convertPawn(figure, x, y, socket);
+  socket.on('convertPawn', function(figure, figureId, x, y) {
+    if (isValid(figure) && isValid(figureId) && isValid(x) && isValid(y)) {
+      convertPawn(figure, figureId, x, y, socket);
     }
   });
 
@@ -133,10 +133,10 @@ io.sockets.on('connection', function(socket) {
         readycount = readycount + 1;
       }
     }
-    if (readycount == 4) {
+    //if (readycount == 4) {
       addBoard(id);
       io.sockets. in (id).emit('startgame');
-    }
+    //}
   });
 
   socket.on('readychange', function(checked) {
@@ -211,7 +211,7 @@ function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex
             boards[room].board[newPos.y][newPos.x] = -1;
           }
 
-          if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos)) {
+          if (!checkForPawnConvertion(boards[room].board[newPos.y][newPos.x].type, newPos, color, boards[room])) {
             boards[room].turn.nextTurn();
           }
 
@@ -251,30 +251,36 @@ function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex
   }
 }
 
-function checkForPawnConvertion(type, pos) {
+function checkForPawnConvertion(type, pos, player, roomBoard) {
   if (type === FigureType.PAWN) {
-    if (pos.y === 0) {
+    if ((player == Color.WHITE && pos.y === 0) ||
+        (player == Color.BLACK && pos.y == roomBoard.board.length-1) ||
+        (player == Color.RED && pos.x == roomBoard.board[0].length-1) ||
+        (player == Color.GREEN && pos.x === 0)) {
       return true;
     }
   }
   return false;
 }
 
-function convertPawn(figure, posX, posY, socket) {
-  //console.log(figure);
+function convertPawn(figure, figureId, posX, posY, socket) {
   var room = getRoomFromSocket(socket);
   if (boards[room].board[posY][posX].type === FigureType.PAWN) {
-    if (posY === 0) {
-      boards[room].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
-      //console.log("board: " + boards[room].board);
-      boards[room].board[posY][posX].setPosition(posX, posY, boards[room]);
-      boards[room].turn.nextTurn();
+    if ((figure.color == Color.WHITE && posY === 0) ||
+        (figure.color == Color.BLACK && posY == boards[room].board.length-1) ||
+        (figure.color == Color.RED && posX == boards[room].board[0].length-1) ||
+        (figure.color == Color.GREEN && posX === 0)) {
+       
+        boards[room].board[posY][posX] = new Figure(FigureType[figure.type.name], figure.color);
+        boards[room].board[posY][posX].setPosition(posX, posY, boards[room]);
+        boards[room].turn.nextTurn();
     }
   }
+  var id = getRoomFromSocket(socket).substring(1);
+  io.sockets. in (id).emit('syncPawnConvertion', figure, figureId, posX, posY);
 }
 
 function joinRoom(id, socket, pw) {
-  console.log("IZVALID? "+isValid(io.rooms[('/' + id)][1]));
   if(isValid(io.rooms[('/' + id)][1])) {
     if (!io.rooms[('/' + id)][1].details.password || io.rooms[('/' + id)][1].details.password == pw) {
       var availableColors = io.rooms[('/' + id)][1].details.colors.length;
