@@ -40,9 +40,9 @@ io.sockets.on('connection', function(socket) {
     clientDisconnect(socket);
   });
 
-  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color, rookFigureIndex) {
+  socket.on('sendPosition', function(oldPos, newPos, figureIndex, color, rookFigureIndex, oldRookPos) {
     if (isValid(oldPos) && isValid(newPos) && isValid(figureIndex) && isValid(color)) {
-      setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex);
+      setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex, oldRookPos);
     }
   });
 
@@ -129,7 +129,7 @@ io.sockets.on('connection', function(socket) {
     var id = getRoomFromSocket(socket).substring(1);
     var readycount = 0;
     for (var i = 0; i < io.sockets.clients(id).length; i++) {
-      if (io.sockets.clients(id)[i].ready == true) {
+      if (io.sockets.clients(id)[i].ready === true) {
         readycount = readycount + 1;
       }
     }
@@ -188,7 +188,7 @@ function getRoomFromSocket(socket) {
   }
 }
 
-function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex) {
+function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex, oldRookPos) {
   var room = getRoomFromSocket(socket);
   if (boards[room].isLegalTile(oldPos.x, oldPos.y) && boards[room].isLegalTile(newPos.x, newPos.y)) {
     if (!turnOn || color == boards[room].turn.curPlayer.color) {
@@ -234,11 +234,13 @@ function setPosition(oldPos, newPos, figureIndex, color, socket, rookFigureIndex
                 y: oldPos.y + king.left().y
               };
             }
-            io.sockets. in (roomName).emit('setPosition', newRookPos, rookFigureIndex, false, figureIndex);
+            boards[room].moveFigureTo(oldRookPos.x, oldRookPos.y, newRookPos.x, newRookPos.y);
+            console.log("HURENSOHN");
+            io.sockets. in (roomName).emit('setPosition', newRookPos, oldRookPos, true, true);
           }
         }
-
-        io.sockets. in (roomName).emit('setPosition', newPos, figureIndex, true);
+        if(oldPos.x !== newPos.x || oldPos.y !== newPos.y)
+          io.sockets. in (roomName).emit('setPosition', newPos, oldPos, true);
         boards[room].initCheckedTiles();
         io.sockets. in (roomName).emit('updateCheckedTiles', boards[room].checkedTiles);
         return;
