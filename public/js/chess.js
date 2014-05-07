@@ -133,6 +133,8 @@ function turnCallback() {
   if (player == turn.curPlayer.color && !focussed) {
     blinkInterval = setInterval(blinkTitle, 250);
   }
+  foreGroundLayer.removeChildren();
+  foreGroundLayer.draw();
 }
 
 function blinkTitle() {

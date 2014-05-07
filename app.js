@@ -133,10 +133,10 @@ io.sockets.on('connection', function(socket) {
         readycount = readycount + 1;
       }
     }
-    //if (readycount == 4) {
+    if (readycount == 4) {
       addBoard(id);
       io.sockets. in (id).emit('startgame');
-    //}
+    }
   });
 
   socket.on('readychange', function(checked) {
