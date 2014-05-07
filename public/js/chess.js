@@ -186,7 +186,7 @@ function pawnConvertion(id, pos) {
         (figureColor == Color.BLACK && pos.y == myBoard.board.length-1) ||
         (figureColor == Color.RED && pos.x == myBoard.board[0].length-1) ||
         (figureColor == Color.GREEN && pos.x === 0)) {
-       
+
         if (player === turn.curPlayer.color && figureList[id].figure.color === player) {
           convertPawn(id, pos); //convertPawn.js
         }

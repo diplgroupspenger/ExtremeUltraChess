@@ -21,7 +21,7 @@ function drawConvertion(figure, posX, posY, figureId) {
         height: TILE_SIZE,
         crop: {x: figurePos.x, y: figurePos.y, width: 50, height: 50}
     });
-    
+
     rotateFigure(figureImage);
 
     figureImage.on('mouseover', function() {
@@ -38,9 +38,9 @@ function drawConvertion(figure, posX, posY, figureId) {
 		lockFigures = false;
 		var x = figureList[figureId].figure.x;
 		var y = figureList[figureId].figure.y;
-    	socket.emit('convertPawn', figure, figureId, x, y);
+        socket.emit('convertPawn', figure, figureId, x, y);
 	});
-    
+
     foreGroundLayer.add(figureImage);
 }
 
@@ -53,7 +53,7 @@ function replaceFigure(figure, figureId, x, y) {
 	myBoard.board[y][x].setPosition(x, y, myBoard);
 	drawFigure(x, y, player);
 	figureLayer.draw();
-	
+
 	foreGroundLayer.removeChildren();
 	foreGroundLayer.draw();
 	setNextTurn();
@@ -62,7 +62,7 @@ function replaceFigure(figure, figureId, x, y) {
 function redrawConvertion() {
 	_.each(foreGroundLayer.getChildren(), function(img) {
 		//get old tilesize(width and height are equal)
-		oldTileSize = img.getWidth(); 
+		oldTileSize = img.getWidth();
 		img.setX((img.getX() / oldTileSize) * TILE_SIZE);
 		img.setY((img.getY() / oldTileSize) * TILE_SIZE);
 		img.setWidth(TILE_SIZE);

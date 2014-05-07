@@ -100,23 +100,23 @@ Figure.prototype.behind = function() {
     switch (this.color) {
         case Color.WHITE:
             return {
-                "x": 0,
-                "y": 1
+                x: 0,
+                y: 1
             };
         case Color.BLACK:
             return {
-                "x": 0,
-                "y": -1
+                x: 0,
+                y: -1
             };
         case Color.RED:
             return {
-                "x": -1,
-                "y": 0
+                x: -1,
+                y: 0
             };
         case Color.GREEN:
             return {
-                "x": 1,
-                "y": 0
+                x: 1,
+                y: 0
             };
     }
 };
@@ -125,23 +125,23 @@ Figure.prototype.left = function() {
     switch (this.color) {
         case Color.WHITE:
             return {
-                "x": -1,
-                "y": 0
+                x: -1,
+                y: 0
             };
         case Color.BLACK:
             return {
-                "x": 1,
-                "y": 0
+                x: 1,
+                y: 0
             };
         case Color.RED:
             return {
-                "x": 0,
-                "y": -1
+                x: 0,
+                y: -1
             };
         case Color.GREEN:
             return {
-                "x": 0,
-                "y": 1
+                x: 0,
+                y: 1
             };
     }
 };
@@ -150,23 +150,23 @@ Figure.prototype.right = function() {
     switch (this.color) {
         case Color.WHITE:
             return {
-                "x": 1,
-                "y": 0
+                x: 1,
+                y: 0
             };
         case Color.BLACK:
             return {
-                "x": -1,
-                "y": 0
+                x: -1,
+                y: 0
             };
         case Color.RED:
             return {
-                "x": 0,
-                "y": 1
+                x: 0,
+                y: 1
             };
         case Color.GREEN:
             return {
-                "x": 0,
-                "y": -1
+                x: 0,
+                y: -1
             };
     }
 };
@@ -247,6 +247,7 @@ Figure.prototype.forbiddenMoves = function(myBoard){
     var positions = [];
     this.addPossibleDiagonalMoves(positions, 2, myBoard);
     this.addPossibleYandXaxisMoves(positions, 2, myBoard);
+    this.addRochadeMoves(positions, myBoard);
 
     var forbiddenMoves = [];
     var forbiddenIndexes = this.getForbiddenB0ssIndexes(positions, virtualBoard);

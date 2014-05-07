@@ -7,7 +7,6 @@ function lobby(socket) {
 
   //socket.on('connect', function() {
   socket.on('syncRooms', function(rooms) {
-    console.log(rooms);
     for (var key in rooms) {
       if (rooms[key][1]) {
         if (rooms[key][1].details) {
@@ -18,7 +17,6 @@ function lobby(socket) {
   });
   socket.on('connect ack', function() {
     socket.on('roomcreated', function(newRoom) {
-      console.log(newRoom);
       opengames.push(newRoom);
       drawroom(newRoom);
     });
@@ -26,7 +24,6 @@ function lobby(socket) {
       console.log(data);
     });
     socket.on('name', function(name, id) {
-      console.log(name);
       myname = name;
       socket.username = name;
       localStorage.id = id;

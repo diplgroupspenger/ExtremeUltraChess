@@ -145,9 +145,6 @@ Board.prototype.initCheckedTiles = function(){
 			}
 		}
 	}
-	//var end = new Date().getTime();
-	//var time = end - start;
-	//console.log("EXECUTION TIME: " + time + "ms");
 };
 
 //updates the checked tiles when a figure is moved - abandoned for later
@@ -164,8 +161,6 @@ Board.prototype.initCheckedTiles = function(){
 
 Board.prototype.pushByPosition = function(x, y){
 	var figure = this.get(x, y);
-	//console.log("posX: " + x + " posY: " + y);
-	//console.log("length: " + possibleMoves.length);
 	if(figure.type !== FigureType.PAWN){
 		var possibleMoves = figure.possibleMoves(this);
 		for(var i = 0; i < possibleMoves.length; i++){
@@ -173,9 +168,6 @@ Board.prototype.pushByPosition = function(x, y){
 			var posY = possibleMoves[i].y;
 			var json = {x: posX, y: posY, figure: figure};
 			this.checkedTiles.push(json);
-			//if(typeof _.findWhere(this.checkedTiles, json) == "undefined"){
-			//
-			//}
 		}
 	}
 	else{
