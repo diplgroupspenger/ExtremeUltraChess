@@ -297,9 +297,9 @@ function joinRoom(id, socket, pw) {
         socket.join(id);
 
         colornum = Math.floor(Math.random() * (io.rooms[('/' + id)][1].details.colors.length));
-        if (io.rooms[('/' + id)].length - 1 === 1) {
-          colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
-        }
+        //if (io.rooms[('/' + id)].length - 1 === 1) {
+        //colornum = 0; // DEBUG - REMOVE IN FINAL!!!!!!
+        //}
         userdbPool.getConnection(function(err, connection) {
           connection.query('SELECT id from users where socket=?', [socket.id], function(err, result) {
             if (result[0]) {
